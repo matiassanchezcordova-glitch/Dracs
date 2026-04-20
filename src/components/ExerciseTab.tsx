@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useChildProfile } from '../hooks/useChildProfile'
+import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
 import { buildSession, type RuntimeExercise } from '../data/exercises'
 import SetupScreen from './exercise/SetupScreen'
 import WelcomeScreen from './exercise/WelcomeScreen'
@@ -65,7 +65,15 @@ export default function ExerciseTab({ onNavigateToFamilia }: Props) {
   }
 
   if (screen === 'exercise') {
-    return <ExerciseScreen exercises={session} onComplete={handleSessionComplete} />
+    return (
+      <ExerciseScreen
+        exercises={session}
+        childName={profile.name}
+        level={profile.level}
+        sessionNumber={loadHistory().length + 1}
+        onComplete={handleSessionComplete}
+      />
+    )
   }
 
   if (screen === 'end' && endState) {

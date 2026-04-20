@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ── Shake animation (answer cards) ───────────────────────────────────── */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   15%       { transform: translateX(-9px) rotate(-1deg); }
@@ -10,30 +11,141 @@
   75%       { transform: translateX(-4px); }
   90%       { transform: translateX(4px); }
 }
-
 .animate-shake {
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
+/* ── Dragon float animation ───────────────────────────────────────────── */
+@keyframes floatDragon {
+  0%   { transform: translateY(0px)   rotate(-2deg); }
+  50%  { transform: translateY(-10px) rotate(2deg);  }
+  100% { transform: translateY(0px)   rotate(-2deg); }
+}
+
+/* ── Background blob pulse animations ────────────────────────────────── */
+@keyframes blobPulse1 {
+  0%, 100% { transform: scale(1.0); }
+  50%      { transform: scale(1.08); }
+}
+@keyframes blobPulse2 {
+  0%, 100% { transform: scale(1.0); }
+  50%      { transform: scale(1.06); }
+}
+@keyframes blobPulse3 {
+  0%, 100% { transform: scale(1.0); }
+  50%      { transform: scale(1.10); }
+}
+
+/* ── Tailwind theme ───────────────────────────────────────────────────── */
 @theme {
   --font-nunito: 'Nunito', sans-serif;
-
-  --color-primary: #0EA5E9;
-  --color-secondary: #FBBF24;
-  --color-bg: #F0F9FF;
+  --color-primary: #0BAFBE;
+  --color-secondary: #FFD93D;
+  --color-bg: #F0FAFA;
   --color-correct: #22C55E;
   --color-incorrect: #F87171;
   --color-dracs-text: #0F172A;
 }
 
+/* ── App fade-in (role selector → app) ───────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Dragon float variant (larger range, for role selector & about) ───── */
+@keyframes floatDragon2 {
+  0%   { transform: translateY(0px)   rotate(-3deg); }
+  50%  { transform: translateY(-12px) rotate(3deg);  }
+  100% { transform: translateY(0px)   rotate(-3deg); }
+}
+
+/* ── Bounce horizontal (arrow toward CTA card) ────────────────────────── */
+@keyframes bounceX {
+  0%, 100% { transform: translateX(0);   }
+  50%      { transform: translateX(6px); }
+}
+
+/* ── Tab enter transition ─────────────────────────────────────────────── */
+@keyframes tabEnter {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.tab-enter { animation: tabEnter 0.28s ease; }
+
+/* ── Word slide-down (exercise word card) ─────────────────────────────── */
+@keyframes wordSlideDown {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Answer card entrance (staggered) ────────────────────────────────── */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(14px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── Dragon jump (correct answer) ────────────────────────────────────── */
+@keyframes dragonJump {
+  0%   { transform: translateY(0)     rotate(0deg); }
+  25%  { transform: translateY(-22px) rotate(6deg); }
+  55%  { transform: translateY(-10px) rotate(-3deg); }
+  80%  { transform: translateY(-4px)  rotate(1deg); }
+  100% { transform: translateY(0)     rotate(0deg); }
+}
+
+/* ── Dragon idle blink (subtle, every ~8s) ────────────────────────────── */
+@keyframes dragonBlink {
+  0%, 94%, 100% { opacity: 0.88; }
+  97%           { opacity: 0.35; }
+}
+
+/* ── AI pulse dot ─────────────────────────────────────────────────────── */
+@keyframes aiPulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.3; transform: scale(0.7); }
+}
+
+/* ── Achievement badge shimmer ────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Ripple (buttons) ─────────────────────────────────────────────────── */
+@keyframes rippleOut {
+  from { transform: translate(-50%,-50%) scale(0); opacity: 0.5; }
+  to   { transform: translate(-50%,-50%) scale(5); opacity: 0; }
+}
+
+/* ── Week circle stagger entrance ────────────────────────────────────── */
+@keyframes circleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Metric number count-in ──────────────────────────────────────────── */
+@keyframes metricIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Active dot pulse (therapist list) ────────────────────────────────── */
+@keyframes haloPulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--halo); }
+  50%       { box-shadow: 0 0 0 6px var(--halo); }
+}
+
+/* ── Global reset ─────────────────────────────────────────────────────── */
 * {
   font-family: 'Nunito', sans-serif;
   box-sizing: border-box;
 }
 
-body {
+body, #root {
   margin: 0;
-  background-color: #F0F9FF;
+  background: linear-gradient(135deg, #E0F7FA 0%, #E8F8FA 30%, #F0FFFE 60%, #E4F9F5 100%);
+  min-height: 100vh;
   color: #0F172A;
 }
 
@@ -41,4 +153,24 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+}
+
+/* ── Custom scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(11, 175, 190, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(11, 175, 190, 0.5);
+}
+
+/* ── Text selection ───────────────────────────────────────────────────── */
+::selection {
+  background: rgba(11, 175, 190, 0.2);
 }

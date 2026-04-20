@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Gamepad2, BarChart2, Users, Flame, Target, CheckCircle } from 'lucide-react'
 
 type NavTarget = 'ejercicio' | 'terapeuta' | 'familia'
 
@@ -62,34 +63,58 @@ function readStats(): HomeStats {
 // ── sub-components ────────────────────────────────────────────────────────
 
 function AccessCard({
-  emoji,
+  icon,
   title,
   description,
   buttonLabel,
-  buttonColor,
+  buttonBg,
   onClick,
 }: {
-  emoji: string
+  icon: React.ReactNode
   title: string
   description: string
   buttonLabel: string
-  buttonColor: string
+  buttonBg: string
   onClick: () => void
 }) {
+  const [hovered, setHovered] = useState(false)
+  const [btnHovered, setBtnHovered] = useState(false)
+
   return (
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         backgroundColor: '#ffffff',
         borderRadius: '20px',
         border: '1px solid #E0F2FE',
+        borderTop: '4px solid #0BAFBE',
         padding: '28px 24px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        boxShadow: '0 2px 12px rgba(14, 165, 233, 0.06)',
+        boxShadow: hovered
+          ? '0 8px 32px rgba(11, 175, 190, 0.20)'
+          : '0 4px 24px rgba(11, 175, 190, 0.12)',
+        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.25s ease',
       }}
     >
-      <div style={{ fontSize: '48px', lineHeight: 1 }}>{emoji}</div>
+      <div
+        style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '14px',
+          backgroundColor: '#F0FAFA',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#0BAFBE',
+        }}
+      >
+        {icon}
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
         <h3
           style={{
@@ -115,22 +140,25 @@ function AccessCard({
           {description}
         </p>
       </div>
+
       <button
         onClick={onClick}
+        onMouseEnter={() => setBtnHovered(true)}
+        onMouseLeave={() => setBtnHovered(false)}
         style={{
           padding: '12px',
           borderRadius: '14px',
           border: 'none',
-          backgroundColor: buttonColor,
+          background: buttonBg,
           color: '#ffffff',
           fontSize: '14px',
           fontWeight: 700,
           cursor: 'pointer',
           fontFamily: 'Nunito, sans-serif',
-          transition: 'opacity 0.15s',
+          transition: 'all 0.2s ease',
+          filter: btnHovered ? 'brightness(1.1)' : 'brightness(1)',
+          transform: btnHovered ? 'translateY(-1px)' : 'translateY(0)',
         }}
-        onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
       >
         {buttonLabel}
       </button>
@@ -139,15 +167,15 @@ function AccessCard({
 }
 
 function StatBig({
+  icon,
   value,
   label,
-  icon,
-  color = '#0EA5E9',
+  valueColor = '#FFD93D',
 }: {
+  icon: React.ReactNode
   value: string
   label: string
-  icon: string
-  color?: string
+  valueColor?: string
 }) {
   return (
     <div
@@ -157,18 +185,15 @@ function StatBig({
         alignItems: 'center',
         gap: '6px',
         padding: '24px 16px',
-        backgroundColor: '#ffffff',
-        borderRadius: '16px',
-        border: '1px solid #E0F2FE',
         flex: 1,
       }}
     >
-      <span style={{ fontSize: '28px', lineHeight: 1 }}>{icon}</span>
+      <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex' }}>{icon}</span>
       <span
         style={{
-          fontSize: '32px',
+          fontSize: '36px',
           fontWeight: 900,
-          color,
+          color: valueColor,
           lineHeight: 1,
           fontFamily: 'Nunito, sans-serif',
         }}
@@ -179,7 +204,7 @@ function StatBig({
         style={{
           fontSize: '12px',
           fontWeight: 600,
-          color: '#94A3B8',
+          color: 'rgba(255,255,255,0.75)',
           textAlign: 'center',
           fontFamily: 'Nunito, sans-serif',
         }}
@@ -198,7 +223,7 @@ export default function HomeTab({ onNavigate }: Props) {
   return (
     <div
       style={{
-        background: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)',
+        background: 'linear-gradient(180deg, #F0FAFA 0%, #E0F6F8 100%)',
         flex: 1,
         overflowY: 'auto',
         fontFamily: 'Nunito, sans-serif',
@@ -215,59 +240,49 @@ export default function HomeTab({ onNavigate }: Props) {
         }}
       >
         {/* ── Hero ──────────────────────────────────────────────── */}
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-          {/* Logo mark */}
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <div
-              style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '22px',
-                backgroundColor: '#0EA5E9',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(14, 165, 233, 0.3)',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'Nunito, sans-serif',
-                  fontWeight: 900,
-                  fontSize: '40px',
-                  color: '#ffffff',
-                  lineHeight: 1,
-                }}
-              >
-                D
-              </span>
-            </div>
-            {/* Decorative dots */}
-            <div style={{ position: 'absolute', top: '-6px', right: '-6px', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#FBBF24' }} />
-            <div style={{ position: 'absolute', bottom: '-4px', left: '-4px', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22C55E' }} />
-          </div>
+        <div
+          style={{
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '20px',
+          }}
+        >
+          <img
+            src="/dragon.nb.png"
+            alt="DRACS mascot"
+            style={{
+              height: '120px',
+              width: 'auto',
+              display: 'block',
+              animation: 'floatDragon 3s ease-in-out infinite',
+            }}
+          />
 
-          <div>
+          <div style={{ textAlign: 'center' }}>
             <h1
               style={{
-                margin: 0,
-                fontSize: '34px',
-                fontWeight: 900,
+                margin: '0 auto',
+                fontSize: '38px',
+                fontWeight: 800,
                 color: '#0F172A',
                 lineHeight: 1.2,
                 maxWidth: '540px',
+                textAlign: 'center',
               }}
             >
               Terapia del lenguaje para niños con Síndrome de Down
             </h1>
             <p
               style={{
-                margin: '12px 0 0',
+                margin: '12px auto 0',
                 fontSize: '16px',
                 fontWeight: 600,
                 color: '#64748B',
                 maxWidth: '440px',
                 lineHeight: 1.5,
+                textAlign: 'center',
               }}
             >
               Ejercicios adaptativos diarios supervisados por tu terapeuta
@@ -284,80 +299,107 @@ export default function HomeTab({ onNavigate }: Props) {
           }}
         >
           <AccessCard
-            emoji="🎮"
+            icon={<Gamepad2 size={24} />}
             title="Ejercicios"
             description="Sesión diaria adaptada al nivel de tu hijo"
             buttonLabel="Empezar sesión"
-            buttonColor="#0EA5E9"
+            buttonBg="linear-gradient(135deg, #0BAFBE, #0891A0)"
             onClick={() => onNavigate('ejercicio')}
           />
           <AccessCard
-            emoji="📊"
+            icon={<BarChart2 size={24} />}
             title="Terapeuta"
             description="Panel de seguimiento y progreso de pacientes"
             buttonLabel="Ver pacientes"
-            buttonColor="#0369A1"
+            buttonBg="linear-gradient(135deg, #0891A0, #076E7A)"
             onClick={() => onNavigate('terapeuta')}
           />
           <AccessCard
-            emoji="👨‍👩‍👧"
+            icon={<Users size={24} />}
             title="Familia"
             description={`Seguimiento del progreso semanal de ${stats.childName}`}
             buttonLabel="Ver progreso"
-            buttonColor="#22C55E"
+            buttonBg="#22C55E"
             onClick={() => onNavigate('familia')}
           />
         </div>
 
-        {/* ── Stats ───────────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        {/* ── Stats strip ─────────────────────────────────────── */}
+        <div
+          style={{
+            display: 'flex',
+            borderRadius: '20px',
+            background: 'linear-gradient(135deg, #0BAFBE, #0891A0)',
+            overflow: 'hidden',
+            boxShadow: '0 4px 24px rgba(11, 175, 190, 0.25)',
+          }}
+        >
           <StatBig
-            icon="🔥"
-            value={`${stats.streak} días`}
+            icon={<Flame size={22} />}
+            value={
+              stats.streak === 0
+                ? '¡Hoy!'
+                : stats.streak === 1
+                  ? '1 día'
+                  : `${stats.streak}d`
+            }
             label="Racha actual"
-            color="#D97706"
           />
+          <div style={{ width: '1px', backgroundColor: 'rgba(255,255,255,0.15)', margin: '16px 0' }} />
           <StatBig
-            icon="🎯"
+            icon={<Target size={22} />}
             value={`${stats.accuracyThisWeek}%`}
             label="Aciertos esta semana"
-            color="#0EA5E9"
           />
+          <div style={{ width: '1px', backgroundColor: 'rgba(255,255,255,0.15)', margin: '16px 0' }} />
           <StatBig
-            icon="✅"
+            icon={<CheckCircle size={22} />}
             value={`${stats.sessionsThisWeek}/${stats.sessionsTarget}`}
             label="Sesiones completadas"
-            color="#22C55E"
           />
         </div>
 
         {/* ── Motivational banner ─────────────────────────────── */}
         <div
           style={{
-            backgroundColor: '#E0F2FE',
+            backgroundColor: '#E0F6F8',
             borderRadius: '16px',
-            border: '1px solid #BAE6FD',
+            border: '1px solid #A5E4EC',
             padding: '20px 24px',
             display: 'flex',
             alignItems: 'center',
             gap: '14px',
+            boxShadow: '0 4px 24px rgba(11, 175, 190, 0.10)',
           }}
         >
-          <span style={{ fontSize: '32px', flexShrink: 0 }}>💪</span>
+          <img
+            src="/dragon.nb.png"
+            alt=""
+            style={{ height: '40px', width: 'auto', flexShrink: 0 }}
+          />
           <p
             style={{
               margin: 0,
               fontSize: '16px',
               fontWeight: 700,
-              color: '#0369A1',
+              color: '#0891A0',
               lineHeight: 1.4,
             }}
           >
-            {stats.childName} lleva{' '}
-            <span style={{ color: '#0EA5E9', fontWeight: 900 }}>
-              {stats.streak} días seguidos
-            </span>{' '}
-            trabajando. ¡Sigue así!
+            {stats.streak === 0 ? (
+              <>
+                ¡Hoy es un buen día para empezar,{' '}
+                <span style={{ color: '#0BAFBE', fontWeight: 900 }}>{stats.childName}</span>!
+              </>
+            ) : (
+              <>
+                {stats.childName} lleva{' '}
+                <span style={{ color: '#0BAFBE', fontWeight: 900 }}>
+                  {stats.streak === 1 ? '1 día seguido' : `${stats.streak} días seguidos`}
+                </span>{' '}
+                trabajando. ¡Sigue así!
+              </>
+            )}
           </p>
         </div>
       </div>

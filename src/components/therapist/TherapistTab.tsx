@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Stethoscope } from 'lucide-react'
 import { getPatients } from '../../data/patients'
 import PatientList from './PatientList'
 import PatientDetail from './PatientDetail'
@@ -17,7 +18,6 @@ function todayLabel(): string {
 }
 
 export default function TherapistTab() {
-  // Build patient list once per mount (reads localStorage at that moment)
   const patients = useMemo(() => getPatients(), [])
   const [selectedId, setSelectedId] = useState(patients[0]?.id ?? '')
 
@@ -25,58 +25,68 @@ export default function TherapistTab() {
 
   return (
     <div
-      className="flex flex-col"
       style={{
-        fontFamily: 'Poppins, sans-serif',
-        backgroundColor: '#ffffff',
+        fontFamily: 'Nunito, sans-serif',
+        backgroundColor: 'transparent',
         flex: 1,
         overflow: 'hidden',
         minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {/* ── Sub-header (below App navbar) ───────────────────────────── */}
+      {/* ── Sub-header ──────────────────────────────────────────── */}
       <header
-        className="flex items-center justify-between px-6 py-3 flex-shrink-0"
-        style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#FAFCFF' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 24px',
+          flexShrink: 0,
+          background: 'rgba(0,0,0,0.20)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(255,255,255,0.15)',
+        }}
       >
         {/* Therapist identity */}
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              backgroundColor: '#E0F2FE',
+              backgroundColor: 'rgba(255,255,255,0.18)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '18px',
               flexShrink: 0,
             }}
           >
-            👩‍⚕️
+            <Stethoscope size={18} style={{ color: '#ffffff' }} />
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
+            <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#ffffff', fontFamily: 'Nunito, sans-serif' }}>
               Dra. Martínez
             </p>
-            <p style={{ margin: 0, fontSize: '11px', color: '#94A3B8' }}>
+            <p style={{ margin: 0, fontSize: '11px', color: 'rgba(255,255,255,0.7)', fontFamily: 'Nunito, sans-serif' }}>
               Terapeuta del lenguaje
             </p>
           </div>
         </div>
 
         {/* Date + badge */}
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span
             style={{
               fontSize: '11px',
               fontWeight: 500,
-              color: '#94A3B8',
-              backgroundColor: '#F1F5F9',
+              color: 'rgba(255,255,255,0.8)',
+              backgroundColor: 'rgba(255,255,255,0.12)',
               padding: '3px 10px',
               borderRadius: '6px',
               textTransform: 'capitalize',
+              fontFamily: 'Nunito, sans-serif',
             }}
           >
             {todayLabel()}
@@ -84,11 +94,12 @@ export default function TherapistTab() {
           <span
             style={{
               fontSize: '11px',
-              fontWeight: 600,
-              color: '#0369A1',
-              backgroundColor: '#E0F2FE',
+              fontWeight: 700,
+              color: '#0BAFBE',
+              backgroundColor: '#ffffff',
               padding: '3px 10px',
               borderRadius: '6px',
+              fontFamily: 'Nunito, sans-serif',
             }}
           >
             Panel clínico
@@ -96,17 +107,20 @@ export default function TherapistTab() {
         </div>
       </header>
 
-      {/* ── Two-column layout ───────────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
-        {/* Left: patient list (~28%) */}
+      {/* ── Two-column layout ───────────────────────────────────── */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        {/* Left: patient list */}
         <div
           style={{
             width: '260px',
             flexShrink: 0,
-            borderRight: '1px solid #F1F5F9',
+            borderRight: '1px solid rgba(255,255,255,0.15)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
+            background: 'rgba(255,255,255,0.10)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
         >
           <PatientList
@@ -116,7 +130,7 @@ export default function TherapistTab() {
           />
         </div>
 
-        {/* Right: detail (~72%) */}
+        {/* Right: detail */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {selected && <PatientDetail patient={selected} />}
         </div>
