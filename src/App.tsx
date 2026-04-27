@@ -72,7 +72,8 @@ export default function App({ role, onLogout }: Props) {
               padding: '4px 0',
               flexShrink: 0,
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
               transition: 'opacity 0.2s ease',
             }}
             onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '0.75')}
@@ -90,6 +91,19 @@ export default function App({ role, onLogout }: Props) {
             >
               DRACS
             </span>
+            {role === 'therapist' && (
+              <span style={{
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 600,
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.65)',
+                lineHeight: 1,
+                marginTop: '3px',
+                letterSpacing: '0.02em',
+              }}>
+                Dra. Martínez · Terapeuta
+              </span>
+            )}
           </button>
 
           {/* Tabs */}

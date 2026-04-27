@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { TrendingUp, Calendar, Star, Flame, FileText } from 'lucide-react'
+import { Star, Flame, TrendingUp, ArrowRight, Check } from 'lucide-react'
 import WeeklyReport from './WeeklyReport'
 
 interface Props {
@@ -15,6 +15,30 @@ function getChildName(): string {
     const p = JSON.parse(raw) as { name?: string }
     return p.name ?? 'Pablo'
   } catch { return 'Pablo' }
+}
+
+function slugify(name: string): string {
+  return name.toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
+function getWeekKey(d: Date = new Date()): string {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7))
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+  const weekNum = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+  return `${date.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`
+}
+
+interface TherapistComment { texto: string; fecha: string; terapeuta: string }
+
+function getTherapistComment(childName: string): TherapistComment | null {
+  try {
+    const slug = slugify(childName)
+    const key = `dracs_comment_${slug}_${getWeekKey()}`
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as TherapistComment) : null
+  } catch { return null }
 }
 
 interface WeekStats {
@@ -44,7 +68,6 @@ function getWeekStats(): WeekStats {
       : []
 
     const today = new Date()
-
     const weekStart = new Date(today)
     weekStart.setDate(today.getDate() - today.getDay())
     weekStart.setHours(0, 0, 0, 0)
@@ -74,14 +97,6 @@ function getWeekStats(): WeekStats {
   } catch { return defaults }
 }
 
-function getTomorrowLabel(): string {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  const labels = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
-  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-  return `${labels[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
-}
-
 // ── Count-up ──────────────────────────────────────────────────────────────
 
 function useCountUp(target: number, duration = 700) {
@@ -102,518 +117,359 @@ function useCountUp(target: number, duration = 700) {
   return val
 }
 
-// ── Achievement badge ─────────────────────────────────────────────────────
-
-function AchievementBadge({
-  icon,
-  label,
-  gradient,
-  delay = 0,
-}: {
-  icon: React.ReactNode
-  label: string
-  gradient: string
-  delay?: number
-}) {
-  return (
-    <>
-      <style>{`
-        @keyframes shimmerMove {
-          0%   { background-position: -200% center; }
-          100% { background-position:  200% center; }
-        }
-      `}</style>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '10px 16px',
-          borderRadius: '14px',
-          background: gradient,
-          backgroundSize: '200% auto',
-          animation: `shimmerMove 2.8s linear ${delay}ms infinite`,
-          flex: 1,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-        }}
-      >
-        <span style={{ flexShrink: 0, display: 'flex', color: '#ffffff' }}>{icon}</span>
-        <span
-          style={{
-            fontSize: '12px',
-            fontWeight: 800,
-            color: '#ffffff',
-            fontFamily: 'Nunito, sans-serif',
-            lineHeight: 1.3,
-          }}
-        >
-          {label}
-        </span>
-      </div>
-    </>
-  )
-}
-
-// ── Week day grid ─────────────────────────────────────────────────────────
+// ── Week grid ─────────────────────────────────────────────────────────────
 
 const DAYS_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-const THIS_WEEK_DONE  = [true, true, true, true, true, false, false]
-const LAST_WEEK_DONE  = [true, false, false, true, false, false, false]
+const THIS_WEEK_DONE = [true, true, true, true, true, false, false]
 
 const todayDowIndex = (() => {
   const d = new Date().getDay()
   return d === 0 ? 6 : d - 1
 })()
 
-function WeekGrid({ label, done, color, showToday }: { label: string; done: boolean[]; color: string; showToday?: boolean }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', fontFamily: 'Nunito, sans-serif' }}>
-        {label}
-      </span>
-      <div style={{ display: 'flex', gap: '6px' }}>
-        {DAYS_SHORT.map((d, i) => {
-          const isToday = showToday && i === todayDowIndex
-          return (
-            <div
-              key={d}
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: done[i] ? color : 'transparent',
-                border: isToday
-                  ? `3px solid ${color}`
-                  : done[i]
-                    ? 'none'
-                    : '2px solid #E2E8F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: done[i] ? '#ffffff' : isToday ? color : '#CBD5E1',
-                flexShrink: 0,
-                fontFamily: 'Nunito, sans-serif',
-                animation: done[i] ? `circleIn 0.4s ease ${i * 80}ms both` : 'none',
-                boxShadow: isToday ? `0 0 0 3px ${color}33` : 'none',
-              }}
-            >
-              {done[i] ? '✓' : d}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// ── Glass card ────────────────────────────────────────────────────────────
+// ── White card ────────────────────────────────────────────────────────────
 
 function Card({ children, style: s }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  const [hovered, setHovered] = useState(false)
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255,255,255,0.5)',
-        borderRadius: '20px',
-        padding: '20px',
-        boxShadow: hovered
-          ? '0 8px 32px rgba(0,0,0,0.16)'
-          : '0 4px 20px rgba(0,0,0,0.08)',
-        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        transition: 'all 0.22s ease',
-        ...s,
-      }}
-    >
+    <div style={{
+      background: '#ffffff',
+      borderRadius: '16px',
+      padding: '24px',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      ...s,
+    }}>
       {children}
     </div>
   )
 }
 
-// ── Primary button ────────────────────────────────────────────────────────
-
-function PrimaryButton({ children, onClick, style: s }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        borderRadius: '14px',
-        border: 'none',
-        background: 'linear-gradient(135deg, #0BAFBE, #0891A0)',
-        color: '#ffffff',
-        fontWeight: 800,
-        cursor: 'pointer',
-        fontFamily: 'Nunito, sans-serif',
-        transition: 'all 0.2s ease',
-        filter: hovered ? 'brightness(1.1)' : 'brightness(1)',
-        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: '0 4px 20px rgba(11,175,190,0.28)',
-        ...s,
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// ── Report button ─────────────────────────────────────────────────────────
-
-function ReportButton({ onClick }: { onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '12px 24px',
-        borderRadius: '12px',
-        border: '1px solid rgba(255,255,255,0.3)',
-        background: hovered ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        color: '#ffffff',
-        fontSize: '15px',
-        fontWeight: 600,
-        cursor: 'pointer',
-        fontFamily: 'Nunito, sans-serif',
-        alignSelf: 'flex-start',
-        transition: 'background 0.18s ease',
-      }}
-    >
-      <FileText size={16} color="#ffffff" />
-      Ver informe de esta semana →
-    </button>
-  )
+const CARD_TITLE: React.CSSProperties = {
+  margin: '0 0 16px',
+  fontSize: '15px',
+  fontWeight: 700,
+  color: '#0F172A',
+  fontFamily: 'Nunito, sans-serif',
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────
 
-export default function FamiliaTab({ onNavigateToEjercicio }: Props) {
+export default function FamiliaTab({ onNavigateToEjercicio: _onNavigateToEjercicio }: Props) {
   const [showReport, setShowReport] = useState(false)
 
-  // All hooks before any conditional render
-  const childName     = useMemo(getChildName, [])
-  const stats         = useMemo(getWeekStats, [])
-  const tomorrowLabel = useMemo(getTomorrowLabel, [])
-  const sessionCount  = useCountUp(stats.sessionsThisWeek)
-  const accuracyVal   = useCountUp(stats.accuracyThisWeek)
+  const childName        = useMemo(getChildName, [])
+  const stats            = useMemo(getWeekStats, [])
+  const therapistComment = useMemo(() => getTherapistComment(childName), [childName])
+  const sessionCount     = useCountUp(stats.sessionsThisWeek)
+  const accuracyVal      = useCountUp(stats.accuracyThisWeek)
+  const improvingVsLast  = stats.accuracyThisWeek > stats.lastWeekAccuracy
 
-  const weekGoingWell   = stats.sessionsThisWeek >= 3 && stats.accuracyThisWeek >= 70
-  const improvingVsLast = stats.accuracyThisWeek > stats.lastWeekAccuracy
-  const sessionDiff     = stats.sessionsThisWeek - stats.lastWeekSessions
+  const heroSubtitle =
+    stats.sessionsThisWeek >= 5
+      ? 'Esta semana ha sido excelente'
+      : stats.sessionsThisWeek >= 3
+        ? 'La semana va bien'
+        : 'Quedan días para practicar'
 
-  const badges: { icon: React.ReactNode; label: string; gradient: string; delay: number }[] = []
+  const chips: { icon: React.ReactNode; label: string }[] = []
   if (stats.sessionsThisWeek >= 5)
-    badges.push({ icon: <Star size={18} />, label: 'Semana perfecta', gradient: 'linear-gradient(90deg, #F59E0B, #FBBF24, #F59E0B)', delay: 0 })
+    chips.push({ icon: <Star size={14} />, label: 'Semana perfecta' })
   if (improvingVsLast)
-    badges.push({ icon: <TrendingUp size={18} />, label: 'Mejor que nunca', gradient: 'linear-gradient(90deg, #22C55E, #4ADE80, #22C55E)', delay: 200 })
-  if (stats.streak > 3)
-    badges.push({ icon: <Flame size={18} />, label: `En racha · ${stats.streak} días`, gradient: 'linear-gradient(90deg, #F97316, #FB923C, #F97316)', delay: 400 })
+    chips.push({ icon: <TrendingUp size={14} />, label: 'Mejor que nunca' })
+  if (stats.streak > 3 && chips.length < 2)
+    chips.push({ icon: <Flame size={14} />, label: `${stats.streak} días en racha` })
 
   return (
-    <div
-      style={{
-        fontFamily: 'Nunito, sans-serif',
-        width: '100%',
-        flex: 1,
-        overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '24px 16px',
-      }}
-    >
+    <div style={{
+      fontFamily: 'Nunito, sans-serif',
+      width: '100%',
+      flex: 1,
+      overflowY: 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '24px 16px',
+    }}>
       {showReport && <WeeklyReport onBack={() => setShowReport(false)} />}
 
       {!showReport && (
-      <div
-        style={{
+        <div style={{
           width: '100%',
-          maxWidth: '720px',
+          maxWidth: '760px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
-        }}
-      >
+          gap: '20px',
+        }}>
 
-        {/* ── Hero card ──────────────────────────────────────────── */}
-        <div
-          style={{
-            background: 'rgba(0,0,0,0.20)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+          {/* ── Hero card ──────────────────────────────────────────── */}
+          <div style={{
+            background: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '22px',
-            padding: '22px 24px',
+            borderRadius: '20px',
+            padding: '24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <h1
-              style={{
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{
                 margin: 0,
-                fontSize: '22px',
-                fontWeight: 800,
+                fontSize: '20px',
+                fontWeight: 700,
                 color: '#ffffff',
-                lineHeight: 1.2,
+                lineHeight: 1.3,
                 fontFamily: 'Nunito, sans-serif',
-              }}
-            >
-              Hola, familia de {childName}
-            </h1>
-            <p
-              style={{
+              }}>
+                Hola, familia de {childName}
+              </h1>
+              <p style={{
                 margin: '6px 0 0',
                 fontSize: '14px',
-                fontWeight: 600,
-                color: 'rgba(255,255,255,0.75)',
+                fontWeight: 500,
+                color: 'rgba(255,255,255,0.8)',
                 fontFamily: 'Nunito, sans-serif',
-              }}
-            >
-              {weekGoingWell
-                ? 'Esta semana va muy bien'
-                : 'Esta semana necesita más práctica'}
-            </p>
-          </div>
+              }}>
+                {heroSubtitle}
+              </p>
+            </div>
 
-          {/* Sessions this week — large number */}
-          <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: '16px' }}>
-            <div
-              style={{
+            <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: '24px' }}>
+              <div style={{
                 fontSize: '48px',
                 fontWeight: 900,
                 color: '#FFD93D',
                 lineHeight: 1,
                 fontFamily: 'Nunito, sans-serif',
-              }}
-            >
-              {sessionCount}
-            </div>
-            <div
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
+              }}>
+                {sessionCount}
+              </div>
+              <div style={{
+                fontSize: '12px',
+                fontWeight: 600,
                 color: 'rgba(255,255,255,0.7)',
                 fontFamily: 'Nunito, sans-serif',
-                marginTop: '3px',
-              }}
-            >
-              sesiones esta semana
-            </div>
-          </div>
-        </div>
-
-        {/* ── Weekly report button ──────────────────────────────── */}
-        <ReportButton onClick={() => setShowReport(true)} />
-
-        {/* ── Achievement badges ─────────────────────────────────── */}
-        {badges.length > 0 && (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {badges.map((b, i) => (
-              <AchievementBadge key={i} icon={b.icon} label={b.label} gradient={b.gradient} delay={b.delay} />
-            ))}
-          </div>
-        )}
-
-        {/* ── Weekly comparison ──────────────────────────────────── */}
-        <Card>
-          <p style={{ margin: '0 0 16px', fontSize: '15px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
-            Esta semana vs. semana anterior
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <WeekGrid label="Esta semana" done={THIS_WEEK_DONE} color="#0BAFBE" showToday />
-            <WeekGrid label="Semana anterior" done={LAST_WEEK_DONE} color="#94A3B8" />
-          </div>
-
-          {sessionDiff !== 0 && (
-            <div
-              style={{
-                marginTop: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '7px',
-                backgroundColor: sessionDiff > 0 ? '#F0FDF4' : '#FFF1F2',
-                borderRadius: '10px',
-                padding: '9px 13px',
-              }}
-            >
-              <TrendingUp size={15} color={sessionDiff > 0 ? '#16A34A' : '#F87171'} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: sessionDiff > 0 ? '#15803D' : '#DC2626', fontFamily: 'Nunito, sans-serif' }}>
-                {sessionDiff > 0
-                  ? `${sessionDiff} sesión${sessionDiff > 1 ? 'es' : ''} más que la semana pasada`
-                  : `${Math.abs(sessionDiff)} sesión${Math.abs(sessionDiff) > 1 ? 'es' : ''} menos que la semana pasada`}
-              </span>
-            </div>
-          )}
-        </Card>
-
-        {/* ── Vocabulary progress ─────────────────────────────────── */}
-        <Card>
-          <p style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
-            Progreso de vocabulario
-          </p>
-
-          <div style={{ position: 'relative', marginBottom: '10px' }}>
-            <div
-              style={{
-                height: '28px',
-                backgroundColor: '#D0F1F4',
-                borderRadius: '99px',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  width: `${accuracyVal}%`,
-                  background: 'linear-gradient(90deg, #0BAFBE, #FFD93D)',
-                  borderRadius: '99px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  paddingRight: '10px',
-                  transition: 'width 0.8s ease',
-                }}
-              >
-                <span style={{ fontSize: '12px', fontWeight: 900, color: '#ffffff', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap' }}>
-                  {accuracyVal}%
-                </span>
+                marginTop: '4px',
+              }}>
+                sesiones esta semana
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', fontFamily: 'Nunito, sans-serif' }}>
-              Empezó en {stats.lastWeekAccuracy}% · Ahora en {stats.accuracyThisWeek}%
-            </span>
-            {improvingVsLast && (
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  color: '#22C55E',
-                  backgroundColor: '#F0FDF4',
-                  padding: '2px 9px',
-                  borderRadius: '20px',
+          {/* ── Achievement chips ─────────────────────────────────── */}
+          {chips.length > 0 && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {chips.slice(0, 2).map((chip, i) => (
+                <div key={i} style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  height: '32px',
+                  padding: '0 14px',
+                  borderRadius: '999px',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 600,
                   fontFamily: 'Nunito, sans-serif',
-                }}
-              >
-                +{stats.accuracyThisWeek - stats.lastWeekAccuracy}%
-              </span>
+                  flexShrink: 0,
+                }}>
+                  {chip.icon}
+                  {chip.label}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Ver informe button ────────────────────────────────── */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => setShowReport(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                border: 'none',
+                background: '#ffffff',
+                color: '#0BAFBE',
+                fontSize: '14px',
+                fontWeight: 700,
+                fontFamily: 'Nunito, sans-serif',
+                cursor: 'pointer',
+                boxShadow: '0 4px 20px rgba(11,175,190,0.25)',
+              }}
+            >
+              Ver informe semanal
+              <ArrowRight size={16} color="#0BAFBE" />
+            </button>
+          </div>
+
+          {/* ── Esta semana ──────────────────────────────────────── */}
+          <Card>
+            <p style={CARD_TITLE}>Esta semana</p>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              {DAYS_SHORT.map((d, i) => {
+                const done = THIS_WEEK_DONE[i]
+                const isToday = i === todayDowIndex && !done
+                return (
+                  <div
+                    key={d}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: done
+                        ? '#0BAFBE'
+                        : isToday
+                          ? 'transparent'
+                          : '#F1F5F9',
+                      border: isToday ? '2px solid #0BAFBE' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      animation: done ? `circleIn 0.4s ease ${i * 80}ms both` : 'none',
+                    }}
+                  >
+                    {done
+                      ? <Check size={12} color="#ffffff" strokeWidth={3} />
+                      : <span style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: isToday ? '#0BAFBE' : '#94A3B8',
+                          fontFamily: 'Nunito, sans-serif',
+                        }}>{d}</span>
+                    }
+                  </div>
+                )
+              })}
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
+              {stats.sessionsThisWeek} sesiones esta semana
+            </p>
+          </Card>
+
+          {/* ── Progreso de vocabulario ───────────────────────────── */}
+          <Card>
+            <p style={CARD_TITLE}>Progreso de vocabulario</p>
+            <div style={{
+              height: '10px',
+              backgroundColor: '#E0F2FE',
+              borderRadius: '5px',
+              overflow: 'hidden',
+              marginBottom: '10px',
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${accuracyVal}%`,
+                background: 'linear-gradient(90deg, #0BAFBE, #059669)',
+                borderRadius: '5px',
+                transition: 'width 0.8s ease',
+              }} />
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif' }}>
+              {stats.accuracyThisWeek}% de aciertos
+              {improvingVsLast && (
+                <span style={{ color: '#059669', fontWeight: 700 }}>
+                  {' '}· +{stats.accuracyThisWeek - stats.lastWeekAccuracy}% vs semana anterior
+                </span>
+              )}
+            </p>
+          </Card>
+
+          {/* ── Últimas sesiones ──────────────────────────────────── */}
+          <Card>
+            <p style={CARD_TITLE}>Últimas sesiones</p>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['Fecha', 'Duración', 'Ejercicios', 'Aciertos'].map((col, i) => (
+                    <th key={col} style={{
+                      textAlign: i === 0 ? 'left' : 'center',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: '#94A3B8',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      fontFamily: 'Nunito, sans-serif',
+                      padding: '0 8px 12px',
+                      borderBottom: '1px solid #F1F5F9',
+                    }}>{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { date: 'Lun 13 abr', duration: 28, exercises: 7, accuracy: 85 },
+                  { date: 'Vie 11 abr', duration: 31, exercises: 7, accuracy: 78 },
+                  { date: 'Jue 10 abr', duration: 25, exercises: 7, accuracy: 72 },
+                ].map((s, i) => {
+                  const acColor = s.accuracy >= 80 ? '#059669' : s.accuracy >= 60 ? '#D97706' : '#DC2626'
+                  return (
+                    <tr key={i} style={{ backgroundColor: i % 2 === 1 ? '#F8FAFC' : 'transparent' }}>
+                      <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
+                        {s.date}
+                      </td>
+                      <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
+                        {s.duration} min
+                      </td>
+                      <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
+                        {s.exercises}
+                      </td>
+                      <td style={{ padding: '11px 8px', textAlign: 'center' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: acColor, fontFamily: 'Nunito, sans-serif' }}>
+                          {s.accuracy}%
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </Card>
+
+          {/* ── Nota del terapeuta ────────────────────────────────── */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            borderTop: '3px solid #0BAFBE',
+          }}>
+            {therapistComment ? (
+              <>
+                <p style={{
+                  margin: '0 0 4px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#94A3B8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  fontFamily: 'Nunito, sans-serif',
+                }}>
+                  Nota de tu terapeuta
+                </p>
+                <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
+                  {therapistComment.terapeuta} · {therapistComment.fecha}
+                </p>
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9', marginBottom: '14px' }} />
+                <p style={{ margin: 0, fontSize: '15px', color: '#0F172A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+                  {therapistComment.texto}
+                </p>
+              </>
+            ) : (
+              <div style={{ background: '#F8FAFC', borderRadius: '10px', padding: '20px', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+                  Tu terapeuta aún no ha dejado comentarios esta semana
+                </p>
+              </div>
             )}
           </div>
 
-          <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94A3B8', fontWeight: 500, fontFamily: 'Nunito, sans-serif' }}>
-            Nivel 3 — vocabulario receptivo
-          </p>
-        </Card>
-
-        {/* ── Recent sessions ─────────────────────────────────────── */}
-        <Card>
-          <p style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
-            Últimas sesiones de {childName}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {[
-              { date: 'Lun 13 abr', duration: 28, exercises: 7, accuracy: 85 },
-              { date: 'Vie 11 abr', duration: 31, exercises: 7, accuracy: 78 },
-              { date: 'Jue 10 abr', duration: 25, exercises: 7, accuracy: 72 },
-            ].map((s, i) => {
-              const barColor  = s.accuracy >= 80 ? '#22C55E' : s.accuracy >= 60 ? '#FFD93D' : '#F87171'
-              const badgeColor = s.accuracy >= 80 ? '#22C55E' : s.accuracy >= 60 ? '#D97706' : '#F87171'
-              const badgeBg   = s.accuracy >= 80 ? '#F0FDF4' : s.accuracy >= 60 ? '#FFFBEB' : '#FFF1F2'
-              return (
-                <div
-                  key={i}
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    borderRadius: '12px',
-                    backgroundColor: 'rgba(248,250,252,0.8)',
-                    overflow: 'hidden',
-                    animation: `circleIn 0.35s ease ${i * 80}ms both`,
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: 0, top: 0, bottom: 0,
-                      width: `${s.accuracy}%`,
-                      backgroundColor: barColor,
-                      opacity: 0.07,
-                    }}
-                  />
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
-                      {s.date}
-                    </span>
-                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-                      {s.duration} min · {s.exercises} ejercicios
-                    </p>
-                  </div>
-                  <span
-                    style={{
-                      padding: '3px 10px',
-                      borderRadius: '20px',
-                      backgroundColor: badgeBg,
-                      color: badgeColor,
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      fontFamily: 'Nunito, sans-serif',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  >
-                    {s.accuracy}%
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </Card>
-
-        {/* ── Next session ─────────────────────────────────────────── */}
-        <Card style={{ background: 'rgba(240,250,250,0.92)', border: '1px solid rgba(165,228,236,0.6)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ color: '#0BAFBE' }}>
-              <Calendar size={36} />
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
-                Próxima sesión recomendada
-              </p>
-              <p style={{ margin: '4px 0 0', fontSize: '16px', fontWeight: 800, color: '#0BAFBE', textTransform: 'capitalize', fontFamily: 'Nunito, sans-serif' }}>
-                mañana · {tomorrowLabel}
-              </p>
-            </div>
-            <PrimaryButton
-              onClick={onNavigateToEjercicio}
-              style={{ width: '100%', padding: '13px', fontSize: '15px' }}
-            >
-              Ir a los ejercicios
-            </PrimaryButton>
-          </div>
-        </Card>
-
-      </div>
+        </div>
       )}
     </div>
   )
