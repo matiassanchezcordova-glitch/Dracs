@@ -16,25 +16,6 @@ function getMessage(pct: number): string {
   return '¡Sigue practicando!'
 }
 
-// ── Glass card ────────────────────────────────────────────────────────────
-
-function GlassCard({ children, style: s }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255,255,255,0.5)',
-        borderRadius: '20px',
-        ...s,
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
 // ── Stat card ─────────────────────────────────────────────────────────────
 
 function StatCard({ icon, value, label, color = '#0F172A' }: {
@@ -44,15 +25,26 @@ function StatCard({ icon, value, label, color = '#0F172A' }: {
   color?: string
 }) {
   return (
-    <GlassCard style={{ padding: '16px 20px', minWidth: '90px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+    <div style={{
+      background: '#ffffff',
+      border: '1px solid #F1F5F9',
+      borderRadius: '20px',
+      padding: '16px 20px',
+      minWidth: '90px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '6px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    }}>
       <span style={{ color, display: 'flex' }}>{icon}</span>
-      <span style={{ fontSize: '26px', fontWeight: 900, color, lineHeight: 1, fontFamily: 'Nunito, sans-serif' }}>
+      <span style={{ fontSize: '26px', fontWeight: 800, color, lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </span>
       <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
         {label}
       </span>
-    </GlassCard>
+    </div>
   )
 }
 
@@ -89,12 +81,12 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
         </div>
         <h1
           style={{
-            fontSize: '32px',
-            fontWeight: 900,
-            color: '#ffffff',
+            fontSize: '40px',
+            fontWeight: 700,
+            color: '#1A1A2E',
             lineHeight: 1.1,
             margin: 0,
-            fontFamily: 'Nunito, sans-serif',
+            fontFamily: 'Playfair Display, serif',
           }}
         >
           ¡Sesión completada!
@@ -103,7 +95,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
           style={{
             fontSize: '22px',
             fontWeight: 800,
-            color: '#FFD93D',
+            color: '#0BAFBE',
             margin: 0,
             fontFamily: 'Nunito, sans-serif',
           }}
@@ -121,13 +113,16 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
 
       {/* Level change */}
       {levelChanged && (
-        <GlassCard
+        <div
           style={{
+            background: '#ffffff',
+            border: `2px solid ${levelChanged === 'up' ? '#22C55E' : '#FBBF24'}`,
+            borderRadius: '20px',
             padding: '14px 20px',
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            border: `2px solid ${levelChanged === 'up' ? '#22C55E' : '#FBBF24'}`,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
           }}
         >
           {levelChanged === 'up'
@@ -146,7 +141,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
               ? '¡Subiste de nivel en la próxima sesión!'
               : 'Vamos a practicar un poco más en este nivel'}
           </span>
-        </GlassCard>
+        </div>
       )}
 
       {/* Actions */}
@@ -160,8 +155,8 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             padding: '16px',
             borderRadius: '18px',
             border: 'none',
-            background: '#ffffff',
-            color: '#0891A0',
+            background: '#FFD93D',
+            color: '#0F172A',
             fontSize: '18px',
             fontWeight: 900,
             cursor: 'pointer',
@@ -170,7 +165,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            boxShadow: '0 4px 20px rgba(255,217,61,0.4)',
             transform: btn1H ? 'translateY(-2px)' : 'translateY(0)',
             transition: 'all 0.2s ease',
           }}
@@ -186,11 +181,9 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             width: '100%',
             padding: '16px',
             borderRadius: '18px',
-            border: '2px solid rgba(255,255,255,0.35)',
-            background: 'rgba(255,255,255,0.15)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            color: '#ffffff',
+            border: '2px solid #0BAFBE',
+            background: 'transparent',
+            color: '#0BAFBE',
             fontSize: '18px',
             fontWeight: 800,
             cursor: 'pointer',

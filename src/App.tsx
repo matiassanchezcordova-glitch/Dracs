@@ -1,9 +1,11 @@
 import { type ReactNode, useState } from 'react'
-import { Gamepad2, BarChart2, Users } from 'lucide-react'
+import { Gamepad2, BarChart2, Users, LogOut } from 'lucide-react'
 import ExerciseTab from './components/ExerciseTab'
 import TherapistTab from './components/therapist/TherapistTab'
 import FamiliaTab from './components/familia/FamiliaTab'
 import { type Role } from './components/RoleSelector'
+import { useAuth } from './context/AuthContext'
+import { TherapistProvider } from './context/TherapistContext'
 
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
 
@@ -24,10 +26,15 @@ interface Props {
   onLogout: () => void
 }
 
-export default function App({ role, onLogout }: Props) {
+function AppInner({ role, onLogout }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(() => defaultTabForRole(role))
+  const { patient, profile } = useAuth()
 
   const visibleTabs = ALL_NAV_TABS.filter(t => t.roles.includes(role))
+
+  const isChildOrFamily = role === 'child' || role === 'family'
+  const childName = patient?.child_name ?? null
+  const therapistName = profile?.full_name ?? null
 
   return (
     <div
@@ -35,17 +42,17 @@ export default function App({ role, onLogout }: Props) {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100svh',
-        background: 'linear-gradient(145deg, #0BAFBE 0%, #0891A0 40%, #076E7A 100%)',
+        background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)',
         animation: 'fadeIn 0.4s ease',
       }}
     >
       {/* ── Navbar ──────────────────────────────────────────────── */}
       <nav
         style={{
-          backgroundColor: 'rgba(255,255,255,0.12)',
+          backgroundColor: 'rgba(255,248,232,0.85)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.15)',
+          borderBottom: '1px solid rgba(11,175,190,0.12)',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -63,50 +70,72 @@ export default function App({ role, onLogout }: Props) {
             justifyContent: 'space-between',
           }}
         >
-          <button
-            onClick={onLogout}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 0',
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              transition: 'opacity 0.2s ease',
-            }}
-            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '0.75')}
-            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
-          >
+          {/* ── Left: logo + user info ─────────────────────────── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
             <span
               style={{
                 fontFamily: 'Nunito, sans-serif',
                 fontWeight: 800,
                 fontSize: '24px',
-                color: '#ffffff',
+                color: '#0BAFBE',
                 lineHeight: 1,
                 letterSpacing: '2px',
               }}
             >
               DRACS
             </span>
-            {role === 'therapist' && (
-              <span style={{
-                fontFamily: 'Nunito, sans-serif',
-                fontWeight: 600,
-                fontSize: '11px',
-                color: 'rgba(255,255,255,0.65)',
-                lineHeight: 1,
-                marginTop: '3px',
-                letterSpacing: '0.02em',
-              }}>
-                Dra. Martínez · Terapeuta
-              </span>
-            )}
-          </button>
 
-          {/* Tabs */}
+            {isChildOrFamily && childName && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FFD93D',
+                  color: '#1A1A2E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  fontFamily: 'Nunito, sans-serif',
+                  flexShrink: 0,
+                }}>
+                  {childName[0].toUpperCase()}
+                </div>
+                <span style={{
+                  fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  color: '#1A1A2E',
+                }}>
+                  {childName}
+                </span>
+                <LogoutBtn onLogout={onLogout} />
+              </div>
+            )}
+
+            {role === 'therapist' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 600,
+                  fontSize: '11px',
+                  color: '#6B7280',
+                  letterSpacing: '0.02em',
+                }}>
+                  {therapistName ?? 'Terapeuta'} · Terapeuta
+                </span>
+                <LogoutBtn onLogout={onLogout} />
+              </div>
+            )}
+
+            {!childName && !therapistName && role !== 'therapist' && (
+              <LogoutBtn onLogout={onLogout} />
+            )}
+          </div>
+
+          {/* ── Tabs ──────────────────────────────────────────────── */}
           <div style={{ display: 'flex', gap: '4px' }}>
             {visibleTabs.map(tab => {
               const active = activeTab === tab.id
@@ -121,9 +150,9 @@ export default function App({ role, onLogout }: Props) {
                     gap: '2px',
                     padding: '6px 16px',
                     backgroundColor: 'transparent',
-                    color: active ? '#ffffff' : 'rgba(255,255,255,0.6)',
+                    color: active ? '#0BAFBE' : '#6B7280',
                     border: 'none',
-                    borderBottom: active ? '2px solid #ffffff' : '2px solid transparent',
+                    borderBottom: active ? '2px solid #0BAFBE' : '2px solid transparent',
                     cursor: 'pointer',
                     fontFamily: 'Nunito, sans-serif',
                     fontWeight: 700,
@@ -160,14 +189,53 @@ export default function App({ role, onLogout }: Props) {
           style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         >
           {activeTab === 'ejercicio' && (
-            <ExerciseTab onNavigateToFamilia={() => setActiveTab('familia')} />
+            <ExerciseTab
+              onNavigateToFamilia={() => setActiveTab('familia')}
+              onNavigateToTerapeuta={() => setActiveTab('terapeuta')}
+            />
           )}
           {activeTab === 'terapeuta' && <TherapistTab />}
           {activeTab === 'familia' && (
-            <FamiliaTab onNavigateToEjercicio={() => setActiveTab('ejercicio')} />
+            <FamiliaTab
+              onNavigateToEjercicio={() => setActiveTab('ejercicio')}
+              onNavigateToTerapeuta={() => setActiveTab('terapeuta')}
+            />
           )}
         </div>
       </main>
     </div>
+  )
+}
+
+export default function App({ role, onLogout }: Props) {
+  return (
+    <TherapistProvider>
+      <AppInner role={role} onLogout={onLogout} />
+    </TherapistProvider>
+  )
+}
+
+function LogoutBtn({ onLogout }: { onLogout: () => void }) {
+  return (
+    <button
+      onClick={onLogout}
+      title="Cerrar sesión"
+      style={{
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '4px',
+        borderRadius: '6px',
+        display: 'flex',
+        alignItems: 'center',
+        color: '#94A3B8',
+        transition: 'color 0.2s ease',
+        flexShrink: 0,
+      }}
+      onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#DC2626')}
+      onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#94A3B8')}
+    >
+      <LogOut size={14} />
+    </button>
   )
 }

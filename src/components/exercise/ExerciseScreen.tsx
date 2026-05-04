@@ -24,11 +24,6 @@ const CATEGORY_BY_LEVEL: Record<Level, string> = {
   4: 'Vocabulario · Conceptos avanzados',
 }
 
-function nameToEmoji(name: string): string {
-  const emojis = ['🧒', '👦', '👧', '🌟', '⭐', '🌈', '🦋', '🐬']
-  return emojis[name.charCodeAt(0) % emojis.length]
-}
-
 // ── Confetti ──────────────────────────────────────────────────────────────
 
 interface ConfettiDot { id: number; x: number; color: string; delay: number; size: number }
@@ -145,14 +140,24 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
 
   if (!current) return null
 
-  const progressPct = (currentIndex / total) * 100
-  const childEmoji  = nameToEmoji(childName)
-  const category    = CATEGORY_BY_LEVEL[level]
+  const progressPct  = (currentIndex / total) * 100
+  const childInitial = childName.charAt(0).toUpperCase()
+  const category     = CATEGORY_BY_LEVEL[level]
   const cols = current.type === 'vocabulary'
     ? (current.options.length === 2 ? 2 : current.options.length === 3 ? 3 : 2)
     : 2
 
   return (
+    <div style={{
+      flex: 1,
+      background: 'linear-gradient(145deg, #FFF8E8 0%, #E8F8FF 40%, #E0F9F0 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      minHeight: '100%',
+    }}>
+    {showConfetti && <Confetti />}
     <div
       style={{
         display: 'flex',
@@ -160,51 +165,49 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
         width: '100%',
         maxWidth: '480px',
         margin: '0 auto',
-        padding: '12px 16px 16px',
+        padding: '12px 16px 100px',
         gap: '12px',
         position: 'relative',
-        minHeight: '100%',
+        flex: 1,
       }}
     >
-      {showConfetti && <Confetti />}
 
       {/* ── Progress header ─────────────────────────────────────────── */}
       <div
         style={{
-          background: 'rgba(255,255,255,0.15)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.25)',
+          background: '#ffffff',
+          border: '1px solid #F1F5F9',
           borderRadius: '18px',
           padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           flexShrink: 0,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         }}
       >
         <div
           style={{
-            width: '38px',
-            height: '38px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            border: '2px solid rgba(255,255,255,0.5)',
+            backgroundColor: '#FFD93D',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '18px',
             flexShrink: 0,
           }}
         >
-          {childEmoji}
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '16px', color: '#1A1A2E' }}>
+            {childInitial}
+          </span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
-          <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', fontFamily: 'Nunito, sans-serif' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
             {childName}
           </span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.65)', fontFamily: 'Nunito, sans-serif' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
             Sesión {sessionNumber}
           </span>
         </div>
@@ -212,8 +215,8 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
         <div
           style={{
             flex: 1,
-            height: '10px',
-            backgroundColor: 'rgba(255,255,255,0.2)',
+            height: '8px',
+            backgroundColor: '#F0FAFA',
             borderRadius: '99px',
             overflow: 'hidden',
           }}
@@ -222,14 +225,14 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
             style={{
               width: `${progressPct}%`,
               height: '100%',
-              background: 'linear-gradient(90deg, rgba(255,255,255,0.9), #FFD93D)',
+              background: 'linear-gradient(90deg, #0BAFBE, #FFD93D)',
               borderRadius: '99px',
               transition: 'width 0.5s ease',
             }}
           />
         </div>
 
-        <span style={{ fontSize: '17px', fontWeight: 900, color: '#ffffff', fontFamily: 'Nunito, sans-serif', flexShrink: 0 }}>
+        <span style={{ fontSize: '22px', fontWeight: 700, color: '#0BAFBE', fontFamily: 'Playfair Display, serif', flexShrink: 0 }}>
           {currentIndex + 1}/{total}
         </span>
       </div>
@@ -238,50 +241,25 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
       {current.type === 'vocabulary' && (
         <div
           style={{
-            background: 'rgba(0,0,0,0.28)',
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '24px',
-            padding: '20px 24px 18px',
+            background: 'linear-gradient(135deg, #0BAFBE 0%, #0891A0 100%)',
+            borderRadius: '20px',
+            padding: '32px 40px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '10px',
+            gap: '12px',
             flexShrink: 0,
             position: 'relative',
             overflow: 'hidden',
           }}
         >
-          <svg
-            style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.07, pointerEvents: 'none' }}
-            width="120" height="120" viewBox="0 0 120 120"
-          >
-            <circle cx="60" cy="60" r="55" fill="none" stroke="#ffffff" strokeWidth="20" />
-          </svg>
-
-          <div
-            key={currentIndex}
-            style={{
-              fontSize: '44px',
-              fontWeight: 900,
-              color: '#ffffff',
-              letterSpacing: '0.04em',
-              lineHeight: 1,
-              fontFamily: 'Nunito, sans-serif',
-              animation: 'wordSlideDown 0.32s ease',
-            }}
-          >
-            {current.word}
-          </div>
-
           <span
             style={{
-              padding: '3px 12px',
+              padding: '4px 14px',
               borderRadius: '999px',
-              background: 'rgba(255,255,255,0.18)',
-              color: 'rgba(255,255,255,0.85)',
-              fontSize: '11px',
+              background: 'rgba(255,255,255,0.20)',
+              color: '#ffffff',
+              fontSize: '12px',
               fontWeight: 600,
               fontFamily: 'Nunito, sans-serif',
               letterSpacing: '0.3px',
@@ -290,22 +268,36 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
             {category}
           </span>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: '2px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div
-                style={{
-                  width: '7px', height: '7px', borderRadius: '50%',
-                  backgroundColor: '#FFD93D',
-                  animation: 'aiPulse 1.6s ease-in-out infinite',
-                  flexShrink: 0,
-                }}
-              />
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
-                IA adaptándose...
-              </span>
-            </div>
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 500, fontFamily: 'Nunito, sans-serif' }}>
-              Encuentra la imagen correcta
+          <div
+            key={currentIndex}
+            style={{
+              fontSize: 'clamp(40px, 5vw, 60px)',
+              fontWeight: 800,
+              color: '#ffffff',
+              lineHeight: 1.1,
+              fontFamily: 'Playfair Display, serif',
+              animation: 'wordSlideDown 0.32s ease',
+              textAlign: 'center',
+            }}
+          >
+            {current.word}
+          </div>
+
+          <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>
+            Encuentra la imagen correcta
+          </span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+            <div
+              style={{
+                width: '7px', height: '7px', borderRadius: '50%',
+                backgroundColor: '#ffffff',
+                animation: 'aiPulse 1.6s ease-in-out infinite',
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.60)', fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
+              IA adaptándose...
             </span>
           </div>
         </div>
@@ -383,16 +375,17 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
           position: 'fixed',
           bottom: '18px',
           right: '18px',
-          height: '100px',
+          height: '110px',
           width: 'auto',
           pointerEvents: 'none',
           zIndex: 5,
           animation: dragonJumping
             ? 'dragonJump 0.75s ease'
-            : 'dragonBlink 8s ease-in-out infinite',
+            : 'floatDragon 3s ease-in-out infinite',
           transformOrigin: 'bottom center',
         }}
       />
+    </div>
     </div>
   )
 }

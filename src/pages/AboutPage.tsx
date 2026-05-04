@@ -55,7 +55,6 @@ function Reveal({
 }
 
 // ── SVG wave at section bottom ────────────────────────────────────────────
-// Section must have position: relative. The wave fills with the NEXT section's color.
 
 function WaveBottom({ fill }: { fill: string }) {
   return (
@@ -72,37 +71,28 @@ function WaveBottom({ fill }: { fill: string }) {
   )
 }
 
-// ── Hero glassmorphism stat card ──────────────────────────────────────────
+// ── Stat card (hero section) ──────────────────────────────────────────────
 
-function GlassStat({ value, label }: { value: string; label: string }) {
+function HeroStat({ value, label }: { value: string; label: string }) {
   return (
     <div
       style={{
         flex: 1,
-        background: 'rgba(255,255,255,0.15)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255,255,255,0.25)',
+        background: '#ffffff',
+        border: '1px solid #E0F2FE',
         borderRadius: '16px',
         padding: '20px 24px',
+        boxShadow: '0 4px 16px rgba(11,175,190,0.08)',
       }}
     >
-      <div
-        style={{
-          fontSize: '36px',
-          fontWeight: 900,
-          color: '#FFD93D',
-          lineHeight: 1,
-          fontFamily: 'Nunito, sans-serif',
-        }}
-      >
+      <div className="stat-number" style={{ fontSize: '36px', color: '#0BAFBE', lineHeight: 1 }}>
         {value}
       </div>
       <div
         style={{
           fontSize: '13px',
           fontWeight: 600,
-          color: 'rgba(255,255,255,0.8)',
+          color: '#6B7280',
           marginTop: '6px',
           lineHeight: 1.4,
           fontFamily: 'Nunito, sans-serif',
@@ -151,15 +141,7 @@ function ProblemCard({
       }}
     >
       <div style={{ color: '#0BAFBE', display: 'flex' }}>{icon}</div>
-      <div
-        style={{
-          fontSize: '40px',
-          fontWeight: 900,
-          color: '#FFD93D',
-          lineHeight: 1,
-          fontFamily: 'Nunito, sans-serif',
-        }}
-      >
+      <div className="stat-number" style={{ fontSize: '40px', color: '#0BAFBE', lineHeight: 1 }}>
         {value}
       </div>
       <div
@@ -178,8 +160,6 @@ function ProblemCard({
 }
 
 // ── How-it-works step ─────────────────────────────────────────────────────
-// Layout from top: badge (24px) + 8px gap + icon (72px). Icon center = 68px from top.
-// The dashed connector in the parent is set to top: 68px to align with icon centers.
 
 function StepCard({
   index,
@@ -303,7 +283,7 @@ function AudienceCard({
       onMouseLeave={() => setHovered(false)}
       style={{
         backgroundColor: bg,
-        borderRadius: '24px',
+        borderRadius: '20px',
         border: border ? `1.5px solid ${border}` : 'none',
         padding: '32px 28px',
         display: 'flex',
@@ -382,12 +362,15 @@ function AudienceCard({
 
 // ── Main ──────────────────────────────────────────────────────────────────
 
-const LIGHT_BG =
-  'linear-gradient(135deg, #E0F7FA 0%, #E8F8FA 30%, #F0FFFE 60%, #E4F9F5 100%)'
-const DARK_BG = 'linear-gradient(135deg, #0BAFBE 0%, #065A6E 100%)'
+const HERO_BG = 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)'
+const LIGHT_BG = '#EBF7F5'
 
 export default function AboutPage({ onBack }: Props) {
   const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60)
@@ -426,7 +409,7 @@ export default function AboutPage({ onBack }: Props) {
             fontFamily: 'Nunito, sans-serif',
             fontWeight: 800,
             fontSize: '22px',
-            color: scrolled ? '#0BAFBE' : '#ffffff',
+            color: '#0BAFBE',
             letterSpacing: '2px',
             padding: 0,
             transition: 'color 0.3s ease',
@@ -440,7 +423,7 @@ export default function AboutPage({ onBack }: Props) {
       <section
         style={{
           minHeight: '100svh',
-          background: DARK_BG,
+          background: HERO_BG,
           display: 'flex',
           alignItems: 'center',
           position: 'relative',
@@ -467,11 +450,9 @@ export default function AboutPage({ onBack }: Props) {
                   display: 'inline-flex',
                   padding: '6px 16px',
                   borderRadius: '999px',
-                  background: 'rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  color: 'rgba(255,255,255,0.9)',
+                  background: '#FFF3CD',
+                  border: '1px solid #FDE68A',
+                  color: '#92400E',
                   fontSize: '13px',
                   fontWeight: 700,
                   letterSpacing: '0.5px',
@@ -487,10 +468,10 @@ export default function AboutPage({ onBack }: Props) {
                 style={{
                   margin: 0,
                   fontSize: '56px',
-                  fontWeight: 800,
-                  color: '#ffffff',
+                  fontWeight: 700,
+                  color: '#1A1A2E',
                   lineHeight: 1.1,
-                  fontFamily: 'Nunito, sans-serif',
+                  fontFamily: 'Playfair Display, serif',
                 }}
               >
                 Terapia que<br />no espera.
@@ -503,7 +484,7 @@ export default function AboutPage({ onBack }: Props) {
                   margin: 0,
                   fontSize: '20px',
                   fontWeight: 500,
-                  color: 'rgba(255,255,255,0.85)',
+                  color: '#6B7280',
                   lineHeight: 1.6,
                   maxWidth: '480px',
                   fontFamily: 'Nunito, sans-serif',
@@ -516,8 +497,8 @@ export default function AboutPage({ onBack }: Props) {
 
             <Reveal delay={300}>
               <div style={{ display: 'flex', gap: '16px' }}>
-                <GlassStat value="1.2M" label="personas esperando terapia en España" />
-                <GlassStat value="18 meses" label="tiempo medio de espera para recibir atención" />
+                <HeroStat value="1.2M" label="personas esperando terapia en España" />
+                <HeroStat value="18 meses" label="tiempo medio de espera para recibir atención" />
               </div>
             </Reveal>
 
@@ -532,17 +513,16 @@ export default function AboutPage({ onBack }: Props) {
                   gap: '8px',
                   padding: '14px 28px',
                   borderRadius: '14px',
-                  border: '1.5px solid rgba(255,255,255,0.35)',
-                  background: 'rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  color: '#ffffff',
+                  border: '1.5px solid #0BAFBE',
+                  background: 'transparent',
+                  color: '#0BAFBE',
                   fontSize: '16px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   fontFamily: 'Nunito, sans-serif',
                   width: 'fit-content',
                   animation: 'heroBtnFloat 2.5s ease-in-out infinite',
+                  transition: 'background 0.2s ease',
                 }}
               >
                 Conocer el proyecto
@@ -560,19 +540,20 @@ export default function AboutPage({ onBack }: Props) {
                 height: '220px',
                 width: 'auto',
                 animation: 'floatDragon2 3s ease-in-out infinite',
+                filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.10))',
               }}
             />
           </div>
         </div>
 
-        <WaveBottom fill="#E0F7FA" />
+        <WaveBottom fill="#ffffff" />
       </section>
 
       {/* ── SECCIÓN 2: EL PROBLEMA ────────────────────────────────── */}
       <section
         id="section-problema"
         style={{
-          background: LIGHT_BG,
+          background: '#ffffff',
           padding: '80px 32px 110px',
           position: 'relative',
         }}
@@ -618,44 +599,18 @@ export default function AboutPage({ onBack }: Props) {
           </div>
         </div>
 
-        <WaveBottom fill="#ffffff" />
+        <WaveBottom fill={LIGHT_BG} />
       </section>
 
       {/* ── SECCIÓN 3: CÓMO FUNCIONA ──────────────────────────────── */}
       <section
         style={{
-          background: '#ffffff',
+          background: LIGHT_BG,
           padding: '80px 32px 110px',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Decorative blobs */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-80px',
-            right: '-80px',
-            width: '420px',
-            height: '420px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(11,175,190,0.07) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '100px',
-            left: '-60px',
-            width: '300px',
-            height: '300px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(251,191,36,0.06) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <Reveal>
             <h2
@@ -673,9 +628,7 @@ export default function AboutPage({ onBack }: Props) {
           </Reveal>
 
           <Reveal delay={100}>
-            {/* position: relative → anchor for the absolute dashed connector */}
             <div style={{ position: 'relative' }}>
-              {/* Dashed connector line at icon center (badge 24px + gap 8px + icon 36px = 68px from top) */}
               <div
                 style={{
                   position: 'absolute',
@@ -714,13 +667,13 @@ export default function AboutPage({ onBack }: Props) {
           </Reveal>
         </div>
 
-        <WaveBottom fill="#E0F7FA" />
+        <WaveBottom fill="#ffffff" />
       </section>
 
       {/* ── SECCIÓN 4: PARA QUIÉN ─────────────────────────────────── */}
       <section
         style={{
-          background: LIGHT_BG,
+          background: '#ffffff',
           padding: '80px 32px 110px',
           position: 'relative',
         }}
@@ -783,13 +736,13 @@ export default function AboutPage({ onBack }: Props) {
           </div>
         </div>
 
-        <WaveBottom fill="#0BAFBE" />
+        <WaveBottom fill={LIGHT_BG} />
       </section>
 
       {/* ── SECCIÓN 5: FOOTER CTA ─────────────────────────────────── */}
       <section
         style={{
-          background: DARK_BG,
+          background: LIGHT_BG,
           padding: '80px 32px 64px',
           display: 'flex',
           flexDirection: 'column',
@@ -806,6 +759,7 @@ export default function AboutPage({ onBack }: Props) {
               height: '80px',
               width: 'auto',
               animation: 'floatDragon 3s ease-in-out infinite',
+              filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.10))',
             }}
           />
         </Reveal>
@@ -815,9 +769,9 @@ export default function AboutPage({ onBack }: Props) {
             style={{
               margin: 0,
               fontSize: '40px',
-              fontWeight: 800,
-              color: '#ffffff',
-              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              color: '#1A1A2E',
+              fontFamily: 'Playfair Display, serif',
             }}
           >
             Dracs está en desarrollo.
@@ -830,7 +784,7 @@ export default function AboutPage({ onBack }: Props) {
               margin: 0,
               fontSize: '18px',
               fontWeight: 500,
-              color: 'rgba(255,255,255,0.8)',
+              color: '#6B7280',
               maxWidth: '480px',
               lineHeight: 1.6,
               fontFamily: 'Nunito, sans-serif',
@@ -849,27 +803,27 @@ export default function AboutPage({ onBack }: Props) {
               alignItems: 'center',
               padding: '16px 40px',
               borderRadius: '16px',
-              background: '#ffffff',
-              color: '#0BAFBE',
+              background: '#0BAFBE',
+              color: '#ffffff',
               fontSize: '18px',
               fontWeight: 800,
               textDecoration: 'none',
               fontFamily: 'Nunito, sans-serif',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+              boxShadow: '0 4px 24px rgba(11,175,190,0.30)',
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}
             onMouseEnter={e => {
               ;(e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'
               ;(e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                '0 8px 32px rgba(0,0,0,0.20)'
+                '0 8px 32px rgba(11,175,190,0.40)'
             }}
             onMouseLeave={e => {
               ;(e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'
               ;(e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                '0 4px 24px rgba(0,0,0,0.15)'
+                '0 4px 24px rgba(11,175,190,0.30)'
             }}
           >
-            Escribinos
+            Escríbenos
           </a>
         </Reveal>
 
@@ -879,7 +833,7 @@ export default function AboutPage({ onBack }: Props) {
               margin: 0,
               fontSize: '13px',
               fontWeight: 500,
-              color: 'rgba(255,255,255,0.55)',
+              color: '#94A3B8',
               lineHeight: 1.6,
               fontFamily: 'Nunito, sans-serif',
             }}

@@ -52,7 +52,7 @@ export default function SetupScreen({ onComplete }: Props) {
           60% { transform: scale(1.15); }
           100%{ transform: scale(1.1); }
         }
-        #dracs-name-input::placeholder { color: rgba(255,255,255,0.5); }
+        #dracs-name-input::placeholder { color: rgba(148,163,184,0.8); }
       `}</style>
 
       {/* ── Step 1 ─────────────────────────────────────────────────────── */}
@@ -72,17 +72,17 @@ export default function SetupScreen({ onComplete }: Props) {
           <img
             src="/dragon.nb.png"
             alt=""
-            style={{ width: '120px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite' }}
+            style={{ width: '100px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite' }}
           />
 
           <div style={{ textAlign: 'center' }}>
             <h1
               style={{
                 margin: 0,
-                fontSize: '28px',
-                fontWeight: 800,
-                color: '#ffffff',
-                fontFamily: 'Nunito, sans-serif',
+                fontSize: '32px',
+                fontWeight: 700,
+                color: '#1A1A2E',
+                fontFamily: '"Playfair Display", serif',
               }}
             >
               ¡Hola! Soy Dracs
@@ -92,7 +92,7 @@ export default function SetupScreen({ onComplete }: Props) {
                 margin: '10px 0 0',
                 fontSize: '18px',
                 fontWeight: 600,
-                color: 'rgba(255,255,255,0.85)',
+                color: '#6B7280',
                 fontFamily: 'Nunito, sans-serif',
               }}
             >
@@ -113,16 +113,15 @@ export default function SetupScreen({ onComplete }: Props) {
               boxSizing: 'border-box',
               height: '64px',
               borderRadius: '16px',
-              border: '1.5px solid rgba(255,255,255,0.3)',
-              background: 'rgba(255,255,255,0.15)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              color: '#ffffff',
+              border: '1.5px solid #E5E7EB',
+              background: '#ffffff',
+              color: '#1A1A2E',
               fontSize: '24px',
               fontWeight: 700,
               fontFamily: 'Nunito, sans-serif',
               textAlign: 'center',
               outline: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             }}
           />
 
@@ -186,7 +185,7 @@ export default function SetupScreen({ onComplete }: Props) {
                 margin: 0,
                 fontSize: '28px',
                 fontWeight: 800,
-                color: '#ffffff',
+                color: '#1A1A2E',
                 fontFamily: 'Nunito, sans-serif',
               }}
             >
@@ -197,7 +196,7 @@ export default function SetupScreen({ onComplete }: Props) {
                 margin: '10px 0 0',
                 fontSize: '18px',
                 fontWeight: 600,
-                color: 'rgba(255,255,255,0.85)',
+                color: '#6B7280',
                 fontFamily: 'Nunito, sans-serif',
               }}
             >
@@ -217,18 +216,16 @@ export default function SetupScreen({ onComplete }: Props) {
                     width: '80px',
                     height: '80px',
                     borderRadius: '50%',
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    background: selected ? '#FFD93D' : 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    color: selected ? '#0F172A' : '#ffffff',
+                    border: selected ? '2px solid #FFD93D' : '2px solid #E5E7EB',
+                    background: selected ? '#FFD93D' : '#ffffff',
+                    color: selected ? '#0F172A' : '#1A1A2E',
                     fontSize: '28px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     fontFamily: 'Nunito, sans-serif',
                     transform: selected ? 'scale(1.1)' : 'scale(1)',
                     transition: 'background 0.18s ease, transform 0.18s ease',
-                    boxShadow: selected ? '0 4px 20px rgba(255,217,61,0.5)' : 'none',
+                    boxShadow: selected ? '0 4px 20px rgba(255,217,61,0.5)' : '0 1px 4px rgba(0,0,0,0.06)',
                     animation: selected ? 'ageBounce 0.3s ease forwards' : 'none',
                   }}
                 >

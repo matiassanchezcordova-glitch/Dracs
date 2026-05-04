@@ -66,6 +66,12 @@
   50%      { transform: translateX(6px); }
 }
 
+/* ── Bounce vertical (scroll indicator) ──────────────────────────────── */
+@keyframes bounceY {
+  0%, 100% { transform: translateY(0);   }
+  50%       { transform: translateY(8px); }
+}
+
 /* ── Tab enter transition ─────────────────────────────────────────────── */
 @keyframes tabEnter {
   from { opacity: 0; transform: translateX(20px); }
@@ -154,6 +160,13 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Stat number class (todos los números métrica principal) ─────────── */
+.stat-number {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Global reset ─────────────────────────────────────────────────────── */
 * {
   font-family: 'Nunito', sans-serif;
@@ -175,13 +188,13 @@ body, #root {
 
 /* ── Custom scrollbar ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(11, 175, 190, 0.3);
+  background: rgba(11, 175, 190, 0.25);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -190,7 +203,7 @@ body, #root {
 
 /* ── Text selection ───────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(11, 175, 190, 0.2);
+  background: rgba(11, 175, 190, 0.15);
 }
 
 /* ── Role selector responsive layout ─────────────────────────────────── */
@@ -216,5 +229,17 @@ body, #root {
 @media (max-width: 600px) {
   .dracs-future-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── "El proyecto" two-column section responsive ─────────────────────── */
+@media (max-width: 900px) {
+  .dracs-proyecto-inner {
+    flex-direction: column !important;
+    gap: 48px !important;
+  }
+  .dracs-proyecto-inner > div {
+    flex: 0 0 auto !important;
+    width: 100% !important;
   }
 }

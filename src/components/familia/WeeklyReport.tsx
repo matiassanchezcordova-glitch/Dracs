@@ -92,20 +92,18 @@ function MetricCard({
   return (
     <div
       style={{
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        border: '1px solid rgba(255,255,255,0.5)',
+        background: '#ffffff',
+        border: '1px solid #F1F5F9',
         borderRadius: '16px',
         padding: '20px',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
       }}
     >
       <span style={{ color: '#0BAFBE' }}>{icon}</span>
-      <span style={{ fontSize: '28px', fontWeight: 900, color: valueColor, fontFamily: 'Nunito, sans-serif', lineHeight: 1 }}>
+      <span style={{ fontSize: '28px', fontWeight: 800, color: valueColor, fontFamily: 'Nunito, sans-serif', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </span>
       <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', fontFamily: 'Nunito, sans-serif', lineHeight: 1.3 }}>
@@ -130,7 +128,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
         gap: '8px',
         background: 'transparent',
         border: 'none',
-        color: '#ffffff',
+        color: '#0BAFBE',
         fontSize: '15px',
         fontWeight: 600,
         cursor: 'pointer',
@@ -142,7 +140,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
         marginBottom: '4px',
       }}
     >
-      <ArrowLeft size={18} color="#ffffff" />
+      <ArrowLeft size={18} color="#0BAFBE" />
       Volver
     </button>
   )
@@ -289,28 +287,27 @@ export default function WeeklyReport({ onBack }: Props) {
         {/* ── Header card ─────────────────────────────────────────────── */}
         <div
           style={{
-            background: 'rgba(0,0,0,0.22)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.15)',
+            background: '#ffffff',
+            border: '1px solid #F1F5F9',
             borderRadius: '16px',
             padding: '20px 24px',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <FileText size={22} color="rgba(255,255,255,0.8)" />
-            <span style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', fontFamily: 'Nunito, sans-serif' }}>
+            <FileText size={22} color="#0BAFBE" />
+            <span style={{ fontSize: '20px', fontWeight: 800, color: '#1A1A2E', fontFamily: 'Playfair Display, serif' }}>
               Informe semanal
             </span>
           </div>
-          <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', fontFamily: 'Nunito, sans-serif' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600, color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>
             Semana del {dateStr(weekStart)} al {dateStr(weekEnd)}
           </p>
-          <p style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#FFD93D', fontFamily: 'Nunito, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#0BAFBE', fontFamily: 'Nunito, sans-serif' }}>
             {childName}
           </p>
           {dataNote && (
-            <p style={{ margin: '8px 0 0', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.55)', fontFamily: 'Nunito, sans-serif' }}>
+            <p style={{ margin: '8px 0 0', fontSize: '12px', fontWeight: 600, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
               {dataNote}
             </p>
           )}
@@ -329,16 +326,14 @@ export default function WeeklyReport({ onBack }: Props) {
           {/* ── Progress bar ────────────────────────────────────────── */}
           <div
             style={{
-              background: 'rgba(255,255,255,0.92)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              background: '#ffffff',
+              border: '1px solid #F1F5F9',
               borderRadius: '16px',
               padding: '20px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}
           >
-            <p style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
+            <p style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
               ¿Cómo fue la semana?
             </p>
 
@@ -394,14 +389,12 @@ export default function WeeklyReport({ onBack }: Props) {
           {/* ── Message for family ──────────────────────────────────── */}
           <div
             style={{
-              background: 'rgba(255,255,255,0.92)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              background: '#ffffff',
+              border: '1px solid #F1F5F9',
               borderLeft: '4px solid #0BAFBE',
               borderRadius: '16px',
               padding: '20px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -428,14 +421,12 @@ export default function WeeklyReport({ onBack }: Props) {
           {therapistComment && (
             <div
               style={{
-                background: 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255,255,255,0.5)',
-                borderLeft: '4px solid #FFD93D',
+                background: '#FFFBF0',
+                border: '1px solid #FDE68A',
+                borderLeft: '4px solid #F59E0B',
                 borderRadius: '16px',
                 padding: '20px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -464,14 +455,13 @@ export default function WeeklyReport({ onBack }: Props) {
               width: '100%',
               padding: '16px',
               borderRadius: '18px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #0BAFBE, #0891A0)',
-              color: '#ffffff',
+              border: '2px solid #0BAFBE',
+              background: 'transparent',
+              color: '#0BAFBE',
               fontSize: '16px',
               fontWeight: 800,
               cursor: 'pointer',
               fontFamily: 'Nunito, sans-serif',
-              boxShadow: '0 4px 20px rgba(11,175,190,0.35)',
             }}
           >
             <Share2 size={20} />

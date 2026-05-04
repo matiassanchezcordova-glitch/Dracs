@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Check, X } from 'lucide-react'
 import { type Option } from '../../data/exercises'
 
 export type CardState = 'idle' | 'shake' | 'attempted' | 'wrong' | 'correct'
@@ -59,39 +60,45 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
   const isIdle    = state === 'idle'
   const isGlowing = hovered && isIdle
 
-  // Color scheme per state
-  let borderColor = 'rgba(255,255,255,0.3)'
-  let bgColor     = 'rgba(255,255,255,0.92)'
-  let textColor   = '#0F172A'
+  // Border per state
+  let borderColor = '#E5E7EB'
+  let borderWidth = '1.5px'
+  let bgColor     = '#ffffff'
+  let textColor   = '#1A1A2E'
   let emojiRingBg = '#F0FAFA'
 
   if (isGlowing) {
-    borderColor = '#ffffff'
+    borderColor = '#0BAFBE'
+    borderWidth = '2px'
+    bgColor = '#F0FAFA'
   }
   if (state === 'attempted') {
-    borderColor = 'rgba(248,113,113,0.5)'
-    bgColor = 'rgba(255,248,248,0.92)'
+    borderColor = 'rgba(220,38,38,0.35)'
+    borderWidth = '2px'
+    bgColor = '#FFF8F8'
   }
   if (isCorrect) {
-    borderColor = '#22C55E'
-    bgColor = 'rgba(240,253,244,0.95)'
-    textColor = '#15803D'
+    borderColor = '#059669'
+    borderWidth = '2px'
+    bgColor = '#F0FDF4'
+    textColor = '#059669'
     emojiRingBg = '#DCFCE7'
   }
   if (isWrong) {
-    borderColor = '#F87171'
-    bgColor = 'rgba(255,241,242,0.95)'
+    borderColor = 'rgba(220,38,38,0.5)'
+    borderWidth = '2px'
+    bgColor = '#FFF5F5'
     textColor = '#DC2626'
     emojiRingBg = '#FFE4E6'
   }
 
-  const scale = pressed && isIdle ? 'scale(0.97)' : isGlowing ? 'scale(1.02) translateY(-2px)' : 'scale(1)'
+  const scale = pressed && isIdle ? 'scale(0.97)' : isGlowing ? 'translateY(-3px)' : 'scale(1)'
   const shadow = isGlowing
-    ? '0 0 0 3px rgba(11,175,190,0.18), 0 8px 28px rgba(11,175,190,0.22)'
+    ? '0 8px 24px rgba(11,175,190,0.15)'
     : isCorrect
       ? '0 4px 16px rgba(34,197,94,0.18)'
       : isWrong
-        ? '0 4px 16px rgba(248,113,113,0.18)'
+        ? '0 4px 16px rgba(220,38,38,0.12)'
         : '0 2px 8px rgba(11,175,190,0.06)'
 
   return (
@@ -110,7 +117,7 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
         justifyContent: 'center',
         gap: '10px',
         borderRadius: '20px',
-        border: `2.5px solid ${borderColor}`,
+        border: `${borderWidth} solid ${borderColor}`,
         backgroundColor: bgColor,
         cursor: 'pointer',
         padding: '16px 8px',
@@ -119,8 +126,6 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
         overflow: 'hidden',
         transform: scale,
         boxShadow: shadow,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
         transition: 'all 0.18s ease',
         animation: `cardEnter 0.35s ease ${enterDelay}ms both`,
       }}
@@ -131,21 +136,21 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
       {/* Emoji circle */}
       <div
         style={{
-          width: '58px',
-          height: '58px',
+          width: '72px',
+          height: '72px',
           borderRadius: '50%',
-          background: `radial-gradient(circle at 35% 35%, ${emojiRingBg}, ${emojiRingBg}cc)`,
+          backgroundColor: emojiRingBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '34px',
+          fontSize: '38px',
           lineHeight: 1,
           userSelect: 'none',
           flexShrink: 0,
           boxShadow: isCorrect
             ? '0 2px 10px rgba(34,197,94,0.2)'
             : isWrong
-              ? '0 2px 10px rgba(248,113,113,0.2)'
+              ? '0 2px 10px rgba(220,38,38,0.15)'
               : 'none',
         }}
       >
@@ -155,8 +160,8 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
       <span
         style={{
           fontFamily: 'Nunito, sans-serif',
-          fontWeight: 700,
-          fontSize: '13px',
+          fontWeight: 600,
+          fontSize: '14px',
           textAlign: 'center',
           lineHeight: 1.2,
           color: textColor,
@@ -172,11 +177,14 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
             position: 'absolute',
             top: '6px',
             right: '8px',
-            fontSize: '16px',
             lineHeight: 1,
+            display: 'flex',
           }}
         >
-          {isCorrect ? '✓' : '✗'}
+          {isCorrect
+            ? <Check size={16} color="#059669" strokeWidth={2.5} />
+            : <X size={16} color="#DC2626" strokeWidth={2.5} />
+          }
         </span>
       )}
     </button>

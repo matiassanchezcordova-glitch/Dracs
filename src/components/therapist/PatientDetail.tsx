@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AreaChart,
   Area,
@@ -10,9 +10,14 @@ import {
 } from 'recharts'
 import { Send } from 'lucide-react'
 import { type Patient } from '../../data/patients'
+import { useAuth } from '../../context/AuthContext'
+import { supabase } from '../../lib/supabase'
+import { getWeekCode } from '../../lib/utils'
+import type { DbSession } from '../../lib/types'
 
 interface Props {
   patient: Patient
+  supabasePatientId?: string
 }
 
 function initials(name: string): string {
@@ -71,20 +76,45 @@ function CustomDot(props: unknown) {
 
 function slugify(name: string): string {
   return name.toLowerCase().normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    .replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
-function getWeekKey(d: Date = new Date()): string {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
-  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7))
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
-  const weekNum = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
-  return `${date.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`
+const CHART_DATA: Record<string, { name: string; value: number }[]> = {
+  'pablo-garcia': [
+    { name: 'Sem 1', value: 65 },
+    { name: 'Sem 2', value: 72 },
+    { name: 'Sem 3', value: 78 },
+    { name: 'Sem 4', value: 85 },
+  ],
+  'lucia-fernandez': [
+    { name: 'Sem 1', value: 55 },
+    { name: 'Sem 2', value: 60 },
+    { name: 'Sem 3', value: 68 },
+    { name: 'Sem 4', value: 74 },
+  ],
+  'mateo-ruiz': [
+    { name: 'Sem 1', value: 48 },
+    { name: 'Sem 2', value: 52 },
+    { name: 'Sem 3', value: 55 },
+    { name: 'Sem 4', value: 55 },
+  ],
+  'sofia-lopez': [
+    { name: 'Sem 1', value: 40 },
+    { name: 'Sem 2', value: 45 },
+    { name: 'Sem 3', value: 50 },
+    { name: 'Sem 4', value: 42 },
+  ],
+  'carlos-moreno': [
+    { name: 'Sem 1', value: 58 },
+    { name: 'Sem 2', value: 63 },
+    { name: 'Sem 3', value: 70 },
+    { name: 'Sem 4', value: 76 },
+  ],
 }
 
-interface WeekData2 { sessions: number; minutes: number; exercises: number; accuracy: number }
+interface WeekData { sessions: number; minutes: number; exercises: number; accuracy: number }
 
-function getPatientWeeklyData(p: Patient): WeekData2 {
+function getPatientWeeklyData(p: Patient): WeekData {
   if (p.id === 'pablo') {
     try {
       const raw = localStorage.getItem('dracs_session_history')
@@ -182,29 +212,95 @@ const SECTION_LABEL: React.CSSProperties = {
   margin: '0 0 16px',
 }
 
-export default function PatientDetail({ patient: p }: Props) {
+export default function PatientDetail({ patient: p, supabasePatientId }: Props) {
+  const { user, profile } = useAuth()
+  const isReal = !!(user && supabasePatientId)
+
   const [comment, setComment] = useState('')
   const [published, setPublished] = useState<{ text: string; date: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [focusedTA, setFocusedTA] = useState(false)
 
-  const weekData = getPatientWeeklyData(p)
-  const autoMsg = buildAutoMessage(p.name.split(' ')[0], weekData.accuracy, weekData.sessions)
-  const accuracyColor = weekData.accuracy >= 75 ? '#059669' : weekData.accuracy >= 50 ? '#D97706' : '#DC2626'
+  // Fetch real sessions when in Supabase mode
+  const [sbSessions, setSbSessions] = useState<DbSession[]>([])
+  const [sbLoaded, setSbLoaded] = useState(false)
+
+  useEffect(() => {
+    if (!isReal) { setSbLoaded(false); return }
+    setSbLoaded(false)
+    setSbSessions([])
+    supabase
+      .from('sessions')
+      .select('*')
+      .eq('patient_id', supabasePatientId!)
+      .order('completed_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setSbSessions((data ?? []) as DbSession[])
+        setSbLoaded(true)
+      })
+  }, [isReal, supabasePatientId])
+
+  // Compute week data from real sessions or mock data
+  const weekData = useMemo((): WeekData => {
+    if (isReal && sbLoaded) {
+      const now = new Date()
+      const dow = now.getDay()
+      const weekStart = new Date(now)
+      weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+      weekStart.setHours(0, 0, 0, 0)
+      const thisWeek = sbSessions.filter(s => new Date(s.completed_at) >= weekStart)
+      const total = thisWeek.reduce((a, s) => a + s.total_exercises, 0)
+      const correct = thisWeek.reduce((a, s) => a + s.correct_answers, 0)
+      const minutes = thisWeek.reduce((a, s) => a + (s.duration_minutes ?? 15), 0)
+      return {
+        sessions: thisWeek.length,
+        minutes,
+        exercises: total,
+        accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
+      }
+    }
+    return getPatientWeeklyData(p)
+  }, [isReal, sbLoaded, sbSessions, p])
+
+  const hasData = weekData.sessions > 0
+  const accuracyColor = !hasData ? '#94A3B8' : weekData.accuracy >= 75 ? '#059669' : weekData.accuracy >= 50 ? '#D97706' : '#DC2626'
 
   const kpi1 = useCountUp(p.metrics.sessionsThisWeek)
   const kpi2 = useCountUp(p.metrics.avgDuration)
   const kpi3 = useCountUp(Math.abs(p.metrics.progressPct))
 
-  function handlePublish() {
+  const firstName = p.name.split(' ')[0]
+  const autoMsg = hasData ? buildAutoMessage(firstName, weekData.accuracy, weekData.sessions) : null
+
+  const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
+
+  async function handlePublish() {
     if (!comment.trim()) return
-    const slug = slugify(p.name)
-    const weekKey = getWeekKey()
-    const key = `dracs_comment_${slug}_${weekKey}`
+
     const now = new Date()
     const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
     const date = `${now.getDate()} ${months[now.getMonth()]}`
-    localStorage.setItem(key, JSON.stringify({ texto: comment.trim(), fecha: date, terapeuta: 'Dra. Martínez' }))
+
+    if (isReal) {
+      const { error } = await supabase.from('therapist_comments').upsert({
+        therapist_id: user!.id,
+        patient_id: supabasePatientId!,
+        week_code: getWeekCode(),
+        comment_text: comment.trim(),
+      }, { onConflict: 'therapist_id,patient_id,week_code' })
+
+      if (error) {
+        setToast('Error al publicar. Inténtalo de nuevo.')
+        setTimeout(() => setToast(null), 3000)
+        return
+      }
+    } else {
+      const slug = slugify(p.name)
+      const key = `dracs_comment_${slug}_${getWeekCode()}`
+      localStorage.setItem(key, JSON.stringify({ texto: comment.trim(), fecha: date, terapeuta: therapistDisplayName }))
+    }
+
     setPublished({ text: comment.trim(), date })
     setComment('')
     setToast('Comentario publicado. La familia ya puede verlo.')
@@ -216,7 +312,7 @@ export default function PatientDetail({ patient: p }: Props) {
       display: 'flex',
       flexDirection: 'column',
       gap: '20px',
-      padding: '20px 24px 32px',
+      padding: '24px 24px 32px',
       maxWidth: '760px',
       margin: '0 auto',
       width: '100%',
@@ -227,7 +323,6 @@ export default function PatientDetail({ patient: p }: Props) {
 
       {/* ── Patient header card ─────────────────────────────────── */}
       <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-        {/* Left: avatar + name + tags */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
           <div style={{
             width: '52px',
@@ -249,9 +344,9 @@ export default function PatientDetail({ patient: p }: Props) {
           <div style={{ minWidth: 0 }}>
             <h2 style={{
               margin: '0 0 8px',
-              fontSize: '22px',
-              fontWeight: 700,
-              color: '#0F172A',
+              fontSize: '24px',
+              fontWeight: 800,
+              color: '#1A1A2E',
               fontFamily: 'Nunito, sans-serif',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -263,7 +358,7 @@ export default function PatientDetail({ patient: p }: Props) {
               <span style={{
                 padding: '3px 10px',
                 borderRadius: '999px',
-                backgroundColor: '#F0F9FF',
+                backgroundColor: '#F0FAFA',
                 color: '#0BAFBE',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -272,7 +367,7 @@ export default function PatientDetail({ patient: p }: Props) {
               <span style={{
                 padding: '3px 10px',
                 borderRadius: '999px',
-                backgroundColor: '#F0F9FF',
+                backgroundColor: '#F0FAFA',
                 color: '#0BAFBE',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -282,13 +377,11 @@ export default function PatientDetail({ patient: p }: Props) {
           </div>
         </div>
 
-        {/* Vertical divider */}
         <div style={{ width: '1px', height: '48px', backgroundColor: 'rgba(0,0,0,0.08)', flexShrink: 0 }} />
 
-        {/* Right: 3 KPIs in a row */}
         <div style={{ display: 'flex', flexShrink: 0 }}>
           <div style={{ textAlign: 'center', padding: '0 20px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: kpi1 === 0 ? '#94A3B8' : '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
               {kpi1}<span style={{ fontSize: '16px', fontWeight: 600 }}>/{p.metrics.sessionsTarget}</span>
             </div>
             <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '5px', fontFamily: 'Nunito, sans-serif' }}>
@@ -297,8 +390,8 @@ export default function PatientDetail({ patient: p }: Props) {
           </div>
           <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.08)', alignSelf: 'stretch' }} />
           <div style={{ textAlign: 'center', padding: '0 20px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif' }}>
-              {kpi2}<span style={{ fontSize: '14px', fontWeight: 500 }}> min</span>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: kpi2 === 0 ? '#94A3B8' : '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
+              {kpi2 === 0 ? '—' : <>{kpi2}<span style={{ fontSize: '14px', fontWeight: 500 }}> min</span></>}
             </div>
             <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '5px', fontFamily: 'Nunito, sans-serif' }}>
               duración media
@@ -307,13 +400,11 @@ export default function PatientDetail({ patient: p }: Props) {
           <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.08)', alignSelf: 'stretch' }} />
           <div style={{ textAlign: 'center', padding: '0 20px' }}>
             <div style={{
-              fontSize: '28px',
-              fontWeight: 700,
-              color: p.metrics.progressPct >= 0 ? '#059669' : '#DC2626',
-              lineHeight: 1,
-              fontFamily: 'Nunito, sans-serif',
+              fontSize: '28px', fontWeight: 800, lineHeight: 1,
+              fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums',
+              color: p.metrics.progressPct === 0 ? '#94A3B8' : p.metrics.progressPct > 0 ? '#059669' : '#DC2626',
             }}>
-              {p.metrics.progressPct >= 0 ? '+' : '-'}{kpi3}%
+              {p.metrics.progressPct === 0 ? '—' : `${p.metrics.progressPct > 0 ? '+' : '-'}${kpi3}%`}
             </div>
             <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '5px', fontFamily: 'Nunito, sans-serif' }}>
               progreso mensual
@@ -326,7 +417,7 @@ export default function PatientDetail({ patient: p }: Props) {
       <div style={CARD}>
         <p style={SECTION_LABEL}>Evolución semanal</p>
         <ResponsiveContainer width="100%" height={180}>
-          <AreaChart data={p.weeklyProgress} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
+          <AreaChart data={CHART_DATA[slugify(p.name)] ?? p.weeklyProgress.map(d => ({ name: d.week, value: d.score }))} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
             <defs>
               <linearGradient id="scoreGradNew" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="#0BAFBE" stopOpacity={0.12} />
@@ -335,26 +426,24 @@ export default function PatientDetail({ patient: p }: Props) {
             </defs>
             <CartesianGrid strokeDasharray="0" stroke="#F1F5F9" vertical={false} />
             <XAxis
-              dataKey="week"
+              dataKey="name"
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#94A3B8', fontSize: 12, fontFamily: 'Nunito, sans-serif' }}
             />
             <YAxis
-              type="number"
               domain={[0, 100]}
               ticks={[0, 25, 50, 75, 100]}
-              allowDataOverflow={true}
+              tickFormatter={(value: number) => value + '%'}
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'Nunito, sans-serif' }}
-              tickFormatter={(v: number) => `${v}%`}
-              width={40}
+              width={45}
             />
             <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#D0F1F4', strokeWidth: 1 }} />
             <Area
               type="monotone"
-              dataKey="score"
+              dataKey="value"
               stroke="#0BAFBE"
               strokeWidth={2}
               fill="url(#scoreGradNew)"
@@ -419,10 +508,10 @@ export default function PatientDetail({ patient: p }: Props) {
         {/* 4 KPIs 2×2 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {[
-            { value: String(weekData.sessions), label: 'Sesiones completadas', color: '#0BAFBE' },
-            { value: `~${weekData.minutes} min`, label: 'Minutos practicados', color: '#0BAFBE' },
-            { value: String(weekData.exercises), label: 'Ejercicios completados', color: '#0BAFBE' },
-            { value: `${weekData.accuracy}%`, label: 'Aciertos medio', color: accuracyColor },
+            { value: String(weekData.sessions), label: 'Sesiones completadas', color: hasData ? '#0BAFBE' : '#94A3B8' },
+            { value: hasData ? `~${weekData.minutes} min` : '—', label: 'Minutos practicados', color: hasData ? '#0BAFBE' : '#94A3B8' },
+            { value: hasData ? String(weekData.exercises) : '—', label: 'Ejercicios completados', color: hasData ? '#0BAFBE' : '#94A3B8' },
+            { value: hasData ? `${weekData.accuracy}%` : '—', label: 'Aciertos medio', color: accuracyColor },
           ].map((m, i) => (
             <div key={i} style={{
               background: '#F8FAFC',
@@ -442,18 +531,32 @@ export default function PatientDetail({ patient: p }: Props) {
           ))}
         </div>
 
-        {/* Auto summary */}
-        <div style={{
-          background: '#F0F9FF',
-          borderLeft: '3px solid #0BAFBE',
-          borderRadius: '0 8px 8px 0',
-          padding: '14px 16px',
-          marginBottom: '24px',
-        }}>
-          <p style={{ margin: 0, fontSize: '14px', color: '#334155', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
-            {autoMsg}
-          </p>
-        </div>
+        {/* Auto summary or no-session placeholder */}
+        {autoMsg ? (
+          <div style={{
+            background: '#F0F9FF',
+            borderLeft: '3px solid #0BAFBE',
+            borderRadius: '0 8px 8px 0',
+            padding: '14px 16px',
+            marginBottom: '24px',
+          }}>
+            <p style={{ margin: 0, fontSize: '14px', color: '#334155', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+              {autoMsg}
+            </p>
+          </div>
+        ) : (
+          <div style={{
+            background: '#F8FAFC',
+            borderLeft: '3px solid #E2E8F0',
+            borderRadius: '0 8px 8px 0',
+            padding: '14px 16px',
+            marginBottom: '24px',
+          }}>
+            <p style={{ margin: 0, fontSize: '14px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+              Este paciente todavía no ha completado ninguna sesión esta semana.
+            </p>
+          </div>
+        )}
 
         {/* Textarea label */}
         <p style={{
@@ -527,7 +630,7 @@ export default function PatientDetail({ patient: p }: Props) {
             padding: '12px 16px',
           }}>
             <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 700, color: '#059669', fontFamily: 'Nunito, sans-serif' }}>
-              Publicado · Dra. Martínez
+              Publicado · {therapistDisplayName}
             </p>
             <p style={{ margin: 0, fontSize: '13px', color: '#0F172A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
               {published.text}

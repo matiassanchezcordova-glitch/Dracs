@@ -1,24 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
-import { Smile, Heart, Stethoscope, Sparkles } from 'lucide-react'
-import { loadHistory } from '../hooks/useChildProfile'
+import { useEffect, useRef, useState } from 'react'
+import { Gamepad2, Heart, Stethoscope, ChevronDown } from 'lucide-react'
 
 export type Role = 'child' | 'family' | 'therapist'
 
 interface Props {
   onSelect: (role: Role) => void
   onAbout: () => void
+  onLogin: () => void
 }
 
-// ── Hooks ──────────────────────────────────────────────────────────────
-
-function useCurrentTime() {
-  const [time, setTime] = useState(new Date())
-  useEffect(() => {
-    const id = setInterval(() => setTime(new Date()), 1000)
-    return () => clearInterval(id)
-  }, [])
-  return time
-}
+// ── Scroll reveal ──────────────────────────────────────────────────────────
 
 function useScrollReveal(threshold = 0.1) {
   const ref = useRef<HTMLElement>(null)
@@ -35,263 +26,92 @@ function useScrollReveal(threshold = 0.1) {
   return { ref, visible }
 }
 
-// ── Data helpers ───────────────────────────────────────────────────────
+// ── Frases dinámicas ───────────────────────────────────────────────────────
 
-function loadChildProfile(): { name: string; age: number; level: number; streak: number } | null {
-  try {
-    const raw = localStorage.getItem('dracs_child_profile')
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
+const PHRASES = [
+  'Cada palabra tiene su momento.',
+  'Hoy es un buen día para empezar.',
+  'Tu progreso nos hace sonreír.',
+  'Pequeños pasos, grandes avances.',
+  'La práctica hace al campeón.',
+  'Hoy vamos a pasarlo bien.',
+  'Cada ejercicio suma.',
+  'Un día más, un logro más.',
+  'El esfuerzo siempre vale la pena.',
+  'Dracs cree en ti.',
+  'Vamos a por ello.',
+  'La constancia es tu superpoder.',
+]
 
-function compute7dAccuracy(): number {
-  const history = loadHistory()
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 7)
-  const recent = history.filter(s => new Date(s.date) >= cutoff)
-  if (!recent.length) return 85
-  const total = recent.reduce((a, s) => a + s.total, 0)
-  const correct = recent.reduce((a, s) => a + s.correct, 0)
-  return total > 0 ? Math.round((correct / total) * 100) : 85
-}
+// ── Role row button ────────────────────────────────────────────────────────
 
-function computeSessionsThisWeek(): number {
-  const history = loadHistory()
-  const monday = new Date()
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
-  monday.setHours(0, 0, 0, 0)
-  const thisWeek = history.filter(s => new Date(s.date) >= monday)
-  return new Set(thisWeek.map(s => s.date)).size
-}
-
-// ── Role card ──────────────────────────────────────────────────────────
-
-interface RoleCardProps {
+interface RoleRowBtnProps {
   icon: React.ReactNode
-  badge: string
+  iconBg: string
+  iconBorder: string
+  iconColor: string
   title: string
-  description: string
-  footerLeft: string
-  footerRight: string
+  subtitle: string
   onClick: () => void
-  delay?: number
-  tealBg?: boolean
-  extraContent?: React.ReactNode
 }
 
-function RoleCard({
-  icon, badge, title, description, footerLeft, footerRight,
-  onClick, delay = 0, tealBg = false, extraContent,
-}: RoleCardProps) {
+function RoleRowBtn({ icon, iconBg, iconBorder, iconColor, title, subtitle, onClick }: RoleRowBtnProps) {
   const [hovered, setHovered] = useState(false)
-
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position: 'relative',
-        background: tealBg ? '#F0FAFA' : '#FFFFFF',
-        border: '1px solid #F1F5F9',
-        borderRadius: '20px',
-        padding: '28px',
-        boxShadow: hovered ? '0 12px 40px rgba(0,0,0,0.12)' : '0 4px 20px rgba(0,0,0,0.06)',
-        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-        transition: 'all 0.25s ease',
-        cursor: 'pointer',
-        textAlign: 'left',
-        overflow: 'hidden',
-        animation: `cardStagger 0.5s ease ${delay}ms both`,
-        width: '100%',
-      }}
-    >
-      {/* Badge */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        background: '#FFF3CD',
-        color: '#92400E',
-        fontSize: '11px',
-        fontWeight: 600,
-        padding: '4px 10px',
-        borderRadius: '20px',
-        fontFamily: 'Nunito, sans-serif',
-        letterSpacing: '0.02em',
-      }}>
-        {badge}
-      </div>
-
-      {/* Icon */}
-      <div style={{
-        width: '52px',
-        height: '52px',
+        height: '64px',
         borderRadius: '14px',
-        background: '#F0FAFA',
+        padding: '0 20px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '16px',
-        color: '#0BAFBE',
-        flexShrink: 0,
+        gap: '14px',
+        border: `1.5px solid ${hovered ? '#0BAFBE' : '#F1F5F9'}`,
+        background: hovered ? '#F0FAFA' : '#ffffff',
+        cursor: 'pointer',
+        width: '100%',
+        transform: hovered ? 'translateX(4px)' : 'translateX(0)',
+        transition: 'all 200ms ease',
+      }}
+    >
+      <div style={{
+        width: '40px', height: '40px', borderRadius: '10px',
+        background: iconBg, border: `1px solid ${iconBorder}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: iconColor, flexShrink: 0,
       }}>
         {icon}
       </div>
-
-      {/* Title */}
-      <h3 style={{
-        margin: '0 0 8px',
-        fontFamily: '"Playfair Display", serif',
-        fontSize: '28px',
-        fontWeight: 700,
-        color: '#1A1A2E',
-        lineHeight: 1.15,
-        paddingRight: '60px',
-      }}>
-        {title}
-      </h3>
-
-      {/* Description */}
-      <p style={{
-        margin: '0 0 20px',
-        fontFamily: 'Nunito, sans-serif',
-        fontSize: '14px',
-        color: '#6B7280',
-        fontWeight: 400,
-        lineHeight: 1.55,
-      }}>
-        {description}
-      </p>
-
-      {extraContent}
-
-      {/* Footer */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderTop: '1px solid #F1F5F9',
-        paddingTop: '14px',
-      }}>
-        <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-          {footerLeft}
-        </span>
-        <span style={{ fontSize: '12px', color: '#0BAFBE', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-          {footerRight}
-        </span>
+      <div style={{ flex: 1, textAlign: 'left' }}>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 400, lineHeight: 1.2, marginTop: '2px' }}>
+          {subtitle}
+        </div>
       </div>
     </button>
   )
 }
 
-// ── About card ─────────────────────────────────────────────────────────
+// ── Scroll helper ──────────────────────────────────────────────────────────
 
-function AboutCard({ onAbout }: { onAbout: () => void }) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <button
-      onClick={onAbout}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: 'calc((100% - 40px) / 3)',
-        background: '#FFFBF0',
-        border: '1px solid #F1F5F9',
-        borderRadius: '20px',
-        padding: '24px 28px',
-        boxShadow: hovered ? '0 10px 30px rgba(0,0,0,0.1)' : '0 4px 20px rgba(0,0,0,0.04)',
-        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        transition: 'all 0.25s ease',
-        cursor: 'pointer',
-        textAlign: 'left',
-        animation: 'cardStagger 0.5s ease 300ms both',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-        <div style={{
-          width: '44px',
-          height: '44px',
-          borderRadius: '12px',
-          background: '#FFF3CD',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#FFD93D',
-        }}>
-          <Sparkles size={22} />
-        </div>
-        <div style={{
-          background: '#FFF3CD',
-          color: '#92400E',
-          fontSize: '11px',
-          fontWeight: 600,
-          padding: '4px 10px',
-          borderRadius: '20px',
-          fontFamily: 'Nunito, sans-serif',
-        }}>
-          discover
-        </div>
-      </div>
-
-      <h3 style={{
-        margin: '0 0 6px',
-        fontFamily: '"Playfair Display", serif',
-        fontSize: '24px',
-        fontWeight: 700,
-        color: '#1A1A2E',
-        lineHeight: 1.2,
-      }}>
-        El proyecto detrás de Dracs.
-      </h3>
-      <p style={{
-        margin: '0 0 16px',
-        fontSize: '14px',
-        color: '#6B7280',
-        fontFamily: 'Nunito, sans-serif',
-        lineHeight: 1.5,
-        fontWeight: 400,
-      }}>
-        1.2M personas en lista de espera en España. Esto es lo que estamos cambiando.
-      </p>
-
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderTop: '1px solid #F1F5F9',
-        paddingTop: '14px',
-      }}>
-        <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-          EAE · Babson 2026
-        </span>
-        <span style={{ fontSize: '12px', color: '#0BAFBE', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-          + leer manifiesto
-        </span>
-      </div>
-    </button>
-  )
+function scrollToId(id: string, offset = 24) {
+  const el = document.getElementById(id)
+  if (!el) return
+  const top = el.getBoundingClientRect().top + window.pageYOffset - offset
+  window.scrollTo({ top, behavior: 'smooth' })
 }
 
-// ── Main ───────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────
 
-export default function RoleSelector({ onSelect, onAbout }: Props) {
-  const time = useCurrentTime()
-  const profile = loadChildProfile()
-  const streak = profile?.streak ?? 12
-  const accuracy = compute7dAccuracy()
-  const sessionsThisWeek = computeSessionsThisWeek() || 5
-
-  const { ref: rolesRef, visible: rolesVisible } = useScrollReveal()
+export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
+  const [phrase] = useState(() => PHRASES[Math.floor(Math.random() * PHRASES.length)])
   const { ref: futureRef, visible: futureVisible } = useScrollReveal()
-
-  const formattedTime = time.toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const { ref: knowRef,   visible: knowVisible   } = useScrollReveal()
 
   return (
     <div style={{
@@ -300,481 +120,248 @@ export default function RoleSelector({ onSelect, onAbout }: Props) {
       fontFamily: 'Nunito, sans-serif',
     }}>
 
-      {/* ── NAVBAR ──────────────────────────────────────────────── */}
+      {/* ── NAVBAR ─────────────────────────────────────────────── */}
       <nav style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        padding: '16px 48px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        position: 'absolute', top: 0, left: 0, right: 0,
+        zIndex: 50, padding: '16px 32px',
+        display: 'flex', alignItems: 'center',
         background: 'transparent',
+      }} />
+
+      {/* ── HERO ────────────────────────────────────────────────── */}
+      <section style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '80px 24px',
+        position: 'relative',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img
-            src="/dragon.nb.png"
-            alt="DRACS"
-            style={{
-              height: '28px',
-              width: 'auto',
-              animation: 'floatDragon2 3s ease-in-out infinite',
-            }}
-          />
-          <span style={{
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 800,
-            fontSize: '20px',
-            color: '#0BAFBE',
-            letterSpacing: '2px',
-          }}>
-            DRACS
-          </span>
-        </div>
+        {/* Dragón protagonista */}
+        <img
+          src="/dragon.nb.png"
+          alt="Dracs"
+          style={{
+            width: '180px',
+            height: 'auto',
+            animation: 'floatDragon2 3s ease-in-out infinite',
+            filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))',
+            marginBottom: '32px',
+          }}
+        />
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: '#FFFFFF',
-          border: '1px solid #E5E7EB',
-          borderRadius: '20px',
-          padding: '8px 16px',
+        {/* Frase dinámica */}
+        <p style={{
+          margin: '0 0 48px',
+          fontFamily: '"Playfair Display", serif',
+          fontStyle: 'italic',
+          fontSize: 'clamp(28px, 4vw, 44px)',
+          fontWeight: 700,
+          color: '#0BAFBE',
+          textAlign: 'center',
+          animation: 'heroFadeIn 0.8s ease both',
+          maxWidth: '600px',
         }}>
-          <div style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: '#22C55E',
-            animation: 'greenPulse 2s ease-in-out infinite',
-            flexShrink: 0,
-          }} />
-          <span style={{
-            fontSize: '12px',
-            color: '#6B7280',
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 500,
-          }}>
-            Terapia adaptativa · v1
-          </span>
-        </div>
-      </nav>
+          {phrase}
+        </p>
 
-      {/* ── HERO ─────────────────────────────────────────────────── */}
-      <section
-        className="dracs-hero-section"
-        style={{
-          minHeight: 'calc(100vh - 64px)',
+        {/* Card de selección de rol */}
+        <div style={{
+          maxWidth: '400px',
+          width: '100%',
+          background: '#ffffff',
+          borderRadius: '24px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.08)',
+          padding: '28px',
           display: 'flex',
-          alignItems: 'center',
-          padding: '0 48px 80px',
-          gap: '48px',
+          flexDirection: 'column',
+          gap: '10px',
+        }}>
+          <RoleRowBtn
+            icon={<Gamepad2 size={18} />}
+            iconBg="#FFF8E8" iconBorder="#FDE68A" iconColor="#D97706"
+            title="Ejercicios"
+            subtitle="Sesión adaptada"
+            onClick={() => onSelect('child')}
+          />
+          <RoleRowBtn
+            icon={<Heart size={18} />}
+            iconBg="#F0FDF4" iconBorder="#BBF7D0" iconColor="#059669"
+            title="Progreso"
+            subtitle="Informe semanal"
+            onClick={() => onSelect('family')}
+          />
+          <RoleRowBtn
+            icon={<Stethoscope size={18} />}
+            iconBg="#F0FAFA" iconBorder="#A5F3FC" iconColor="#0BAFBE"
+            title="Logopedia"
+            subtitle="Panel clínico"
+            onClick={() => onSelect('therapist')}
+          />
+
+          {/* Separator */}
+          <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
+
+          {/* Login link */}
+          <button
+            onClick={onLogin}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '13px',
+              color: '#6B7280',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 600,
+              textAlign: 'center',
+              padding: '6px 0',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#0BAFBE')}
+            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#6B7280')}
+          >
+            ¿Ya tienes cuenta?{' '}
+            <span style={{ color: '#0BAFBE', fontWeight: 700 }}>Inicia sesión</span>
+          </button>
+        </div>
+
+        {/* "Conoce el proyecto" button */}
+        <KnowProjectButton onClick={() => scrollToId('proyecto-section')} />
+
+        {/* Logo DRACS firma */}
+        <p style={{
+          marginTop: '16px',
+          fontFamily: 'Nunito, sans-serif',
+          fontWeight: 900,
+          fontSize: '14px',
+          color: '#94A3B8',
+          letterSpacing: '0.1em',
+          textAlign: 'center',
+        }}>
+          DRACS
+        </p>
+      </section>
+
+      {/* ── EL PROYECTO DETRÁS DE DRACS ────────────────────────── */}
+      <section
+        id="proyecto-section"
+        ref={knowRef as React.RefObject<HTMLElement>}
+        style={{
+          padding: '100px 48px',
+          background: '#FFFFFF',
+          opacity: knowVisible ? 1 : 0,
+          transform: knowVisible ? 'translateY(0)' : 'translateY(30px)',
+          transition: 'opacity 0.6s ease, transform 0.6s ease',
         }}
       >
-        {/* Left column (55%) */}
-        <div style={{
-          flex: '0 0 55%',
-          animation: 'heroFadeIn 0.8s ease both',
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            background: '#FFF3CD',
-            color: '#92400E',
-            fontSize: '12px',
-            fontWeight: 600,
-            padding: '6px 14px',
-            borderRadius: '20px',
-            letterSpacing: '0.04em',
-            marginBottom: '28px',
-            fontFamily: 'Nunito, sans-serif',
-          }}>
-            TERAPIA ADAPTATIVA · SÍNDROME DE DOWN
+        <div className="dracs-proyecto-inner" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', gap: '80px', alignItems: 'center' }}>
+          <div style={{ flex: '0 0 50%' }}>
+            <div style={{
+              display: 'inline-flex', background: '#FFF3CD', color: '#92400E',
+              fontSize: '12px', fontWeight: 600, padding: '6px 14px',
+              borderRadius: '20px', letterSpacing: '0.04em',
+              marginBottom: '24px', fontFamily: 'Nunito, sans-serif',
+            }}>
+              EAE · BABSON 2026
+            </div>
+            <h2 style={{
+              margin: '0 0 20px', fontFamily: '"Playfair Display", serif',
+              fontSize: '40px', fontWeight: 700, color: '#1A1A2E', lineHeight: 1.15,
+            }}>
+              El proyecto detrás de Dracs.
+            </h2>
+            <p style={{
+              margin: '0 0 32px', fontSize: '16px', color: '#6B7280',
+              fontFamily: 'Nunito, sans-serif', fontWeight: 400,
+              maxWidth: '420px', lineHeight: 1.65,
+            }}>
+              En España, 1.2 millones de personas esperan más de 18 meses para recibir
+              terapia. Dracs nació para que ningún niño pierda su ventana de aprendizaje
+              por culpa de una lista de espera.
+            </p>
+            <button
+              onClick={onAbout}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '12px 24px', borderRadius: '12px',
+                border: '1.5px solid #0BAFBE',
+                background: 'transparent', color: '#0BAFBE',
+                fontSize: '15px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
+                cursor: 'pointer', transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = '#0BAFBE'; b.style.color = '#ffffff' }}
+              onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'transparent'; b.style.color = '#0BAFBE' }}
+            >
+              Leer el manifiesto
+            </button>
           </div>
 
-          <h1 style={{
-            margin: 0,
-            fontFamily: '"Playfair Display", serif',
-            fontSize: 'clamp(48px, 6vw, 80px)',
-            fontWeight: 700,
-            color: '#1A1A2E',
-            lineHeight: 1.1,
-          }}>
-            Cada palabra<br />
-            tiene su <span style={{ color: '#0BAFBE' }}>momento.</span>
-          </h1>
-
-          <p style={{
-            marginTop: '24px',
-            marginBottom: 0,
-            fontSize: '18px',
-            color: '#6B7280',
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 400,
-            maxWidth: '480px',
-            lineHeight: 1.65,
-          }}>
-            Dracs convierte la sesión de logopedia en un ritual diario que se adapta al niño, no al revés.{' '}
-            <span style={{ fontWeight: 600, color: '#1A1A2E' }}>
-              Listas de espera fuera. Datos clínicos dentro.
-            </span>
-          </p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '32px' }}>
-            {['3–10 años', 'Síndrome de Down · TEA · Apraxia', 'Avalado por logopedas'].map(text => (
-              <div key={text} style={{
-                background: '#FFFFFF',
-                border: '1px solid #E5E7EB',
-                color: '#6B7280',
-                fontSize: '13px',
-                fontWeight: 500,
-                padding: '8px 16px',
-                borderRadius: '20px',
-                fontFamily: 'Nunito, sans-serif',
-              }}>
-                {text}
+          <div style={{ flex: '0 0 50%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {[
+              { value: '1.2M',     label: 'personas en lista de espera' },
+              { value: '18 meses', label: 'tiempo medio de espera' },
+              { value: '88%',      label: 'recibe terapia insuficiente' },
+              { value: '€8.5B',    label: 'coste anual evitable' },
+            ].map(({ value, label }) => (
+              <div key={label} style={{ background: '#F0FAFA', borderRadius: '16px', padding: '24px' }}>
+                <div style={{
+                  fontSize: '48px', color: '#0BAFBE',
+                  lineHeight: 1, marginBottom: '8px',
+                  fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+                  fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {value}
+                </div>
+                <div style={{ fontSize: '13px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', fontWeight: 500, lineHeight: 1.4 }}>
+                  {label}
+                </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Right column (45%) */}
-        <div style={{
-          flex: '0 0 45%',
-          position: 'relative',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          animation: 'heroFadeIn 0.8s ease 0.4s both',
-        }}>
-          {/* Dragon — behind the card */}
-          <img
-            src="/dragon.nb.png"
-            alt=""
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '-40px',
-              right: '-30px',
-              width: '200px',
-              height: 'auto',
-              animation: 'floatDragon2 3s ease-in-out infinite',
-              zIndex: 0,
-            }}
-          />
-
-          {/* Stats card */}
-          <div style={{
-            position: 'relative',
-            zIndex: 1,
-            background: '#FFFFFF',
-            borderRadius: '24px',
-            padding: '32px',
-            maxWidth: '380px',
-            width: '100%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.08)',
-          }}>
-            {/* Header */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '12px',
-            }}>
-              <span style={{
-                fontSize: '11px',
-                textTransform: 'uppercase',
-                color: '#94A3B8',
-                letterSpacing: '0.1em',
-                fontWeight: 600,
-                fontFamily: 'Nunito, sans-serif',
-              }}>
-                HOY
-              </span>
-              <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-                {formattedTime}
-              </span>
-            </div>
-
-            {/* Name */}
-            <h2 style={{
-              margin: '0 0 4px',
-              fontFamily: '"Playfair Display", serif',
-              fontSize: '32px',
-              fontWeight: 700,
-              color: '#1A1A2E',
-              lineHeight: 1.1,
-            }}>
-              {profile ? `${profile.name}, ${profile.age}` : 'Pablo, 7'}
-            </h2>
-            <p style={{
-              margin: '0 0 16px',
-              fontSize: '12px',
-              color: '#94A3B8',
-              fontFamily: 'Nunito, sans-serif',
-              fontWeight: 400,
-            }}>
-              Sesión preparada · Nivel {profile?.level ?? 3} · Vocabulario funcional
-            </p>
-
-            <div style={{ height: '1px', background: '#F1F5F9', marginBottom: '20px' }} />
-
-            {/* Metrics */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              {[
-                { value: String(streak), label: 'RACHA' },
-                { value: `${accuracy}%`, label: 'ACIERTOS · 7D' },
-                { value: `${sessionsThisWeek}/5`, label: 'SESIONES · SEM.' },
-              ].map(({ value, label }) => (
-                <div key={label} style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontSize: '28px',
-                    fontWeight: 700,
-                    color: '#0BAFBE',
-                    lineHeight: 1,
-                  }}>
-                    {value}
-                  </div>
-                  <div style={{
-                    fontSize: '10px',
-                    textTransform: 'uppercase',
-                    color: '#94A3B8',
-                    letterSpacing: '0.08em',
-                    marginTop: '4px',
-                    fontWeight: 600,
-                    fontFamily: 'Nunito, sans-serif',
-                  }}>
-                    {label}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ height: '1px', background: '#F1F5F9', marginBottom: '16px' }} />
-
-            {/* Session pill */}
-            <div style={{
-              background: '#FFF3CD',
-              borderRadius: '10px',
-              padding: '10px 14px',
-              marginBottom: '16px',
-              fontSize: '13px',
-              color: '#92400E',
-              fontFamily: 'Nunito, sans-serif',
-              fontWeight: 500,
-            }}>
-              Empieza con 4 ejercicios suaves · 5 min
-            </div>
-
-            {/* CTA button */}
-            <HeroCTAButton onClick={() => onSelect('child')} />
-          </div>
-        </div>
       </section>
 
-      {/* ── ROL SELECTION ────────────────────────────────────────── */}
+      {/* ── EL FUTURO DE DRACS ─────────────────────────────────── */}
       <section
-        ref={rolesRef as React.RefObject<HTMLElement>}
-        style={{
-          padding: '80px 48px',
-          opacity: rolesVisible ? 1 : 0,
-          transform: rolesVisible ? 'translateY(0)' : 'translateY(30px)',
-          transition: 'opacity 0.6s ease, transform 0.6s ease',
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: '24px',
-          marginBottom: '48px',
-        }}>
-          <h2 style={{ margin: 0, fontFamily: '"Playfair Display", serif', lineHeight: 1.15 }}>
-            <span style={{
-              display: 'block',
-              fontSize: 'clamp(36px, 4vw, 48px)',
-              fontWeight: 700,
-              color: '#1A1A2E',
-            }}>
-              ¿Quién está
-            </span>
-            <span style={{
-              display: 'block',
-              fontSize: 'clamp(36px, 4vw, 48px)',
-              fontWeight: 700,
-              fontStyle: 'italic',
-              color: '#0BAFBE',
-            }}>
-              aquí hoy?
-            </span>
-          </h2>
-          <p style={{
-            maxWidth: '280px',
-            fontSize: '14px',
-            color: '#6B7280',
-            fontFamily: 'Nunito, sans-serif',
-            lineHeight: 1.65,
-            margin: '8px 0 0',
-            fontWeight: 400,
-          }}>
-            El mismo sistema adapta la interfaz a cada persona: el juego del niño, el panel del clínico, el resumen de la familia.
-          </p>
-        </div>
-
-        {/* 3 role cards */}
-        <div
-          className="dracs-role-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '20px',
-            marginBottom: '20px',
-          }}
-        >
-          <RoleCard
-            icon={<Smile size={28} />}
-            badge="child · ready"
-            title="Hoy toca practicar."
-            description={`4 ejercicios · 5 min · adaptados al humor de ${profile?.name ?? 'Pablo'} de hoy.`}
-            footerLeft={`nivel ${profile?.level ?? 3} · racha ${streak}`}
-            footerRight="+ entrar"
-            onClick={() => onSelect('child')}
-            delay={0}
-          />
-          <RoleCard
-            icon={<Heart size={28} />}
-            badge="family"
-            title="Ver el progreso."
-            description="Resumen semanal en lenguaje humano, no clínico."
-            footerLeft="informe del viernes"
-            footerRight="+ ver"
-            onClick={() => onSelect('family')}
-            delay={100}
-          />
-          <RoleCard
-            icon={<Stethoscope size={28} />}
-            badge="clínico"
-            title="Soy logopeda."
-            description="Panel clínico, hasta 80 pacientes, informes de 1 click."
-            footerLeft="SSO · acceso clínico"
-            footerRight="+ entrar"
-            onClick={() => onSelect('therapist')}
-            delay={200}
-            tealBg
-            extraContent={
-              <div style={{ position: 'absolute', bottom: '56px', right: '20px', opacity: 0.4 }}>
-                <svg width="60" height="30" viewBox="0 0 60 30" fill="none">
-                  <polyline
-                    points="0,25 15,20 30,14 45,8 60,4"
-                    stroke="#0BAFBE"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            }
-          />
-        </div>
-
-        {/* About card — right-aligned, same width as one column */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <AboutCard onAbout={onAbout} />
-        </div>
-      </section>
-
-      {/* ── LO QUE SE VIENE ──────────────────────────────────────── */}
-      <section
+        id="futuro-section"
         ref={futureRef as React.RefObject<HTMLElement>}
         style={{
-          padding: '80px 48px',
+          padding: '100px 48px',
           opacity: futureVisible ? 1 : 0,
           transform: futureVisible ? 'translateY(0)' : 'translateY(30px)',
           transition: 'opacity 0.6s ease, transform 0.6s ease',
         }}
       >
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: '24px',
-          marginBottom: '48px',
-        }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 style={{
-            margin: 0,
-            fontFamily: '"Playfair Display", serif',
-            fontSize: 'clamp(36px, 4vw, 48px)',
-            fontWeight: 700,
-            color: '#1A1A2E',
+            margin: '0 0 16px', fontFamily: '"Playfair Display", serif',
+            fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#1A1A2E',
           }}>
-            Lo que se viene.
+            El futuro de Dracs.
           </h2>
-          <p style={{
-            maxWidth: '280px',
-            fontSize: '14px',
-            color: '#6B7280',
-            fontFamily: 'Nunito, sans-serif',
-            lineHeight: 1.65,
-            margin: '8px 0 0',
-            fontWeight: 400,
-          }}>
-            Ideas que transforman Dracs de app de ejercicios a compañero clínico del niño.
+          <p style={{ margin: 0, fontSize: '16px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65, fontWeight: 400 }}>
+            De app de ejercicios a compañero clínico. Estas son las próximas cuatro funcionalidades.
           </p>
         </div>
 
-        <div
-          className="dracs-future-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '16px',
-          }}
-        >
+        <div className="dracs-future-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
           {[
             { num: '01', tag: 'voz',      title: 'Reconocimiento de habla',  desc: 'La app escucha y evalúa la pronunciación en tiempo real.' },
             { num: '02', tag: 'atención', title: 'Lectura de fatiga',         desc: 'Detecta cuando el niño pierde concentración y adapta la sesión.' },
             { num: '03', tag: 'cohorte',  title: 'Comparativa anónima',       desc: 'Benchmarks clínicos contra cohorte de edad y diagnóstico.' },
             { num: '04', tag: 'familia',  title: 'Mensajes de voz',           desc: 'El niño graba mensajes de voz para la familia al acabar.' },
           ].map(({ num, tag, title, desc }) => (
-            <div key={num} style={{
-              background: '#FFFFFF',
-              border: '1px solid #F1F5F9',
-              borderRadius: '16px',
-              padding: '24px',
-            }}>
+            <div key={num} style={{ background: '#FFFFFF', border: '1px solid #F1F5F9', borderRadius: '16px', padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-                  {num}
-                </span>
-                <div style={{
-                  width: '5px', height: '5px', borderRadius: '50%',
-                  background: '#0BAFBE', opacity: 0.5,
-                }} />
-                <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>
-                  {tag}
-                </span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>{num}</span>
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0BAFBE', opacity: 0.5 }} />
+                <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>{tag}</span>
               </div>
-              <h4 style={{
-                margin: '0 0 8px',
-                fontFamily: '"Playfair Display", serif',
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#1A1A2E',
-                lineHeight: 1.25,
-              }}>
+              <h4 style={{ margin: '0 0 8px', fontFamily: '"Playfair Display", serif', fontSize: '20px', fontWeight: 700, color: '#1A1A2E', lineHeight: 1.25 }}>
                 {title}
               </h4>
-              <p style={{
-                margin: 0,
-                fontSize: '13px',
-                color: '#6B7280',
-                fontFamily: 'Nunito, sans-serif',
-                lineHeight: 1.55,
-                fontWeight: 400,
-              }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.55, fontWeight: 400 }}>
                 {desc}
               </p>
             </div>
@@ -782,30 +369,14 @@ export default function RoleSelector({ onSelect, onAbout }: Props) {
         </div>
       </section>
 
-      {/* ── FOOTER ───────────────────────────────────────────────── */}
-      <footer style={{
-        padding: '32px 48px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '12px',
-        borderTop: '1px solid #F1F5F9',
-      }}>
+      {/* ── FOOTER ──────────────────────────────────────────────── */}
+      <footer style={{ padding: '32px 48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', borderTop: '1px solid #F1F5F9' }}>
         <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
           Dracs · Barcelona · 2026
         </span>
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '12px',
-            color: '#6B7280',
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 600,
-            padding: '4px 8px',
-          }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', fontWeight: 600, padding: '4px 8px' }}
         >
           ↑ Volver arriba
         </button>
@@ -814,37 +385,37 @@ export default function RoleSelector({ onSelect, onAbout }: Props) {
   )
 }
 
-// ── Hero CTA button (extracted to avoid inline handler complexity) ──────
-
-function HeroCTAButton({ onClick }: { onClick: () => void }) {
+function KnowProjectButton({ onClick }: { onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
-
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: '100%',
-        height: '52px',
-        background: '#FFD93D',
-        color: '#1A1A2E',
+        marginTop: '32px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '10px 20px',
+        borderRadius: '20px',
         border: 'none',
-        borderRadius: '14px',
-        fontSize: '16px',
+        background: '#0BAFBE',
+        color: '#ffffff',
+        fontSize: '13px',
         fontWeight: 700,
         fontFamily: 'Nunito, sans-serif',
         cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        filter: hovered ? 'brightness(0.95)' : 'brightness(1)',
-        transform: hovered ? 'translateY(-1px)' : 'translateY(0)',
-        transition: 'filter 0.2s ease, transform 0.2s ease',
+        outline: 'none',
+        boxShadow: hovered
+          ? '0 6px 20px rgba(11,175,190,0.45)'
+          : '0 4px 12px rgba(11,175,190,0.3)',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+        transition: 'box-shadow 0.2s ease, transform 0.2s ease',
       }}
     >
-      Empezar →
+      Conoce el proyecto
+      <ChevronDown size={14} />
     </button>
   )
 }

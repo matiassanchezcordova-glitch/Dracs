@@ -56,9 +56,9 @@ export default function SequenceQuestion({ exercise, onCorrect }: Props) {
       <p
         style={{
           textAlign: 'center',
-          color: '#ffffff',
-          fontWeight: 800,
-          fontSize: '20px',
+          color: '#1A1A2E',
+          fontWeight: 700,
+          fontSize: '18px',
           fontFamily: 'Nunito, sans-serif',
           margin: 0,
           padding: '0 16px',
@@ -70,7 +70,7 @@ export default function SequenceQuestion({ exercise, onCorrect }: Props) {
       <p
         style={{
           textAlign: 'center',
-          color: 'rgba(255,255,255,0.75)',
+          color: '#6B7280',
           fontSize: '14px',
           fontWeight: 600,
           fontFamily: 'Nunito, sans-serif',
@@ -83,7 +83,7 @@ export default function SequenceQuestion({ exercise, onCorrect }: Props) {
       {showRetry && (
         <p
           style={{
-            color: '#FFD93D',
+            color: '#D97706',
             fontSize: '16px',
             fontWeight: 800,
             fontFamily: 'Nunito, sans-serif',
@@ -113,15 +113,13 @@ export default function SequenceQuestion({ exercise, onCorrect }: Props) {
                 padding: '16px 14px',
                 borderRadius: '20px',
                 border: `2.5px solid ${
-                  done && isSelected ? '#22C55E' : isSelected ? '#FFD93D' : 'rgba(255,255,255,0.3)'
+                  done && isSelected ? '#22C55E' : isSelected ? '#FFD93D' : '#E5E7EB'
                 }`,
                 background: done && isSelected
-                  ? 'rgba(240,253,244,0.95)'
+                  ? '#F0FDF4'
                   : isSelected
-                    ? 'rgba(255,217,61,0.15)'
-                    : 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                    ? 'rgba(255,217,61,0.10)'
+                    : '#ffffff',
                 cursor: isSelected || done ? 'default' : 'pointer',
                 minWidth: '90px',
                 position: 'relative',

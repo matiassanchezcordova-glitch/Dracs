@@ -39,9 +39,9 @@ export default function OddOneOutQuestion({ exercise, onCorrect }: Props) {
       <p
         style={{
           textAlign: 'center',
-          color: '#ffffff',
-          fontWeight: 800,
-          fontSize: '20px',
+          color: '#1A1A2E',
+          fontWeight: 700,
+          fontSize: '18px',
           fontFamily: 'Nunito, sans-serif',
           margin: 0,
           padding: '0 16px',
@@ -80,15 +80,13 @@ export default function OddOneOutQuestion({ exercise, onCorrect }: Props) {
                 padding: '16px 8px',
                 borderRadius: '20px',
                 border: `2.5px solid ${
-                  isCorrectPicked ? '#22C55E' : isGroupMember ? 'rgba(11,175,190,0.3)' : 'rgba(255,255,255,0.3)'
+                  isCorrectPicked ? '#22C55E' : isGroupMember ? 'rgba(11,175,190,0.3)' : '#E5E7EB'
                 }`,
                 background: isCorrectPicked
-                  ? 'rgba(240,253,244,0.95)'
+                  ? '#F0FDF4'
                   : isGroupMember
-                    ? 'rgba(11,175,190,0.10)'
-                    : 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                    ? 'rgba(11,175,190,0.08)'
+                    : '#ffffff',
                 cursor: done ? 'default' : 'pointer',
                 minHeight: '118px',
                 position: 'relative',

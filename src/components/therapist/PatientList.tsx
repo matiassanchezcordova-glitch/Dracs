@@ -31,12 +31,12 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: 'Nunito, sans-serif' }}>
 
       {/* Header */}
-      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
-          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff', fontFamily: 'Nunito, sans-serif' }}>
+      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
             Pacientes
           </h2>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)', fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
+          <span style={{ fontSize: '11px', color: '#6B7280', fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
             {patients.length} en total
           </span>
         </div>
@@ -48,7 +48,7 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
             left: '10px',
             top: '50%',
             transform: 'translateY(-50%)',
-            color: 'rgba(255,255,255,0.5)',
+            color: '#94A3B8',
             pointerEvents: 'none',
           }} />
           <input
@@ -61,12 +61,12 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
               boxSizing: 'border-box',
               padding: '7px 10px 7px 30px',
               borderRadius: '8px',
-              border: 'none',
-              backgroundColor: 'rgba(0,0,0,0.15)',
+              border: '1px solid #E5E7EB',
+              backgroundColor: '#F8FAFC',
               fontSize: '12px',
               fontFamily: 'Nunito, sans-serif',
               fontWeight: 500,
-              color: '#ffffff',
+              color: '#1A1A2E',
               outline: 'none',
             }}
           />
@@ -76,7 +76,7 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', paddingTop: '4px', paddingBottom: '4px' }}>
         {filtered.length === 0 && (
-          <div style={{ padding: '24px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '13px', fontFamily: 'Nunito, sans-serif' }}>
+          <div style={{ padding: '24px 16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontFamily: 'Nunito, sans-serif' }}>
             Sin resultados
           </div>
         )}
@@ -92,11 +92,11 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
       </div>
 
       {/* Legend */}
-      <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ padding: '10px 16px', borderTop: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {Object.values(STATUS_DOT).map(v => (
           <div key={v.label} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: v.color, flexShrink: 0 }} />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)', fontFamily: 'Nunito, sans-serif' }}>
+            <span style={{ fontSize: '11px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>
               {v.label}
             </span>
           </div>
@@ -132,11 +132,11 @@ function PatientRow({
         padding: '10px 14px',
         textAlign: 'left',
         border: 'none',
-        borderLeft: `3px solid ${isSelected ? '#ffffff' : 'transparent'}`,
+        borderLeft: `3px solid ${isSelected ? '#0BAFBE' : 'transparent'}`,
         backgroundColor: isSelected
-          ? 'rgba(255,255,255,0.20)'
+          ? '#F0FAFA'
           : hovered
-            ? 'rgba(255,255,255,0.08)'
+            ? '#F8FAFC'
             : 'transparent',
         cursor: 'pointer',
         transition: 'all 0.18s ease',
@@ -165,9 +165,9 @@ function PatientRow({
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
           margin: 0,
-          fontSize: '13px',
-          fontWeight: 700,
-          color: '#ffffff',
+          fontSize: '14px',
+          fontWeight: 600,
+          color: isSelected ? '#0BAFBE' : '#1A1A2E',
           fontFamily: 'Nunito, sans-serif',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -178,11 +178,12 @@ function PatientRow({
         <p style={{
           margin: '1px 0 0',
           fontSize: '11px',
-          color: 'rgba(255,255,255,0.65)',
+          color: '#6B7280',
           fontFamily: 'Nunito, sans-serif',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
+          maxWidth: '160px',
         }}>
           {p.age} años · {p.condition}
         </p>

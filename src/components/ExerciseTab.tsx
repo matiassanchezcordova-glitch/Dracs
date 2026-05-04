@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
-import { buildSession, type RuntimeExercise } from '../data/exercises'
+import { buildSession, type RuntimeExercise, type Level } from '../data/exercises'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 import SetupScreen from './exercise/SetupScreen'
 import WelcomeScreen from './exercise/WelcomeScreen'
 import ExerciseScreen from './exercise/ExerciseScreen'
@@ -10,6 +12,7 @@ type Screen = 'setup' | 'welcome' | 'exercise' | 'end'
 
 interface Props {
   onNavigateToFamilia: () => void
+  onNavigateToTerapeuta: () => void
 }
 
 interface EndState {
@@ -18,8 +21,51 @@ interface EndState {
   levelChanged: 'up' | 'down' | null
 }
 
-export default function ExerciseTab({ onNavigateToFamilia }: Props) {
+export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta }: Props) {
   const { profile, createProfile, completeSession } = useChildProfile()
+  const { user, patient, profile: authProfile } = useAuth()
+
+  if (authProfile?.role === 'therapist') {
+    return (
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 24px',
+        fontFamily: 'Nunito, sans-serif',
+        textAlign: 'center',
+        gap: '16px',
+      }}>
+        <div style={{ fontSize: '48px' }}>🩺</div>
+        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1A1A2E' }}>
+          Esta sección es para los pacientes
+        </h2>
+        <p style={{ margin: 0, fontSize: '14px', color: '#6B7280', maxWidth: '360px', lineHeight: 1.6 }}>
+          Como terapeuta, puedes ver el progreso de tus pacientes en el panel clínico.
+        </p>
+        <button
+          onClick={onNavigateToTerapeuta}
+          style={{
+            marginTop: '8px',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            border: 'none',
+            background: '#0BAFBE',
+            color: '#ffffff',
+            fontSize: '15px',
+            fontWeight: 700,
+            fontFamily: 'Nunito, sans-serif',
+            cursor: 'pointer',
+          }}
+        >
+          Ir al panel clínico
+        </button>
+      </div>
+    )
+  }
+
   const [screen, setScreen] = useState<Screen>(profile ? 'welcome' : 'setup')
   const [session, setSession] = useState<RuntimeExercise[]>([])
   const [endState, setEndState] = useState<EndState | null>(null)
@@ -35,20 +81,53 @@ export default function ExerciseTab({ onNavigateToFamilia }: Props) {
     setScreen('exercise')
   }
 
-  function handleSessionComplete(correct: number, total: number) {
+  async function handleSessionComplete(correct: number, total: number) {
     if (!profile) return
 
-    // Compute level change before saving (completeSession mutates the profile)
     const pct = total > 0 ? correct / total : 0
     let levelChanged: 'up' | 'down' | null = null
+    let newLevel: Level = profile.level
     if (total >= 7) {
-      if (pct >= 0.8 && profile.level < 4) levelChanged = 'up'
-      else if (pct < 0.5 && profile.level > 1) levelChanged = 'down'
+      if (pct >= 0.8 && profile.level < 4) { levelChanged = 'up'; newLevel = (profile.level + 1) as Level }
+      else if (pct < 0.5 && profile.level > 1) { levelChanged = 'down'; newLevel = (profile.level - 1) as Level }
     }
 
+    // Compute streak before saving
+    const today = new Date().toISOString().split('T')[0]
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
+    let newStreak = profile.streak
+    if (profile.lastSessionDate !== today) {
+      newStreak = profile.lastSessionDate === yesterdayStr ? profile.streak + 1 : 1
+    }
+
+    const sessionNumber = loadHistory().length + 1
+
+    // Save to localStorage (existing behavior — always runs)
     completeSession(correct, total)
     setEndState({ correct, total, levelChanged })
     setScreen('end')
+
+    // Save to Supabase if authenticated with a patient record
+    if (user && patient) {
+      const [sessRes, patRes] = await Promise.all([
+        supabase.from('sessions').insert({
+          patient_id: patient.id,
+          session_number: sessionNumber,
+          total_exercises: total,
+          correct_answers: correct,
+          accuracy_percent: total > 0 ? Math.round((correct / total) * 100) : 0,
+          level_at_session: profile.level,
+        }),
+        supabase
+          .from('patients')
+          .update({ streak_days: newStreak, current_level: newLevel })
+          .eq('id', patient.id),
+      ])
+      if (sessRes.error) console.warn('Supabase session save:', sessRes.error.message)
+      if (patRes.error) console.warn('Supabase patient update:', patRes.error.message)
+    }
   }
 
   function handleRepeat() {

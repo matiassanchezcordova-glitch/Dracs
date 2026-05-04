@@ -14,25 +14,6 @@ const LEVEL_LABELS: Record<number, string> = {
   4: 'Nivel 4 · Avanzado',
 }
 
-// ── Glass card ────────────────────────────────────────────────────────────
-
-function GlassCard({ children, style: s }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: 'rgba(255,255,255,0.14)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255,255,255,0.25)',
-        borderRadius: '20px',
-        ...s,
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
 export default function WelcomeScreen({ profile, onStart }: Props) {
   const [btnHovered, setBtnHovered] = useState(false)
 
@@ -44,31 +25,47 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
+        flex: 1,
         padding: '40px 24px',
-        gap: '28px',
+        gap: '20px',
+        background: 'linear-gradient(145deg, #FFF8E8 0%, #E8F8FF 40%, #E0F9F0 100%)',
+        minHeight: '100%',
       }}
     >
+      {/* Dragon mascot */}
+      <img
+        src="/dragon.nb.png"
+        alt="Dracs"
+        style={{
+          width: '140px',
+          height: 'auto',
+          animation: 'floatDragon2 3s ease-in-out infinite',
+          filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))',
+          marginBottom: '4px',
+        }}
+      />
+
       {/* Greeting */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <h1
           style={{
-            fontSize: '44px',
-            fontWeight: 900,
-            color: '#ffffff',
+            fontSize: '48px',
+            fontWeight: 700,
+            color: '#1A1A2E',
             lineHeight: 1.1,
             margin: 0,
-            fontFamily: 'Nunito, sans-serif',
+            fontFamily: 'Playfair Display, serif',
             animation: 'wordSlideDown 0.4s ease',
           }}
         >
           ¡Hola,{' '}
-          <span style={{ color: '#FFD93D' }}>{profile.name}</span>!
+          <span style={{ color: '#0BAFBE' }}>{profile.name}</span>!
         </h1>
         <p
           style={{
             fontSize: '16px',
             fontWeight: 600,
-            color: 'rgba(255,255,255,0.75)',
+            color: '#6B7280',
             margin: 0,
             fontFamily: 'Nunito, sans-serif',
           }}
@@ -80,58 +77,86 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
       {/* Stat cards */}
       <div style={{ display: 'flex', gap: '12px' }}>
         {/* Streak */}
-        <GlassCard style={{ padding: '20px 24px', minWidth: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <Flame size={32} style={{ color: '#F97316' }} />
+        <div style={{
+          background: '#FFF3CD',
+          border: '2px solid #FDE68A',
+          borderRadius: '20px',
+          padding: '20px 24px',
+          minWidth: '130px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        }}>
+          <Flame size={24} style={{ color: '#D97706' }} />
           <span
             style={{
-              fontSize: '32px',
-              fontWeight: 900,
-              color: '#FFD93D',
+              fontSize: '48px',
+              fontWeight: 800,
+              color: '#D97706',
               lineHeight: 1,
               fontFamily: 'Nunito, sans-serif',
+              fontVariantNumeric: 'tabular-nums',
             }}
           >
             {profile.streak}
           </span>
           <span
             style={{
-              fontSize: '12px',
+              fontSize: '11px',
               fontWeight: 700,
-              color: 'rgba(255,255,255,0.7)',
+              color: '#9CA3AF',
               fontFamily: 'Nunito, sans-serif',
               textAlign: 'center',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
             }}
           >
-            {profile.streak === 1 ? 'día seguido' : 'días seguidos'}
+            DÍAS SEGUIDOS
           </span>
-        </GlassCard>
+        </div>
 
         {/* Level */}
-        <GlassCard style={{ padding: '20px 24px', minWidth: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <Star size={32} style={{ color: '#F59E0B' }} />
+        <div style={{
+          background: '#E8F8FF',
+          border: '2px solid #A5F3FC',
+          borderRadius: '20px',
+          padding: '20px 24px',
+          minWidth: '130px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        }}>
+          <Star size={24} style={{ color: '#0BAFBE' }} />
           <span
             style={{
-              fontSize: '32px',
-              fontWeight: 900,
-              color: '#FFD93D',
+              fontSize: '48px',
+              fontWeight: 800,
+              color: '#0BAFBE',
               lineHeight: 1,
               fontFamily: 'Nunito, sans-serif',
+              fontVariantNumeric: 'tabular-nums',
             }}
           >
             {profile.level}
           </span>
           <span
             style={{
-              fontSize: '12px',
+              fontSize: '11px',
               fontWeight: 700,
-              color: 'rgba(255,255,255,0.7)',
+              color: '#9CA3AF',
               fontFamily: 'Nunito, sans-serif',
               textAlign: 'center',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
             }}
           >
-            nivel actual
+            NIVEL ACTUAL
           </span>
-        </GlassCard>
+        </div>
       </div>
 
       {/* CTA */}
@@ -144,22 +169,25 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '10px',
-          padding: '18px 48px',
-          borderRadius: '20px',
+          height: '60px',
+          padding: '0 48px',
+          borderRadius: '16px',
           border: 'none',
-          background: '#ffffff',
-          color: '#0891A0',
-          fontSize: '20px',
-          fontWeight: 900,
+          background: '#FFD93D',
+          color: '#1A1A2E',
+          fontSize: '18px',
+          fontWeight: 800,
           cursor: 'pointer',
           fontFamily: 'Nunito, sans-serif',
-          boxShadow: '0 6px 28px rgba(0,0,0,0.18)',
-          transform: btnHovered ? 'translateY(-3px) scale(1.02)' : 'translateY(0) scale(1)',
+          boxShadow: btnHovered
+            ? '0 8px 30px rgba(255,217,61,0.55)'
+            : '0 4px 20px rgba(255,217,61,0.4)',
+          transform: btnHovered ? 'translateY(-2px)' : 'translateY(0)',
           transition: 'all 0.2s ease',
         }}
       >
-        ¡Empezar sesión!
-        <Play size={18} fill="#0891A0" />
+        Empezar sesión
+        <Play size={18} fill="#1A1A2E" />
       </button>
     </div>
   )

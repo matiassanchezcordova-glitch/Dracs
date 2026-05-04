@@ -1,42 +1,150 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import App from './App'
 import AboutPage from './pages/AboutPage'
+import AuthPage from './pages/auth/AuthPage'
 import RoleSelector, { type Role } from './components/RoleSelector'
+import { AuthProvider, useAuth } from './context/AuthContext'
 
-type View = 'role-select' | 'app' | 'about'
+type View = 'role-select' | 'auth' | 'app' | 'about'
 
-function getSavedRole(): Role | null {
-  return localStorage.getItem('dracs_role') as Role | null
+function LoadingSpinner() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)',
+      flexDirection: 'column',
+      gap: '20px',
+    }}>
+      <img
+        src="/dragon.nb.png"
+        alt="Dracs"
+        style={{
+          width: '80px',
+          animation: 'floatDragon2 3s ease-in-out infinite',
+          filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))',
+        }}
+      />
+      <div style={{
+        width: '32px',
+        height: '32px',
+        border: '3px solid #E0F2FE',
+        borderTop: '3px solid #0BAFBE',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
 }
 
-export default function Root() {
-  const [role, setRole] = useState<Role | null>(getSavedRole)
-  const [view, setView] = useState<View>(() => (getSavedRole() ? 'app' : 'role-select'))
+function dbRoleToUiRole(dbRole: 'patient' | 'family' | 'therapist'): Role {
+  if (dbRole === 'patient') return 'child'
+  return dbRole
+}
+
+function RootInner() {
+  const { user, profile, patient, therapistData, loading, logout } = useAuth()
+
+  const savedRole = localStorage.getItem('dracs_role') as Role | null
+  const [view, setView] = useState<View>(savedRole ? 'app' : 'role-select')
+  const [pendingRole, setPendingRole] = useState<Role>('child')
+  const [localRole, setLocalRole] = useState<Role | null>(savedRole)
+  const [loginDirect, setLoginDirect] = useState(false)
+
+  useEffect(() => {
+    if (loading) return
+
+    if (user && profile) {
+      const isPatientRole = profile.role === 'patient' || profile.role === 'family'
+      const needsOnboarding = (isPatientRole && !patient) ||
+        (profile.role === 'therapist' && !therapistData)
+
+      if (needsOnboarding) {
+        setPendingRole(dbRoleToUiRole(profile.role))
+        setLoginDirect(false)
+        setView('auth')
+      } else {
+        setView('app')
+      }
+    }
+  }, [loading, user, profile, patient, therapistData])
 
   function handleRoleSelect(r: Role) {
-    localStorage.setItem('dracs_role', r)
-    setRole(r)
+    setLoginDirect(false)
+    if (user && profile) {
+      setView('app')
+    } else {
+      setPendingRole(r)
+      setView('auth')
+    }
+  }
+
+  function handleLoginDirect() {
+    setLoginDirect(true)
+    setPendingRole('child')
+    setView('auth')
+  }
+
+  function handleAuthSuccess() {
+    // AuthContext reloads profile/patient — useEffect above handles transition
+  }
+
+  function handleAuthSkip() {
+    localStorage.setItem('dracs_role', pendingRole)
+    setLocalRole(pendingRole)
     setView('app')
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (user) await logout()
     localStorage.removeItem('dracs_role')
-    setRole(null)
+    setLocalRole(null)
     setView('role-select')
   }
+
+  function getAppRole(): Role {
+    if (profile) return dbRoleToUiRole(profile.role)
+    return localRole ?? 'child'
+  }
+
+  if (loading) return <LoadingSpinner />
 
   if (view === 'about') {
     return <AboutPage onBack={() => setView('role-select')} />
   }
 
-  if (view === 'role-select' || !role) {
+  if (view === 'auth') {
     return (
-      <RoleSelector
-        onSelect={handleRoleSelect}
-        onAbout={() => setView('about')}
+      <AuthPage
+        role={pendingRole}
+        startAtLogin={loginDirect}
+        onSuccess={handleAuthSuccess}
+        onSkip={handleAuthSkip}
+        onBack={() => setView('role-select')}
       />
     )
   }
 
-  return <App role={role} onLogout={handleLogout} />
+  if (view === 'app' && (user || localRole)) {
+    return <App role={getAppRole()} onLogout={handleLogout} />
+  }
+
+  return (
+    <RoleSelector
+      onSelect={handleRoleSelect}
+      onAbout={() => setView('about')}
+      onLogin={handleLoginDirect}
+    />
+  )
+}
+
+export default function Root() {
+  return (
+    <AuthProvider>
+      <RootInner />
+    </AuthProvider>
+  )
 }

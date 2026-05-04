@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Star, Flame, TrendingUp, ArrowRight, Check } from 'lucide-react'
+import { Star, Flame, TrendingUp, ArrowRight, ArrowLeft, Check, FileText } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useTherapist } from '../../context/TherapistContext'
+import { supabase } from '../../lib/supabase'
+import { getWeekCode } from '../../lib/utils'
+import type { DbSession, TherapistComment, Patient } from '../../lib/types'
 import WeeklyReport from './WeeklyReport'
 
 interface Props {
   onNavigateToEjercicio: () => void
+  onNavigateToTerapeuta: () => void
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+// ── localStorage helpers (demo mode) ──────────────────────────────────────
 
 function getChildName(): string {
   try {
@@ -19,25 +25,16 @@ function getChildName(): string {
 
 function slugify(name: string): string {
   return name.toLowerCase().normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    .replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
-function getWeekKey(d: Date = new Date()): string {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
-  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7))
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
-  const weekNum = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
-  return `${date.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`
-}
+interface LocalComment { texto: string; fecha: string; terapeuta: string }
 
-interface TherapistComment { texto: string; fecha: string; terapeuta: string }
-
-function getTherapistComment(childName: string): TherapistComment | null {
+function getLocalTherapistComment(childName: string): LocalComment | null {
   try {
-    const slug = slugify(childName)
-    const key = `dracs_comment_${slug}_${getWeekKey()}`
+    const key = `dracs_comment_${slugify(childName)}_${getWeekCode()}`
     const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as TherapistComment) : null
+    return raw ? (JSON.parse(raw) as LocalComment) : null
   } catch { return null }
 }
 
@@ -49,44 +46,32 @@ interface WeekStats {
   lastWeekAccuracy: number
 }
 
-function getWeekStats(): WeekStats {
-  const defaults: WeekStats = {
-    streak: 5,
-    sessionsThisWeek: 5,
-    lastWeekSessions: 2,
-    accuracyThisWeek: 85,
-    lastWeekAccuracy: 67,
-  }
+function getLocalWeekStats(): WeekStats {
+  const defaults: WeekStats = { streak: 5, sessionsThisWeek: 5, lastWeekSessions: 2, accuracyThisWeek: 85, lastWeekAccuracy: 67 }
   try {
     const rawProfile = localStorage.getItem('dracs_child_profile')
     const rawHistory = localStorage.getItem('dracs_session_history')
     if (!rawProfile) return defaults
-
     const profile = JSON.parse(rawProfile) as { streak?: number }
     const history = rawHistory
       ? (JSON.parse(rawHistory) as { date: string; total: number; correct: number }[])
       : []
-
     const today = new Date()
     const weekStart = new Date(today)
     weekStart.setDate(today.getDate() - today.getDay())
     weekStart.setHours(0, 0, 0, 0)
-
     const lastWeekStart = new Date(weekStart)
     lastWeekStart.setDate(weekStart.getDate() - 7)
-
     const thisWeek = history.filter(s => new Date(s.date + 'T00:00:00') >= weekStart)
     const lastWeek = history.filter(s => {
       const d = new Date(s.date + 'T00:00:00')
       return d >= lastWeekStart && d < weekStart
     })
-
     const calc = (arr: typeof history) => {
       const correct = arr.reduce((a, s) => a + s.correct, 0)
-      const total   = arr.reduce((a, s) => a + s.total, 0)
+      const total = arr.reduce((a, s) => a + s.total, 0)
       return total > 0 ? Math.round((correct / total) * 100) : 0
     }
-
     return {
       streak: profile.streak ?? defaults.streak,
       sessionsThisWeek: thisWeek.length > 0 ? thisWeek.length : defaults.sessionsThisWeek,
@@ -97,7 +82,46 @@ function getWeekStats(): WeekStats {
   } catch { return defaults }
 }
 
-// ── Count-up ──────────────────────────────────────────────────────────────
+// ── Supabase stats from sessions ──────────────────────────────────────────
+
+function computeStatsFromSessions(sessions: DbSession[], streakDays: number): WeekStats {
+  const now = new Date()
+  const dow = now.getDay()
+  const weekStart = new Date(now)
+  weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  weekStart.setHours(0, 0, 0, 0)
+  const lastWeekStart = new Date(weekStart)
+  lastWeekStart.setDate(weekStart.getDate() - 7)
+
+  const thisWeek = sessions.filter(s => new Date(s.completed_at) >= weekStart)
+  const lastWeek = sessions.filter(s => {
+    const d = new Date(s.completed_at)
+    return d >= lastWeekStart && d < weekStart
+  })
+
+  const calcAcc = (arr: DbSession[]) => {
+    const total = arr.reduce((a, s) => a + s.total_exercises, 0)
+    const correct = arr.reduce((a, s) => a + s.correct_answers, 0)
+    return total > 0 ? Math.round((correct / total) * 100) : 0
+  }
+
+  return {
+    streak: streakDays,
+    sessionsThisWeek: thisWeek.length,
+    lastWeekSessions: lastWeek.length,
+    accuracyThisWeek: calcAcc(thisWeek),
+    lastWeekAccuracy: calcAcc(lastWeek),
+  }
+}
+
+function formatSessionDate(iso: string): string {
+  const d = new Date(iso)
+  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+}
+
+// ── Count-up animation ────────────────────────────────────────────────────
 
 function useCountUp(target: number, duration = 700) {
   const [val, setVal] = useState(0)
@@ -120,7 +144,6 @@ function useCountUp(target: number, duration = 700) {
 // ── Week grid ─────────────────────────────────────────────────────────────
 
 const DAYS_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-const THIS_WEEK_DONE = [true, true, true, true, true, false, false]
 
 const todayDowIndex = (() => {
   const d = new Date().getDay()
@@ -151,197 +174,189 @@ const CARD_TITLE: React.CSSProperties = {
   fontFamily: 'Nunito, sans-serif',
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────
+// ── FamiliaContent — shared between family and therapist views ────────────
 
-export default function FamiliaTab({ onNavigateToEjercicio: _onNavigateToEjercicio }: Props) {
+interface FamiliaContentProps {
+  activePatient: Patient | null
+  sbSessions: DbSession[]
+  sbComment: TherapistComment | null
+  sbLoaded: boolean
+  isSupabaseMode: boolean
+  localChildName: string
+  localStats: WeekStats
+  localComment: LocalComment | null
+  onNavigateToEjercicio: () => void
+}
+
+function FamiliaContent({
+  activePatient, sbSessions, sbComment, sbLoaded, isSupabaseMode,
+  localChildName, localStats, localComment, onNavigateToEjercicio,
+}: FamiliaContentProps) {
   const [showReport, setShowReport] = useState(false)
 
-  const childName        = useMemo(getChildName, [])
-  const stats            = useMemo(getWeekStats, [])
-  const therapistComment = useMemo(() => getTherapistComment(childName), [childName])
-  const sessionCount     = useCountUp(stats.sessionsThisWeek)
-  const accuracyVal      = useCountUp(stats.accuracyThisWeek)
-  const improvingVsLast  = stats.accuracyThisWeek > stats.lastWeekAccuracy
+  const childName = isSupabaseMode ? (activePatient?.child_name ?? 'Paciente') : localChildName
+  const stats = isSupabaseMode && sbLoaded
+    ? computeStatsFromSessions(sbSessions, activePatient?.streak_days ?? 0)
+    : localStats
 
-  const heroSubtitle =
-    stats.sessionsThisWeek >= 5
+  const noSessionsYet = isSupabaseMode && sbLoaded && stats.sessionsThisWeek === 0
+
+  const sessionCount = useCountUp(stats.sessionsThisWeek)
+  const accuracyVal = useCountUp(noSessionsYet ? 0 : stats.accuracyThisWeek)
+  const improvingVsLast = stats.accuracyThisWeek > stats.lastWeekAccuracy
+
+  const thisWeekDone = (() => {
+    if (!isSupabaseMode || !sbLoaded) {
+      return [true, true, true, true, true, false, false]
+    }
+    const now = new Date()
+    const dow = now.getDay()
+    const weekStart = new Date(now)
+    weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+    weekStart.setHours(0, 0, 0, 0)
+    return DAYS_SHORT.map((_, i) => {
+      const day = new Date(weekStart)
+      day.setDate(weekStart.getDate() + i)
+      const dayEnd = new Date(day)
+      dayEnd.setHours(23, 59, 59, 999)
+      return sbSessions.some(s => {
+        const d = new Date(s.completed_at)
+        return d >= day && d <= dayEnd
+      })
+    })
+  })()
+
+  const recentSessions = isSupabaseMode && sbLoaded
+    ? sbSessions.slice(0, 3).map(s => ({
+        date: formatSessionDate(s.completed_at),
+        duration: s.duration_minutes ?? 15,
+        exercises: s.total_exercises,
+        accuracy: s.accuracy_percent ?? 0,
+      }))
+    : [
+        { date: 'Lun 13 abr', duration: 28, exercises: 7, accuracy: 85 },
+        { date: 'Vie 11 abr', duration: 31, exercises: 7, accuracy: 78 },
+        { date: 'Jue 10 abr', duration: 25, exercises: 7, accuracy: 72 },
+      ]
+
+  const displayedComment = isSupabaseMode && sbLoaded
+    ? sbComment
+      ? { texto: sbComment.comment_text, fecha: new Date(sbComment.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), terapeuta: 'Tu terapeuta' }
+      : null
+    : localComment
+
+  const heroSubtitle = noSessionsYet
+    ? 'Esta semana todavía no hay sesiones. ¡Empieza hoy!'
+    : stats.sessionsThisWeek >= 5
       ? 'Esta semana ha sido excelente'
       : stats.sessionsThisWeek >= 3
         ? 'La semana va bien'
         : 'Quedan días para practicar'
 
-  const chips: { icon: React.ReactNode; label: string }[] = []
-  if (stats.sessionsThisWeek >= 5)
-    chips.push({ icon: <Star size={14} />, label: 'Semana perfecta' })
-  if (improvingVsLast)
-    chips.push({ icon: <TrendingUp size={14} />, label: 'Mejor que nunca' })
-  if (stats.streak > 3 && chips.length < 2)
-    chips.push({ icon: <Flame size={14} />, label: `${stats.streak} días en racha` })
+  interface ChipDef { icon: React.ReactNode; label: string; bg: string; color: string }
+  const chips: ChipDef[] = []
+  if (!noSessionsYet) {
+    if (stats.sessionsThisWeek >= 5)
+      chips.push({ icon: <Star size={14} />, label: 'Semana perfecta', bg: '#FFD93D', color: '#1A1A2E' })
+    if (improvingVsLast)
+      chips.push({ icon: <TrendingUp size={14} />, label: 'Mejor que nunca', bg: '#D1FAE5', color: '#059669' })
+    if (stats.streak > 3 && chips.length < 2)
+      chips.push({ icon: <Flame size={14} />, label: `${stats.streak} días en racha`, bg: '#FFF3CD', color: '#D97706' })
+  }
+
+  const levelPct = Math.min((activePatient?.current_level ?? 1) * 10, 100)
+  const progressPct = noSessionsYet ? levelPct : accuracyVal
+  const progressLabel = noSessionsYet
+    ? `Nivel ${activePatient?.current_level ?? 1} de vocabulario`
+    : `${stats.accuracyThisWeek}% de aciertos${improvingVsLast ? ` · +${stats.accuracyThisWeek - stats.lastWeekAccuracy}% vs semana anterior` : ''}`
 
   return (
-    <div style={{
-      fontFamily: 'Nunito, sans-serif',
-      width: '100%',
-      flex: 1,
-      overflowY: 'auto',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: '24px 16px',
-    }}>
+    <>
       {showReport && <WeeklyReport onBack={() => setShowReport(false)} />}
 
       {!showReport && (
-        <div style={{
-          width: '100%',
-          maxWidth: '760px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-        }}>
+        <div style={{ width: '100%', maxWidth: '760px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* ── Hero card ──────────────────────────────────────────── */}
+          {/* Hero card */}
           <div style={{
-            background: 'rgba(255,255,255,0.15)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'linear-gradient(135deg, #0BAFBE 0%, #0891A0 100%)',
             borderRadius: '20px',
-            padding: '24px',
+            padding: '28px 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{
-                margin: 0,
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#ffffff',
-                lineHeight: 1.3,
-                fontFamily: 'Nunito, sans-serif',
-              }}>
-                Hola, familia de {childName}
+              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, fontFamily: 'Playfair Display, serif' }}>
+                Hola, familia de {childName}.
               </h1>
-              <p style={{
-                margin: '6px 0 0',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: 'rgba(255,255,255,0.8)',
-                fontFamily: 'Nunito, sans-serif',
-              }}>
+              <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', fontFamily: 'Nunito, sans-serif' }}>
                 {heroSubtitle}
               </p>
             </div>
-
             <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: '24px' }}>
-              <div style={{
-                fontSize: '48px',
-                fontWeight: 900,
-                color: '#FFD93D',
-                lineHeight: 1,
-                fontFamily: 'Nunito, sans-serif',
-              }}>
+              <div style={{ fontSize: '64px', fontWeight: 800, color: '#FFD93D', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
                 {sessionCount}
               </div>
-              <div style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                color: 'rgba(255,255,255,0.7)',
-                fontFamily: 'Nunito, sans-serif',
-                marginTop: '4px',
-              }}>
-                sesiones esta semana
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', fontFamily: 'Nunito, sans-serif', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                SESIONES ESTA SEMANA
               </div>
             </div>
           </div>
 
-          {/* ── Achievement chips ─────────────────────────────────── */}
+          {/* Chips */}
           {chips.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {chips.slice(0, 2).map((chip, i) => (
                 <div key={i} style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  height: '32px',
-                  padding: '0 14px',
-                  borderRadius: '999px',
-                  background: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  fontFamily: 'Nunito, sans-serif',
-                  flexShrink: 0,
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  height: '32px', padding: '0 14px', borderRadius: '20px',
+                  background: chip.bg, color: chip.color, fontSize: '13px',
+                  fontWeight: 700, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
                 }}>
-                  {chip.icon}
-                  {chip.label}
+                  {chip.icon}{chip.label}
                 </div>
               ))}
             </div>
           )}
 
-          {/* ── Ver informe button ────────────────────────────────── */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <button
-              onClick={() => setShowReport(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '12px 24px',
-                borderRadius: '12px',
-                border: 'none',
-                background: '#ffffff',
-                color: '#0BAFBE',
-                fontSize: '14px',
-                fontWeight: 700,
-                fontFamily: 'Nunito, sans-serif',
-                cursor: 'pointer',
-                boxShadow: '0 4px 20px rgba(11,175,190,0.25)',
-              }}
-            >
+          {/* Ver informe */}
+          <button
+            onClick={() => setShowReport(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px', width: '100%',
+              padding: '18px 20px', borderRadius: '16px', border: '1px solid #E5E7EB',
+              borderLeft: '4px solid #FFD93D', background: '#ffffff', cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'box-shadow 0.18s ease, transform 0.18s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.10)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
+          >
+            <FileText size={20} color="#0BAFBE" style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: '20px', fontWeight: 700, color: '#1A1A2E', textAlign: 'left', fontFamily: 'Nunito, sans-serif' }}>
               Ver informe semanal
-              <ArrowRight size={16} color="#0BAFBE" />
-            </button>
-          </div>
+            </span>
+            <ArrowRight size={16} color="#0BAFBE" style={{ flexShrink: 0 }} />
+          </button>
 
-          {/* ── Esta semana ──────────────────────────────────────── */}
+          {/* Esta semana */}
           <Card>
             <p style={CARD_TITLE}>Esta semana</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               {DAYS_SHORT.map((d, i) => {
-                const done = THIS_WEEK_DONE[i]
+                const done = thisWeekDone[i]
                 const isToday = i === todayDowIndex && !done
                 return (
-                  <div
-                    key={d}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      backgroundColor: done
-                        ? '#0BAFBE'
-                        : isToday
-                          ? 'transparent'
-                          : '#F1F5F9',
-                      border: isToday ? '2px solid #0BAFBE' : 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      animation: done ? `circleIn 0.4s ease ${i * 80}ms both` : 'none',
-                    }}
-                  >
+                  <div key={d} style={{
+                    width: '40px', height: '40px', borderRadius: '50%',
+                    backgroundColor: done ? '#0BAFBE' : '#F8FAFC',
+                    border: isToday ? '2px solid #FFD93D' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    animation: done ? `circleIn 0.4s ease ${i * 80}ms both` : 'none',
+                  }}>
                     {done
                       ? <Check size={12} color="#ffffff" strokeWidth={3} />
-                      : <span style={{
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          color: isToday ? '#0BAFBE' : '#94A3B8',
-                          fontFamily: 'Nunito, sans-serif',
-                        }}>{d}</span>
+                      : <span style={{ fontSize: '12px', fontWeight: 700, color: isToday ? '#D97706' : '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>{d}</span>
                     }
                   </div>
                 )
@@ -352,112 +367,76 @@ export default function FamiliaTab({ onNavigateToEjercicio: _onNavigateToEjercic
             </p>
           </Card>
 
-          {/* ── Progreso de vocabulario ───────────────────────────── */}
+          {/* Progreso de vocabulario */}
           <Card>
             <p style={CARD_TITLE}>Progreso de vocabulario</p>
-            <div style={{
-              height: '10px',
-              backgroundColor: '#E0F2FE',
-              borderRadius: '5px',
-              overflow: 'hidden',
-              marginBottom: '10px',
-            }}>
-              <div style={{
-                height: '100%',
-                width: `${accuracyVal}%`,
-                background: 'linear-gradient(90deg, #0BAFBE, #059669)',
-                borderRadius: '5px',
-                transition: 'width 0.8s ease',
-              }} />
+            <div style={{ height: '10px', backgroundColor: '#E0F2FE', borderRadius: '5px', overflow: 'hidden', marginBottom: '10px' }}>
+              <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #0BAFBE, #059669)', borderRadius: '5px', transition: 'width 0.8s ease' }} />
             </div>
             <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif' }}>
-              {stats.accuracyThisWeek}% de aciertos
-              {improvingVsLast && (
-                <span style={{ color: '#059669', fontWeight: 700 }}>
-                  {' '}· +{stats.accuracyThisWeek - stats.lastWeekAccuracy}% vs semana anterior
-                </span>
-              )}
+              {progressLabel}
             </p>
           </Card>
 
-          {/* ── Últimas sesiones ──────────────────────────────────── */}
-          <Card>
-            <p style={CARD_TITLE}>Últimas sesiones</p>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  {['Fecha', 'Duración', 'Ejercicios', 'Aciertos'].map((col, i) => (
-                    <th key={col} style={{
-                      textAlign: i === 0 ? 'left' : 'center',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      color: '#94A3B8',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      fontFamily: 'Nunito, sans-serif',
-                      padding: '0 8px 12px',
-                      borderBottom: '1px solid #F1F5F9',
-                    }}>{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { date: 'Lun 13 abr', duration: 28, exercises: 7, accuracy: 85 },
-                  { date: 'Vie 11 abr', duration: 31, exercises: 7, accuracy: 78 },
-                  { date: 'Jue 10 abr', duration: 25, exercises: 7, accuracy: 72 },
-                ].map((s, i) => {
-                  const acColor = s.accuracy >= 80 ? '#059669' : s.accuracy >= 60 ? '#D97706' : '#DC2626'
-                  return (
-                    <tr key={i} style={{ backgroundColor: i % 2 === 1 ? '#F8FAFC' : 'transparent' }}>
-                      <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
-                        {s.date}
-                      </td>
-                      <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
-                        {s.duration} min
-                      </td>
-                      <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
-                        {s.exercises}
-                      </td>
-                      <td style={{ padding: '11px 8px', textAlign: 'center' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: acColor, fontFamily: 'Nunito, sans-serif' }}>
-                          {s.accuracy}%
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </Card>
+          {/* Últimas sesiones */}
+          {recentSessions.length > 0 ? (
+            <Card>
+              <p style={CARD_TITLE}>Últimas sesiones</p>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['Fecha', 'Duración', 'Ejercicios', 'Aciertos'].map((col, i) => (
+                      <th key={col} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11px', fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif', padding: '0 8px 12px', borderBottom: '1px solid #F1F5F9' }}>{col}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentSessions.map((s, i) => {
+                    const acColor = s.accuracy >= 80 ? '#059669' : s.accuracy >= 60 ? '#D97706' : '#DC2626'
+                    return (
+                      <tr key={i} style={{ backgroundColor: i % 2 === 1 ? '#F8FAFC' : 'transparent' }}>
+                        <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>{s.date}</td>
+                        <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>{s.duration} min</td>
+                        <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>{s.exercises}</td>
+                        <td style={{ padding: '11px 8px', textAlign: 'center' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: acColor, fontFamily: 'Nunito, sans-serif' }}>{s.accuracy}%</span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </Card>
+          ) : isSupabaseMode && sbLoaded && (
+            <Card>
+              <p style={CARD_TITLE}>Últimas sesiones</p>
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+                  Todavía no hay sesiones registradas.{' '}
+                  <button
+                    onClick={onNavigateToEjercicio}
+                    style={{ background: 'none', border: 'none', color: '#0BAFBE', cursor: 'pointer', fontSize: '14px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, padding: 0 }}
+                  >
+                    Completa tu primera sesión en Ejercicios.
+                  </button>
+                </p>
+              </div>
+            </Card>
+          )}
 
-          {/* ── Nota del terapeuta ────────────────────────────────── */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            padding: '24px',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-            borderTop: '3px solid #0BAFBE',
-          }}>
-            {therapistComment ? (
+          {/* Nota del terapeuta */}
+          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', borderTop: '3px solid #0BAFBE' }}>
+            {displayedComment ? (
               <>
-                <p style={{
-                  margin: '0 0 4px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#94A3B8',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  fontFamily: 'Nunito, sans-serif',
-                }}>
+                <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>
                   Nota de tu terapeuta
                 </p>
                 <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-                  {therapistComment.terapeuta} · {therapistComment.fecha}
+                  {displayedComment.terapeuta} · {displayedComment.fecha}
                 </p>
                 <div style={{ height: '1px', backgroundColor: '#F1F5F9', marginBottom: '14px' }} />
                 <p style={{ margin: 0, fontSize: '15px', color: '#0F172A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
-                  {therapistComment.texto}
+                  {displayedComment.texto}
                 </p>
               </>
             ) : (
@@ -471,6 +450,175 @@ export default function FamiliaTab({ onNavigateToEjercicio: _onNavigateToEjercic
 
         </div>
       )}
+    </>
+  )
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────
+
+export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeuta }: Props) {
+  const { user, patient, profile } = useAuth()
+  const { selectedPatientId } = useTherapist()
+
+  const isTherapist = profile?.role === 'therapist'
+  const patientId = isTherapist ? selectedPatientId : patient?.id ?? null
+  const isSupabaseMode = !!(user && patientId)
+
+  // Supabase state
+  const [sbSessions, setSbSessions] = useState<DbSession[]>([])
+  const [sbComment, setSbComment] = useState<TherapistComment | null>(null)
+  const [sbLoaded, setSbLoaded] = useState(false)
+  const [selectedPatientData, setSelectedPatientData] = useState<Patient | null>(null)
+
+  // localStorage fallback (demo mode only)
+  const localChildName = useMemo(getChildName, [])
+  const localStats = useMemo(getLocalWeekStats, [])
+  const localComment = useMemo(() => getLocalTherapistComment(localChildName), [localChildName])
+
+  useEffect(() => {
+    if (!isSupabaseMode) { setSbLoaded(false); return }
+    setSbLoaded(false)
+    setSbSessions([])
+    setSbComment(null)
+
+    async function fetchData() {
+      const fetchPatient = isTherapist
+        ? supabase.from('patients').select('*').eq('id', patientId!).single()
+        : Promise.resolve({ data: patient })
+
+      const [sessRes, commentRes, patRes] = await Promise.all([
+        supabase
+          .from('sessions')
+          .select('*')
+          .eq('patient_id', patientId!)
+          .order('completed_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('therapist_comments')
+          .select('*')
+          .eq('patient_id', patientId!)
+          .eq('week_code', getWeekCode())
+          .single(),
+        fetchPatient,
+      ])
+
+      setSbSessions((sessRes.data ?? []) as DbSession[])
+      setSbComment(commentRes.data as TherapistComment | null)
+      if (isTherapist) setSelectedPatientData(patRes.data as Patient | null)
+      setSbLoaded(true)
+    }
+
+    fetchData()
+  }, [isSupabaseMode, patientId, isTherapist])
+
+  const activePatient = isTherapist ? selectedPatientData : patient
+
+  // ── Therapist: no patient selected ──────────────────────────────────────
+  if (isTherapist && !selectedPatientId) {
+    return (
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 24px',
+        fontFamily: 'Nunito, sans-serif',
+        textAlign: 'center',
+        gap: '16px',
+      }}>
+        <div style={{ fontSize: '48px' }}>📋</div>
+        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1A1A2E' }}>
+          Selecciona un paciente
+        </h2>
+        <p style={{ margin: 0, fontSize: '14px', color: '#6B7280', maxWidth: '360px', lineHeight: 1.6 }}>
+          Ve al dashboard clínico y selecciona un paciente para ver su informe semanal.
+        </p>
+        <button
+          onClick={onNavigateToTerapeuta}
+          style={{
+            marginTop: '8px',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            border: 'none',
+            background: '#0BAFBE',
+            color: '#ffffff',
+            fontSize: '15px',
+            fontWeight: 700,
+            fontFamily: 'Nunito, sans-serif',
+            cursor: 'pointer',
+          }}
+        >
+          Ir al dashboard
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      fontFamily: 'Nunito, sans-serif',
+      width: '100%',
+      flex: 1,
+      overflowY: 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '24px 16px',
+    }}>
+      {/* Therapist view banner */}
+      {isTherapist && selectedPatientId && (
+        <div style={{
+          width: '100%',
+          maxWidth: '760px',
+          marginBottom: '16px',
+          background: '#F0FAFA',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          border: '1px solid rgba(11,175,190,0.2)',
+          flexWrap: 'wrap',
+        }}>
+          <button
+            onClick={onNavigateToTerapeuta}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '4px',
+              fontSize: '13px', fontWeight: 700, color: '#6B7280',
+              fontFamily: 'Nunito, sans-serif', padding: 0, flexShrink: 0,
+            }}
+          >
+            <ArrowLeft size={14} />
+            Volver al dashboard
+          </button>
+          <div style={{ width: '1px', height: '14px', background: '#E2E8F0', flexShrink: 0 }} />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+            Viendo como: <strong>{activePatient?.child_name ?? 'Paciente'}</strong>
+          </span>
+          <span style={{
+            marginLeft: 'auto',
+            background: '#0BAFBE', color: '#ffffff',
+            fontSize: '11px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
+            padding: '3px 10px', borderRadius: '20px', flexShrink: 0,
+          }}>
+            Vista terapeuta
+          </span>
+        </div>
+      )}
+
+      <FamiliaContent
+        activePatient={activePatient}
+        sbSessions={sbSessions}
+        sbComment={sbComment}
+        sbLoaded={sbLoaded}
+        isSupabaseMode={isSupabaseMode}
+        localChildName={localChildName}
+        localStats={localStats}
+        localComment={localComment}
+        onNavigateToEjercicio={onNavigateToEjercicio}
+      />
     </div>
   )
 }

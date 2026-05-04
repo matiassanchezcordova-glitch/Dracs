@@ -10,6 +10,7 @@ export default function FillBlankQuestion({ exercise, onCorrect }: Props) {
   const [displayedChars, setDisplayedChars] = useState(0)
   const [correctWord, setCorrectWord]       = useState<string | null>(null)
   const [shakingIndex, setShakingIndex]     = useState<number | null>(null)
+  const [hoveredIndex, setHoveredIndex]     = useState<number | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   function handleTap(index: number) {
@@ -52,9 +53,9 @@ export default function FillBlankQuestion({ exercise, onCorrect }: Props) {
       <div
         style={{
           textAlign: 'center',
-          fontSize: '24px',
-          fontWeight: 800,
-          color: '#ffffff',
+          fontSize: '20px',
+          fontWeight: 700,
+          color: '#1A1A2E',
           fontFamily: 'Nunito, sans-serif',
           lineHeight: 1.6,
           padding: '0 24px',
@@ -64,8 +65,9 @@ export default function FillBlankQuestion({ exercise, onCorrect }: Props) {
         {correctWord ? (
           <span
             style={{
-              color: '#22C55E',
+              color: '#D97706',
               textDecoration: 'underline',
+              textDecorationColor: '#D97706',
               textDecorationThickness: '2px',
               margin: '0 4px',
             }}
@@ -77,8 +79,8 @@ export default function FillBlankQuestion({ exercise, onCorrect }: Props) {
             style={{
               display: 'inline-block',
               minWidth: '80px',
-              borderBottom: '3px solid #FFD93D',
-              background: 'rgba(255,217,61,0.18)',
+              borderBottom: '2px solid #D97706',
+              background: '#FFF3CD',
               borderRadius: '6px',
               padding: '2px 10px',
               margin: '0 6px',
@@ -104,23 +106,24 @@ export default function FillBlankQuestion({ exercise, onCorrect }: Props) {
       >
         {exercise.options.map((option, index) => {
           const isCorrectFilled = correctWord !== null && index === exercise.correctIndex
+          const isHovered = hoveredIndex === index && !correctWord && shakingIndex === null
           return (
             <button
               key={index}
               onClick={() => handleTap(index)}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
               className={shakingIndex === index ? 'animate-shake' : ''}
               style={{
                 padding: '14px 30px',
                 borderRadius: '999px',
-                border: `2px solid ${isCorrectFilled ? '#22C55E' : 'rgba(255,255,255,0.35)'}`,
-                background: isCorrectFilled ? 'rgba(240,253,244,0.95)' : 'rgba(255,255,255,0.92)',
-                color: isCorrectFilled ? '#15803D' : '#0F172A',
-                fontSize: '20px',
-                fontWeight: 800,
+                border: `2px solid ${isCorrectFilled ? '#22C55E' : isHovered ? '#0BAFBE' : '#E5E7EB'}`,
+                background: isCorrectFilled ? '#F0FDF4' : isHovered ? '#F0FAFA' : '#ffffff',
+                color: isCorrectFilled ? '#15803D' : '#1A1A2E',
+                fontSize: '16px',
+                fontWeight: 700,
                 cursor: correctWord ? 'default' : 'pointer',
                 fontFamily: 'Nunito, sans-serif',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
                 transition: 'all 0.2s ease',
                 boxShadow: isCorrectFilled ? '0 4px 16px rgba(34,197,94,0.2)' : 'none',
               }}
