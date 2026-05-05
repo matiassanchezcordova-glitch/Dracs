@@ -135,6 +135,7 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
 
       {/* Emoji circle */}
       <div
+        className="dracs-answer-card-emoji"
         style={{
           width: '72px',
           height: '72px',
@@ -158,6 +159,7 @@ export default function AnswerCard({ option, state, onTap, enterDelay = 0 }: Pro
       </div>
 
       <span
+        className="dracs-answer-card-label"
         style={{
           fontFamily: 'Nunito, sans-serif',
           fontWeight: 600,

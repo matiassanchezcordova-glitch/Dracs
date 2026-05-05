@@ -72,6 +72,16 @@ function RootInner() {
     }
   }, [loading, user, profile, patient, therapistData])
 
+  // Safety timeout: if auth loading hangs beyond 10 s, reset to landing
+  useEffect(() => {
+    if (!loading) return
+    const t = setTimeout(() => {
+      console.warn('[Dracs] Auth loading timeout — resetting to landing')
+      setView('role-select')
+    }, 10000)
+    return () => clearTimeout(t)
+  }, [loading])
+
   function handleRoleSelect(r: Role) {
     setLoginDirect(false)
     if (user && profile) {
@@ -89,7 +99,7 @@ function RootInner() {
   }
 
   function handleAuthSuccess() {
-    // AuthContext reloads profile/patient — useEffect above handles transition
+    setView('app')
   }
 
   function handleAuthSkip() {

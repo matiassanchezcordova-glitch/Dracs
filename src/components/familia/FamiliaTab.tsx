@@ -347,7 +347,7 @@ function FamiliaContent({
                 const done = thisWeekDone[i]
                 const isToday = i === todayDowIndex && !done
                 return (
-                  <div key={d} style={{
+                  <div key={d} className="dracs-week-circle" style={{
                     width: '40px', height: '40px', borderRadius: '50%',
                     backgroundColor: done ? '#0BAFBE' : '#F8FAFC',
                     border: isToday ? '2px solid #FFD93D' : 'none',

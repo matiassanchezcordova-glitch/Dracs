@@ -174,6 +174,7 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
 
       {/* ── Progress header ─────────────────────────────────────────── */}
       <div
+        className="dracs-progress-header"
         style={{
           background: '#ffffff',
           border: '1px solid #F1F5F9',
@@ -240,6 +241,7 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
       {/* ── Vocabulary word card ─────────────────────────────────────── */}
       {current.type === 'vocabulary' && (
         <div
+          className="dracs-word-card"
           style={{
             background: 'linear-gradient(135deg, #0BAFBE 0%, #0891A0 100%)',
             borderRadius: '20px',
@@ -270,6 +272,7 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
 
           <div
             key={currentIndex}
+            className="dracs-word-text"
             style={{
               fontSize: 'clamp(40px, 5vw, 60px)',
               fontWeight: 800,
@@ -324,6 +327,7 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
       {current.type === 'vocabulary' && (
         <div
           key={currentIndex}
+          className="dracs-answer-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${cols}, 1fr)`,

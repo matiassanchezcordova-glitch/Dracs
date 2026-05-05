@@ -42,6 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loadProfile(userId: string) {
     setLoading(true)
+
+    // 5-second safety timeout — prevents infinite loading if DB is unreachable
+    const timeout = setTimeout(() => {
+      console.warn('[Dracs] loadProfile timeout after 5 s')
+      setLoading(false)
+    }, 5000)
+
     try {
       const { data: prof } = await supabase
         .from('profiles')
@@ -49,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single()
 
-      if (!prof) { setLoading(false); return }
+      if (!prof) return
       setProfile(prof as Profile)
 
       if (prof.role === 'patient' || prof.role === 'family') {
@@ -70,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTherapistData(ther as TherapistRecord | null)
       }
     } finally {
+      clearTimeout(timeout)
       setLoading(false)
     }
   }
@@ -123,12 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) return { error: error.message }
     if (!data.user) return { error: 'No se pudo crear la cuenta' }
 
-    // No session → email confirmation required
     if (!data.session) {
       return { error: null, userId: data.user.id, needsConfirmation: true }
     }
 
-    // Create profile immediately (user is authenticated)
     const { error: profErr } = await supabase.from('profiles').insert({
       id: data.user.id,
       role,

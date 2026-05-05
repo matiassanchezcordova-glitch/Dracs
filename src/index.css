@@ -243,3 +243,55 @@ body, #root {
     width: 100% !important;
   }
 }
+
+/* ── Mobile responsive (≤768px) ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Landing hero */
+  .dracs-hero-dragon { width: 120px !important; }
+  .dracs-hero-phrase { font-size: 22px !important; }
+  .dracs-role-card {
+    max-width: calc(100% - 32px) !important;
+    padding: 20px !important;
+  }
+  .dracs-role-btn { height: 60px !important; }
+  .dracs-role-btn-title { font-size: 14px !important; }
+  .dracs-section-proyecto { padding: 60px 16px !important; }
+  .dracs-section-futuro { padding: 60px 16px !important; }
+  .dracs-stats-grid > div { padding: 16px !important; }
+  .dracs-stats-grid .stat-number { font-size: 32px !important; }
+
+  /* Navbar: icon-only tabs, hide user name */
+  .dracs-nav-tab-label { display: none !important; }
+  .dracs-user-name { display: none !important; }
+
+  /* Exercise */
+  .dracs-word-card { padding: 20px 24px !important; }
+  .dracs-word-text { font-size: 32px !important; }
+  .dracs-answer-grid { gap: 8px !important; }
+  .dracs-answer-card-emoji {
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 28px !important;
+  }
+  .dracs-answer-card-label { font-size: 13px !important; }
+
+  /* Familia week circles */
+  .dracs-week-circle { width: 36px !important; height: 36px !important; }
+
+  /* Onboarding: prevent iOS input zoom + bigger tap targets */
+  .dracs-auth-layout { padding: 24px 16px 48px !important; }
+}
+
+/* Default: hide mobile therapist header on desktop */
+.dracs-therapist-mobile-header { display: none; }
+
+/* ── Mobile responsive (≤480px) ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Landing future grid: single column */
+  .dracs-future-grid { grid-template-columns: 1fr !important; }
+
+  /* Therapist: show mobile patient selector, collapse sidebar */
+  .dracs-therapist-mobile-header { display: flex !important; }
+  .dracs-therapist-sidebar { display: none !important; }
+  .dracs-therapist-sidebar.open { display: flex !important; flex-direction: column !important; width: 100% !important; max-height: 220px; border-right: none !important; border-bottom: 1px solid #F1F5F9 !important; }
+}

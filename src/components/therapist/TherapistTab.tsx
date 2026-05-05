@@ -175,6 +175,9 @@ export default function TherapistTab() {
   const [selectedRealId, setSelectedRealId] = useState<string>('')
   const [loadingReal, setLoadingReal] = useState(false)
 
+  // Mobile sidebar toggle
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+
   useEffect(() => {
     if (!isReal) return
     fetchRealData()
@@ -238,12 +241,36 @@ export default function TherapistTab() {
   if (!isReal) {
     const selectedMock = mockPatients.find(p => p.id === selectedMockId) ?? mockPatients[0]
     return (
-      <div style={{ fontFamily: 'Nunito, sans-serif', flex: 1, overflow: 'hidden', minHeight: 0, display: 'flex' }}>
-        <div style={{ width: '260px', flexShrink: 0, borderRight: '1px solid #F1F5F9', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#ffffff', paddingTop: '24px' }}>
-          <PatientList patients={mockPatients} selectedId={selectedMockId} onSelect={setSelectedMockId} />
+      <div style={{ fontFamily: 'Nunito, sans-serif', flex: 1, overflow: 'hidden', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {/* Mobile patient selector header */}
+        <div
+          className="dracs-therapist-mobile-header"
+          style={{
+            padding: '12px 16px', background: '#ffffff', borderBottom: '1px solid #F1F5F9',
+            alignItems: 'center', gap: '8px', flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={() => setMobileSidebarOpen(p => !p)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', background: '#F0FAFA',
+              border: '1px solid #E0F2FE', borderRadius: '10px', padding: '8px 14px',
+              fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif',
+              cursor: 'pointer', width: '100%', justifyContent: 'space-between',
+            }}
+          >
+            <span>Paciente: {selectedMock?.name ?? '—'}</span>
+            <span style={{ fontSize: '12px', color: '#94A3B8' }}>{mobileSidebarOpen ? '▲' : '▼'}</span>
+          </button>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {selectedMock && <PatientDetail patient={selectedMock} />}
+        {/* Row: sidebar + detail */}
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          <div className={`dracs-therapist-sidebar${mobileSidebarOpen ? ' open' : ''}`} style={{ width: '260px', flexShrink: 0, borderRight: '1px solid #F1F5F9', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#ffffff', paddingTop: '24px' }}>
+            <PatientList patients={mockPatients} selectedId={selectedMockId} onSelect={id => { setSelectedMockId(id); setMobileSidebarOpen(false) }} />
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {selectedMock && <PatientDetail patient={selectedMock} />}
+          </div>
         </div>
       </div>
     )
@@ -263,36 +290,60 @@ export default function TherapistTab() {
         </div>
       )}
 
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
-        {/* Patient list */}
-        <div style={{ width: '260px', flexShrink: 0, borderRight: '1px solid #F1F5F9', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#ffffff', paddingTop: '24px' }}>
-          {loadingReal ? (
-            <p style={{ padding: '24px 16px', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
-              Cargando pacientes...
-            </p>
-          ) : realPatients.length === 0 ? (
-            <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-              <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
-                Sin pacientes aún
-              </p>
-              <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.5 }}>
-                Las familias pueden buscarte por nombre o centro para vincularse.
-              </p>
-            </div>
-          ) : (
-            <PatientList patients={realPatients} selectedId={selectedRealId} onSelect={id => { setSelectedRealId(id); setSelectedPatientId(id) }} />
-          )}
-        </div>
+      {/* Mobile patient selector header */}
+      <div
+        className="dracs-therapist-mobile-header"
+        style={{
+          padding: '12px 16px', background: '#ffffff', borderBottom: '1px solid #F1F5F9',
+          alignItems: 'center', gap: '8px', flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={() => setMobileSidebarOpen(p => !p)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px', background: '#F0FAFA',
+            border: '1px solid #E0F2FE', borderRadius: '10px', padding: '8px 14px',
+            fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif',
+            cursor: 'pointer', width: '100%', justifyContent: 'space-between',
+          }}
+        >
+          <span>Paciente: {selectedReal?.name ?? '—'}</span>
+          <span style={{ fontSize: '12px', color: '#94A3B8' }}>{mobileSidebarOpen ? '▲' : '▼'}</span>
+        </button>
+      </div>
 
-        {/* Patient detail */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {selectedReal ? (
-            <PatientDetail patient={selectedReal} supabasePatientId={selectedReal.id} />
-          ) : !loadingReal && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94A3B8', fontSize: '14px', fontFamily: 'Nunito, sans-serif' }}>
-              Selecciona un paciente
-            </div>
-          )}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+          {/* Patient list */}
+          <div className={`dracs-therapist-sidebar${mobileSidebarOpen ? ' open' : ''}`} style={{ width: '260px', flexShrink: 0, borderRight: '1px solid #F1F5F9', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#ffffff', paddingTop: '24px' }}>
+            {loadingReal ? (
+              <p style={{ padding: '24px 16px', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
+                Cargando pacientes...
+              </p>
+            ) : realPatients.length === 0 ? (
+              <div style={{ padding: '24px 16px', textAlign: 'center' }}>
+                <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+                  Sin pacientes aún
+                </p>
+                <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.5 }}>
+                  Las familias pueden buscarte por nombre o centro para vincularse.
+                </p>
+              </div>
+            ) : (
+              <PatientList patients={realPatients} selectedId={selectedRealId} onSelect={id => { setSelectedRealId(id); setSelectedPatientId(id); setMobileSidebarOpen(false) }} />
+            )}
+          </div>
+
+          {/* Patient detail */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {selectedReal ? (
+              <PatientDetail patient={selectedReal} supabasePatientId={selectedReal.id} />
+            ) : !loadingReal && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94A3B8', fontSize: '14px', fontFamily: 'Nunito, sans-serif' }}>
+                Selecciona un paciente
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

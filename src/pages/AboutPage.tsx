@@ -496,9 +496,37 @@ export default function AboutPage({ onBack }: Props) {
             </Reveal>
 
             <Reveal delay={300}>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <HeroStat value="1.2M" label="personas esperando terapia en España" />
-                <HeroStat value="18 meses" label="tiempo medio de espera para recibir atención" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignSelf: 'flex-start',
+                  padding: '8px 18px',
+                  borderRadius: '999px',
+                  background: 'rgba(11,175,190,0.10)',
+                  border: '1px solid rgba(11,175,190,0.25)',
+                  color: '#0BAFBE',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  fontFamily: 'Nunito, sans-serif',
+                  letterSpacing: '0.2px',
+                }}>
+                  Proyecto seleccionado · Babson Student Challenge 2026
+                </div>
+                <div style={{
+                  display: 'inline-flex',
+                  alignSelf: 'flex-start',
+                  padding: '8px 18px',
+                  borderRadius: '999px',
+                  background: 'rgba(11,175,190,0.08)',
+                  border: '1px solid rgba(11,175,190,0.20)',
+                  color: '#0BAFBE',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  fontFamily: 'Nunito, sans-serif',
+                  letterSpacing: '0.2px',
+                }}>
+                  EAE Business School · Barcelona
+                </div>
               </div>
             </Reveal>
 

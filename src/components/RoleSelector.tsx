@@ -62,6 +62,7 @@ function RoleRowBtn({ icon, iconBg, iconBorder, iconColor, title, subtitle, onCl
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className="dracs-role-btn"
       style={{
         height: '64px',
         borderRadius: '14px',
@@ -86,7 +87,7 @@ function RoleRowBtn({ icon, iconBg, iconBorder, iconColor, title, subtitle, onCl
         {icon}
       </div>
       <div style={{ flex: 1, textAlign: 'left' }}>
-        <div style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>
+        <div className="dracs-role-btn-title" style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>
           {title}
         </div>
         <div style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 400, lineHeight: 1.2, marginTop: '2px' }}>
@@ -142,6 +143,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
         <img
           src="/dragon.nb.png"
           alt="Dracs"
+          className="dracs-hero-dragon"
           style={{
             width: '180px',
             height: 'auto',
@@ -152,7 +154,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
         />
 
         {/* Frase dinámica */}
-        <p style={{
+        <p className="dracs-hero-phrase" style={{
           margin: '0 0 48px',
           fontFamily: '"Playfair Display", serif',
           fontStyle: 'italic',
@@ -167,7 +169,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
         </p>
 
         {/* Card de selección de rol */}
-        <div style={{
+        <div className="dracs-role-card" style={{
           maxWidth: '400px',
           width: '100%',
           background: '#ffffff',
@@ -247,6 +249,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
       <section
         id="proyecto-section"
         ref={knowRef as React.RefObject<HTMLElement>}
+        className="dracs-section-proyecto"
         style={{
           padding: '100px 48px',
           background: '#FFFFFF',
@@ -297,7 +300,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
             </button>
           </div>
 
-          <div style={{ flex: '0 0 50%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="dracs-stats-grid" style={{ flex: '0 0 50%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {[
               { value: '1.2M',     label: 'personas en lista de espera' },
               { value: '18 meses', label: 'tiempo medio de espera' },
@@ -326,6 +329,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
       <section
         id="futuro-section"
         ref={futureRef as React.RefObject<HTMLElement>}
+        className="dracs-section-futuro"
         style={{
           padding: '100px 48px',
           opacity: futureVisible ? 1 : 0,

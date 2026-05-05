@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Search, Eye, EyeOff, ArrowLeft, X, Check } from 'lucide-react'
+import { Search, Eye, EyeOff, ChevronLeft, X, Check, Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import type { Center, TherapistWithProfile } from '../../lib/types'
@@ -17,10 +17,11 @@ type AuthView =
   | 'signup-ther-s3'
   | 'confirm-email'
 
-interface SignupData {
+interface SignupState {
   email: string
   password: string
   fullName: string
+  userId: string
   childName: string
   childAge: number
   diagnosis: string
@@ -66,7 +67,11 @@ const BTN_PRIMARY: React.CSSProperties = {
   fontFamily: 'Nunito, sans-serif',
   fontWeight: 700,
   cursor: 'pointer',
-  transition: 'opacity 0.18s ease, transform 0.18s ease',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  transition: 'opacity 0.18s ease',
 }
 
 const BTN_SECONDARY: React.CSSProperties = {
@@ -79,19 +84,10 @@ const BTN_SECONDARY: React.CSSProperties = {
 // ── Shared sub-components ──────────────────────────────────────────────────
 
 function FocusInput({
-  type = 'text',
-  placeholder,
-  value,
-  onChange,
-  autoFocus,
-  suffix,
+  type = 'text', placeholder, value, onChange, autoFocus, suffix,
 }: {
-  type?: string
-  placeholder: string
-  value: string
-  onChange: (v: string) => void
-  autoFocus?: boolean
-  suffix?: React.ReactNode
+  type?: string; placeholder: string; value: string
+  onChange: (v: string) => void; autoFocus?: boolean; suffix?: React.ReactNode
 }) {
   const [focused, setFocused] = useState(false)
   return (
@@ -112,14 +108,9 @@ function FocusInput({
       />
       {suffix && (
         <div style={{
-          position: 'absolute',
-          right: '16px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          display: 'flex',
-          alignItems: 'center',
-          color: '#94A3B8',
-          cursor: 'pointer',
+          position: 'absolute', right: '16px', top: '50%',
+          transform: 'translateY(-50%)', display: 'flex',
+          alignItems: 'center', color: '#94A3B8', cursor: 'pointer',
         }}>
           {suffix}
         </div>
@@ -130,18 +121,15 @@ function FocusInput({
 
 function StepDots({ total, current }: { total: number; current: number }) {
   return (
-    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '24px' }}>
+    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
       {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width: i === current ? '20px' : '8px',
-            height: '8px',
-            borderRadius: '4px',
-            background: i === current ? '#0BAFBE' : '#E5E7EB',
-            transition: 'all 0.25s ease',
-          }}
-        />
+        <div key={i} style={{
+          width: i === current ? '20px' : '8px',
+          height: '8px',
+          borderRadius: '4px',
+          background: i === current ? '#0BAFBE' : '#E5E7EB',
+          transition: 'all 0.25s ease',
+        }} />
       ))}
     </div>
   )
@@ -166,7 +154,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 function CardSubtitle({ children }: { children: React.ReactNode }) {
   return (
     <p style={{
-      margin: '0 0 28px',
+      margin: '0 0 24px',
       fontSize: '14px',
       color: '#6B7280',
       fontFamily: 'Nunito, sans-serif',
@@ -179,6 +167,7 @@ function CardSubtitle({ children }: { children: React.ReactNode }) {
 }
 
 function ErrorMsg({ msg }: { msg: string }) {
+  if (!msg) return null
   return (
     <div style={{
       padding: '12px 16px',
@@ -189,6 +178,7 @@ function ErrorMsg({ msg }: { msg: string }) {
       color: '#DC2626',
       fontFamily: 'Nunito, sans-serif',
       fontWeight: 600,
+      lineHeight: 1.4,
     }}>
       {msg}
     </div>
@@ -209,19 +199,36 @@ function Label({ children }: { children: React.ReactNode }) {
   )
 }
 
+// ── Spinner button ─────────────────────────────────────────────────────────
+
+function SpinnerBtn({
+  loading, label, loadingLabel = 'Guardando...', onClick, disabled = false,
+}: {
+  loading: boolean; label: string; loadingLabel?: string
+  onClick?: () => void; disabled?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading || disabled}
+      style={{ ...BTN_PRIMARY, opacity: loading ? 0.8 : 1, cursor: loading || disabled ? 'default' : 'pointer' }}
+    >
+      {loading
+        ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} />{loadingLabel}</>
+        : label}
+    </button>
+  )
+}
+
 // ── Layout ─────────────────────────────────────────────────────────────────
 
 function AuthLayout({
-  children,
-  onBack,
-  showBack = true,
+  children, onBack, showBack = true,
 }: {
-  children: React.ReactNode
-  onBack: () => void
-  showBack?: boolean
+  children: React.ReactNode; onBack: () => void; showBack?: boolean
 }) {
   return (
-    <div style={{
+    <div className="dracs-auth-layout" style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)',
       display: 'flex',
@@ -243,15 +250,15 @@ function AuthLayout({
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            color: '#6B7280',
+            gap: '4px',
+            color: '#0BAFBE',
             fontSize: '14px',
             fontFamily: 'Nunito, sans-serif',
             fontWeight: 600,
             padding: '8px',
           }}
         >
-          <ArrowLeft size={16} />
+          <ChevronLeft size={16} />
           Volver
         </button>
       )}
@@ -290,42 +297,131 @@ function AuthLayout({
       }}>
         {children}
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
+  )
+}
+
+// ── Role helpers ──────────────────────────────────────────────────────────
+
+function roleMismatchMsg(dbRole: string, wanted: Role): string {
+  if (dbRole === 'therapist') {
+    return 'Esta cuenta es de terapeuta. Usá "Logopedia" para entrar.'
+  }
+  return 'Esta cuenta no es de terapeuta. Usá "Ejercicios" o "Progreso" para entrar.'
+}
+
+// ── Screen: Choose ────────────────────────────────────────────────────────
+
+function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
+  role: Role; onLogin: () => void; onSignup: () => void; onSkip: () => void; onBack: () => void
+}) {
+  const isTherapist = role === 'therapist'
+  return (
+    <AuthLayout onBack={onBack}>
+      <CardTitle>{isTherapist ? 'Acceso logopeda' : '¿Ya usás Dracs?'}</CardTitle>
+      <CardSubtitle>
+        {isTherapist
+          ? 'Inicia sesión o crea tu cuenta profesional.'
+          : 'Inicia sesión para guardar el progreso, o continúa sin cuenta.'}
+      </CardSubtitle>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <button onClick={onLogin} style={BTN_PRIMARY}>
+          Sí, iniciar sesión
+        </button>
+        <button onClick={onSignup} style={BTN_SECONDARY}>
+          {isTherapist ? 'Registrarme como terapeuta' : 'No, crear cuenta nueva'}
+        </button>
+        {!isTherapist && (
+          <button
+            onClick={onSkip}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif',
+              fontWeight: 600, padding: '8px 0', textAlign: 'center',
+            }}
+          >
+            Continuar sin cuenta
+          </button>
+        )}
+      </div>
+    </AuthLayout>
   )
 }
 
 // ── Screen: Login ─────────────────────────────────────────────────────────
 
-function LoginScreen({
-  onSuccess,
-  onSignup,
-  onSkip,
-  onBack,
-}: {
-  onSuccess: () => void
-  onSignup: () => void
-  onSkip: () => void
-  onBack: () => void
+function LoginScreen({ role, onSuccess, onBack }: {
+  role: Role; onSuccess: () => void; onBack: () => void
 }) {
-  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit() {
-    if (!email || !password) { setError('Rellena todos los campos'); return }
+    if (!email.trim() || !password) { setError('Rellena todos los campos'); return }
     setLoading(true)
-    setError(null)
-    const { error: err } = await login(email.trim(), password)
-    setLoading(false)
-    if (err) {
-      if (err.includes('Invalid login')) setError('Email o contraseña incorrectos')
-      else setError(err)
-      return
+    setError('')
+
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
+      setLoading(false)
+      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+    }, 8000)
+
+    try {
+      // Sign in directly to get the user object for role verification
+      const { data: { user: authUser }, error: authError } =
+        await supabase.auth.signInWithPassword({ email: email.trim(), password })
+
+      if (timedOut) return
+      clearTimeout(timeout)
+
+      if (authError) {
+        const msg = authError.message.toLowerCase()
+        throw new Error(
+          msg.includes('invalid') || msg.includes('credentials')
+            ? 'Email o contraseña incorrectos'
+            : authError.message
+        )
+      }
+      if (!authUser) throw new Error('No se pudo autenticar. Intentá de nuevo.')
+
+      // Verify the role matches the section the user is entering
+      const { data: prof, error: profError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authUser.id)
+        .single()
+
+      if (timedOut) return
+
+      if (profError || !prof) {
+        await supabase.auth.signOut()
+        throw new Error('No encontramos tu perfil. Contactá soporte.')
+      }
+
+      const wantTherapist = role === 'therapist'
+      const isTherapist = prof.role === 'therapist'
+
+      if (wantTherapist !== isTherapist) {
+        await supabase.auth.signOut()
+        throw new Error(roleMismatchMsg(prof.role, role))
+      }
+
+      onSuccess()
+    } catch (err) {
+      if (timedOut) return
+      clearTimeout(timeout)
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+    } finally {
+      if (!timedOut) setLoading(false)
     }
-    onSuccess()
   }
 
   return (
@@ -334,15 +430,8 @@ function LoginScreen({
       <CardSubtitle>Tu progreso te está esperando.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {error && <ErrorMsg msg={error} />}
-
-        <FocusInput
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={setEmail}
-          autoFocus
-        />
+        <ErrorMsg msg={error} />
+        <FocusInput type="email" placeholder="Email" value={email} onChange={setEmail} autoFocus />
         <FocusInput
           type={showPass ? 'text' : 'password'}
           placeholder="Contraseña"
@@ -354,102 +443,22 @@ function LoginScreen({
             </span>
           }
         />
-
-        <button
+        <SpinnerBtn
+          loading={loading}
+          label="Iniciar sesión"
+          loadingLabel="Iniciando sesión..."
           onClick={handleSubmit}
-          disabled={loading}
-          style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1, cursor: loading ? 'default' : 'pointer' }}
-        >
-          {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-        </button>
-      </div>
-
-      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-        <button
-          onClick={onSignup}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#0BAFBE', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
-        >
-          ¿No tienes cuenta? Regístrate
-        </button>
-        <button
-          onClick={onSkip}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}
-        >
-          Continuar sin registrarse
-        </button>
+        />
       </div>
     </AuthLayout>
   )
 }
 
-// ── Screen: Choose ────────────────────────────────────────────────────────
+// ── Screen: Signup step 1 ─────────────────────────────────────────────────
 
-function ChooseScreen({
-  role,
-  onLogin,
-  onSignup,
-  onSkip,
-  onBack,
-}: {
-  role: Role
-  onLogin: () => void
-  onSignup: () => void
-  onSkip: () => void
-  onBack: () => void
-}) {
-  const roleLabel = role === 'therapist'
-    ? 'como logopeda'
-    : role === 'family'
-      ? 'para la familia'
-      : 'para empezar los ejercicios'
-
-  return (
-    <AuthLayout onBack={onBack}>
-      <CardTitle>Bienvenido a Dracs</CardTitle>
-      <CardSubtitle>Crea tu cuenta {roleLabel} o inicia sesión si ya tienes una.</CardSubtitle>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <button
-          onClick={onSignup}
-          style={BTN_PRIMARY}
-          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '0.9')}
-          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
-        >
-          Crear cuenta
-        </button>
-        <button
-          onClick={onLogin}
-          style={BTN_SECONDARY}
-          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC')}
-          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = '#ffffff')}
-        >
-          Ya tengo cuenta
-        </button>
-      </div>
-
-      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-        <button
-          onClick={onSkip}
-          style={{ display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center', padding: '4px' }}
-        >
-          Continuar sin registrarse
-        </button>
-      </div>
-    </AuthLayout>
-  )
-}
-
-// ── Screen: Signup Step 1 ─────────────────────────────────────────────────
-
-function SignupStep1({
-  role,
-  onContinue,
-  onLogin,
-  onBack,
-}: {
+function SignupStep1({ role, onContinue, onBack }: {
   role: Role
   onContinue: (email: string, password: string, fullName: string, userId: string) => void
-  onLogin: () => void
   onBack: () => void
 }) {
   const { signup } = useAuth()
@@ -457,42 +466,54 @@ function SignupStep1({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const dbRole = role === 'therapist' ? 'therapist' : role === 'family' ? 'family' : 'patient'
+  const dbRole: 'patient' | 'family' | 'therapist' =
+    role === 'therapist' ? 'therapist' : role === 'family' ? 'family' : 'patient'
 
   async function handleContinue() {
-    if (!fullName.trim() || !email.trim() || !password) {
-      setError('Rellena todos los campos')
-      return
-    }
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres')
-      return
-    }
+    if (!fullName.trim() || !email.trim() || !password) { setError('Rellena todos los campos'); return }
+    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return }
     setLoading(true)
-    setError(null)
-    const { error: err, userId, needsConfirmation } = await signup(
-      email.trim(),
-      password,
-      dbRole as 'patient' | 'family' | 'therapist',
-      fullName.trim(),
-    )
-    setLoading(false)
-    if (err) {
-      if (err.includes('already registered') || err.includes('already been registered')) {
-        setError('Este email ya tiene una cuenta. Inicia sesión.')
-      } else {
-        setError(err)
+    setError('')
+
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
+      setLoading(false)
+      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+    }, 8000)
+
+    try {
+      const { error: err, userId: uid, needsConfirmation } = await signup(
+        email.trim(), password, dbRole, fullName.trim(),
+      )
+      if (timedOut) return
+      clearTimeout(timeout)
+
+      if (err) {
+        const lower = err.toLowerCase()
+        if (lower.includes('already registered') || lower.includes('already been registered')) {
+          throw new Error('Ya existe una cuenta con este email. Iniciá sesión.')
+        }
+        throw new Error(err)
       }
-      return
+
+      if (needsConfirmation) {
+        // Email confirmation required — show confirmation screen
+        onContinue(email.trim(), password, fullName.trim(), uid ?? '')
+        return
+      }
+
+      onContinue(email.trim(), password, fullName.trim(), uid ?? '')
+    } catch (err) {
+      if (timedOut) return
+      clearTimeout(timeout)
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+    } finally {
+      if (!timedOut) setLoading(false)
     }
-    if (needsConfirmation) {
-      onContinue(email, password, fullName, userId ?? '')
-      return
-    }
-    onContinue(email, password, fullName, userId ?? '')
   }
 
   return (
@@ -504,20 +525,9 @@ function SignupStep1({
       </CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {error && <ErrorMsg msg={error} />}
-
-        <FocusInput
-          placeholder="Nombre completo"
-          value={fullName}
-          onChange={setFullName}
-          autoFocus
-        />
-        <FocusInput
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={setEmail}
-        />
+        <ErrorMsg msg={error} />
+        <FocusInput placeholder="Nombre completo" value={fullName} onChange={setFullName} autoFocus />
+        <FocusInput type="email" placeholder="Email" value={email} onChange={setEmail} />
         <FocusInput
           type={showPass ? 'text' : 'password'}
           placeholder="Contraseña (mín. 6 caracteres)"
@@ -529,43 +539,25 @@ function SignupStep1({
             </span>
           }
         />
-
         <div style={{ height: '4px' }} />
-
-        <button
-          onClick={handleContinue}
-          disabled={loading}
-          style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1, cursor: loading ? 'default' : 'pointer' }}
-        >
-          {loading ? 'Creando cuenta...' : 'Continuar →'}
-        </button>
+        <SpinnerBtn loading={loading} label="Continuar →" onClick={handleContinue} />
       </div>
-
-      <button
-        onClick={onLogin}
-        style={{ display: 'block', width: '100%', marginTop: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center' }}
-      >
-        ¿Ya tienes cuenta? Inicia sesión
-      </button>
     </AuthLayout>
   )
 }
 
-// ── Screen: Patient Step 2 ────────────────────────────────────────────────
+// ── Screen: Patient step 2 ────────────────────────────────────────────────
 
 const DIAGNOSES = ['Síndrome de Down', 'TEA', 'Parálisis cerebral', 'Apraxia', 'Otro']
 
-function PatientStep2({
-  onContinue,
-  onBack,
-}: {
+function PatientStep2({ onContinue, onBack }: {
   onContinue: (childName: string, childAge: number, diagnosis: string) => void
   onBack: () => void
 }) {
   const [childName, setChildName] = useState('')
   const [childAge, setChildAge] = useState(0)
   const [diagnosis, setDiagnosis] = useState('Síndrome de Down')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   function handleContinue() {
     if (!childName.trim()) { setError('Escribe el nombre del niño'); return }
@@ -580,16 +572,11 @@ function PatientStep2({
       <CardSubtitle>Así personalizamos sus ejercicios.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {error && <ErrorMsg msg={error} />}
+        <ErrorMsg msg={error} />
 
         <div>
           <Label>¿Cómo se llama tu hijo?</Label>
-          <FocusInput
-            placeholder="Nombre del niño"
-            value={childName}
-            onChange={setChildName}
-            autoFocus
-          />
+          <FocusInput placeholder="Nombre del niño" value={childName} onChange={setChildName} autoFocus />
         </div>
 
         <div>
@@ -600,16 +587,12 @@ function PatientStep2({
                 key={age}
                 onClick={() => setChildAge(age)}
                 style={{
-                  height: '52px',
-                  borderRadius: '14px',
+                  height: '52px', borderRadius: '14px',
                   border: `1.5px solid ${childAge === age ? '#0BAFBE' : '#E5E7EB'}`,
                   background: childAge === age ? '#F0FAFA' : '#ffffff',
                   color: childAge === age ? '#0BAFBE' : '#6B7280',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  fontFamily: 'Nunito, sans-serif',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  fontSize: '18px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
+                  cursor: 'pointer', transition: 'all 0.15s ease',
                 }}
               >
                 {age}
@@ -624,27 +607,22 @@ function PatientStep2({
             value={diagnosis}
             onChange={e => setDiagnosis(e.target.value)}
             style={{
-              ...INPUT_STYLE,
-              appearance: 'none',
+              ...INPUT_STYLE, appearance: 'none',
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 16px center',
-              paddingRight: '40px',
+              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', paddingRight: '40px',
             }}
           >
             {DIAGNOSES.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
 
-        <button onClick={handleContinue} style={BTN_PRIMARY}>
-          Continuar →
-        </button>
+        <button onClick={handleContinue} style={BTN_PRIMARY}>Continuar →</button>
       </div>
     </AuthLayout>
   )
 }
 
-// ── Screen: Patient Step 3 (therapist search) ─────────────────────────────
+// ── Screen: Patient step 3 (therapist link) ───────────────────────────────
 
 function PatientStep3({
   userId, childName, childAge, diagnosis, onSuccess, onBack,
@@ -656,7 +634,7 @@ function PatientStep3({
   const [results, setResults] = useState<TherapistWithProfile[]>([])
   const [selected, setSelected] = useState<TherapistWithProfile | null>(null)
   const [searching, setSearching] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [linkSent, setLinkSent] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -679,30 +657,43 @@ function PatientStep3({
 
   async function handleFinish(therapistToLink: TherapistWithProfile | null) {
     setSaving(true)
-    setError(null)
+    setError('')
 
-    const { data: pat, error: patErr } = await supabase
-      .from('patients')
-      .insert({ profile_id: userId, child_name: childName, child_age: childAge, diagnosis })
-      .select()
-      .single()
-
-    if (patErr || !pat) {
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
       setSaving(false)
-      setError('Error al guardar los datos del niño. Inténtalo de nuevo.')
-      return
-    }
+      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+    }, 8000)
 
-    if (therapistToLink) {
-      await supabase.from('link_requests').insert({
-        patient_id: pat.id,
-        therapist_id: therapistToLink.profile_id,
-      })
-      setLinkSent(true)
-    }
+    try {
+      const { data: pat, error: patErr } = await supabase
+        .from('patients')
+        .insert({ profile_id: userId, child_name: childName, child_age: childAge, diagnosis })
+        .select()
+        .single()
 
-    setSaving(false)
-    onSuccess()
+      if (timedOut) return
+      if (patErr || !pat) throw new Error('Error al guardar los datos del niño. Inténtalo de nuevo.')
+
+      if (therapistToLink) {
+        const { error: linkErr } = await supabase.from('link_requests').insert({
+          patient_id: pat.id,
+          therapist_id: therapistToLink.profile_id,
+        })
+        if (timedOut) return
+        if (!linkErr) setLinkSent(true)
+      }
+
+      clearTimeout(timeout)
+      onSuccess()
+    } catch (err) {
+      if (timedOut) return
+      clearTimeout(timeout)
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+    } finally {
+      if (!timedOut) setSaving(false)
+    }
   }
 
   if (linkSent) {
@@ -728,7 +719,7 @@ function PatientStep3({
       <CardSubtitle>Búscalo para conectar el progreso. Puedes hacerlo después.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {error && <ErrorMsg msg={error} />}
+        <ErrorMsg msg={error} />
 
         <div style={{ position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
@@ -737,8 +728,8 @@ function PatientStep3({
             value={query}
             onChange={e => { setQuery(e.target.value); setSelected(null) }}
             style={{ ...INPUT_STYLE, paddingLeft: '44px' }}
-            onFocus={e => ((e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE')}
-            onBlur={e => ((e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB')}
+            onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE' }}
+            onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
           />
         </div>
 
@@ -761,8 +752,8 @@ function PatientStep3({
                 key={t.id}
                 onClick={() => { setSelected(t); setQuery(t.profiles.full_name) }}
                 style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid #F1F5F9' : 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
-                onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC')}
-                onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
               >
                 <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>{t.profiles.full_name}</p>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{t.specialty} · {t.center_name} · {t.city}</p>
@@ -778,13 +769,11 @@ function PatientStep3({
           </p>
         )}
 
-        <button
+        <SpinnerBtn
+          loading={saving}
+          label={selected ? 'Enviar solicitud y empezar' : 'Empezar sin terapeuta'}
           onClick={() => handleFinish(selected)}
-          disabled={saving}
-          style={{ ...BTN_PRIMARY, opacity: saving ? 0.7 : 1, cursor: saving ? 'default' : 'pointer' }}
-        >
-          {saving ? 'Guardando...' : selected ? 'Enviar solicitud y empezar' : 'Empezar sin terapeuta'}
-        </button>
+        />
         <button
           onClick={() => handleFinish(null)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center', padding: '4px' }}
@@ -796,20 +785,18 @@ function PatientStep3({
   )
 }
 
-// ── Screen: Therapist Step 2 ──────────────────────────────────────────────
+// ── Screen: Therapist step 2 ──────────────────────────────────────────────
 
 const SPECIALTIES = ['Logopeda', 'Terapeuta ocupacional', 'Neuropsicólogo/a']
 
-function TherapistStep2({
-  onContinue, onBack,
-}: {
+function TherapistStep2({ onContinue, onBack }: {
   onContinue: (specialty: string, licenseNumber: string, city: string) => void
   onBack: () => void
 }) {
   const [specialty, setSpecialty] = useState('Logopeda')
   const [licenseNumber, setLicenseNumber] = useState('')
   const [city, setCity] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   function handleContinue() {
     if (!licenseNumber.trim() || !city.trim()) { setError('Rellena todos los campos'); return }
@@ -823,7 +810,7 @@ function TherapistStep2({
       <CardSubtitle>Necesitamos verificar tu perfil clínico.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {error && <ErrorMsg msg={error} />}
+        <ErrorMsg msg={error} />
 
         <div>
           <Label>Especialidad</Label>
@@ -856,7 +843,7 @@ function TherapistStep2({
   )
 }
 
-// ── Screen: Therapist Step 3 ──────────────────────────────────────────────
+// ── Screen: Therapist step 3 ──────────────────────────────────────────────
 
 function TherapistStep3({
   userId, specialty, licenseNumber, city, onSuccess, onBack,
@@ -871,7 +858,7 @@ function TherapistStep3({
   const [searching, setSearching] = useState(false)
   const [newCenterName, setNewCenterName] = useState('')
   const [showNewCenter, setShowNewCenter] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -880,7 +867,8 @@ function TherapistStep3({
     if (query.length < 2) { setResults([]); return }
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
-      const { data } = await supabase.from('centers').select('*').or(`name.ilike.%${query}%,city.ilike.%${query}%`).limit(8)
+      const { data } = await supabase.from('centers').select('*')
+        .or(`name.ilike.%${query}%,city.ilike.%${query}%`).limit(8)
       setResults((data ?? []) as Center[])
       setSearching(false)
     }, 350)
@@ -891,21 +879,40 @@ function TherapistStep3({
     const centerName = showNewCenter ? newCenterName.trim() : selected?.name ?? city
     if (!centerName) { setError('Selecciona o añade tu centro de trabajo'); return }
     setSaving(true)
-    setError(null)
+    setError('')
 
-    if (showNewCenter && newCenterName.trim()) {
-      await supabase.from('centers').insert({ name: newCenterName.trim(), city, type: 'other' })
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
+      setSaving(false)
+      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+    }, 8000)
+
+    try {
+      if (showNewCenter && newCenterName.trim()) {
+        await supabase.from('centers').insert({ name: newCenterName.trim(), city, type: 'other' })
+        if (timedOut) return
+      }
+
+      const { error: therErr } = await supabase.from('therapists').insert({
+        profile_id: userId, specialty, license_number: licenseNumber,
+        center_name: centerName, city,
+      })
+      if (timedOut) return
+      if (therErr) throw new Error('Error al guardar los datos. Inténtalo de nuevo.')
+
+      await refreshTherapist()
+      if (timedOut) return
+
+      clearTimeout(timeout)
+      onSuccess()
+    } catch (err) {
+      if (timedOut) return
+      clearTimeout(timeout)
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+    } finally {
+      if (!timedOut) setSaving(false)
     }
-
-    const { error: therErr } = await supabase.from('therapists').insert({
-      profile_id: userId, specialty, license_number: licenseNumber, center_name: centerName, city,
-    })
-
-    setSaving(false)
-    if (therErr) { setError('Error al guardar los datos. Inténtalo de nuevo.'); return }
-
-    await refreshTherapist()
-    onSuccess()
   }
 
   return (
@@ -915,7 +922,7 @@ function TherapistStep3({
       <CardSubtitle>¿En qué centro ejerces? Tus pacientes podrán encontrarte.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {error && <ErrorMsg msg={error} />}
+        <ErrorMsg msg={error} />
 
         {!showNewCenter && (
           <>
@@ -926,8 +933,8 @@ function TherapistStep3({
                 value={query}
                 onChange={e => { setQuery(e.target.value); setSelected(null) }}
                 style={{ ...INPUT_STYLE, paddingLeft: '44px' }}
-                onFocus={e => ((e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE')}
-                onBlur={e => ((e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB')}
+                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE' }}
+                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
               />
             </div>
 
@@ -950,8 +957,8 @@ function TherapistStep3({
                     key={c.id}
                     onClick={() => { setSelected(c); setQuery(c.name) }}
                     style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid #F1F5F9' : 'none', cursor: 'pointer', textAlign: 'left' }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC')}
-                    onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                   >
                     <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>{c.name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{c.city}</p>
@@ -978,9 +985,7 @@ function TherapistStep3({
           </div>
         )}
 
-        <button onClick={handleFinish} disabled={saving} style={{ ...BTN_PRIMARY, opacity: saving ? 0.7 : 1, cursor: saving ? 'default' : 'pointer' }}>
-          {saving ? 'Guardando...' : 'Empezar'}
-        </button>
+        <SpinnerBtn loading={saving} label="Empezar" onClick={handleFinish} />
       </div>
     </AuthLayout>
   )
@@ -1016,111 +1021,94 @@ export default function AuthPage({ role, onSuccess, onSkip, onBack, startAtLogin
     : startAtLogin ? 'login' : 'choose'
 
   const [view, setView] = useState<AuthView>(initialView)
-  const [signupData, setSignupData] = useState<Partial<SignupData>>({})
-  const [userId, setUserId] = useState<string>(user?.id ?? '')
+  const [signupData, setSignupData] = useState<Partial<SignupState>>({})
+  const [userId, setUserId] = useState(user?.id ?? '')
 
   useEffect(() => {
     if (user && userId !== user.id) setUserId(user.id)
   }, [user])
 
   function handleStep1Done(email: string, password: string, fullName: string, uid: string) {
-    if (!uid) { setView('confirm-email'); return }
-    setUserId(uid)
     setSignupData(prev => ({ ...prev, email, password, fullName }))
+    if (!uid) {
+      setView('confirm-email')
+      return
+    }
+    setUserId(uid)
     setView(role === 'therapist' ? 'signup-ther-s2' : 'signup-pat-s2')
   }
 
-  function handlePatientStep2Done(childName: string, childAge: number, diagnosis: string) {
+  function handlePatStep2Done(childName: string, childAge: number, diagnosis: string) {
     setSignupData(prev => ({ ...prev, childName, childAge, diagnosis }))
     setView('signup-pat-s3')
   }
 
-  function handleTherapistStep2Done(specialty: string, licenseNumber: string, city: string) {
+  function handleTherStep2Done(specialty: string, licenseNumber: string, city: string) {
     setSignupData(prev => ({ ...prev, specialty, licenseNumber, city }))
     setView('signup-ther-s3')
   }
 
-  if (view === 'login') {
-    return (
-      <LoginScreen
-        onSuccess={onSuccess}
-        onSignup={() => setView('signup-s1')}
-        onSkip={onSkip}
-        onBack={() => setView('choose')}
-      />
-    )
-  }
+  if (view === 'choose') return (
+    <ChooseScreen
+      role={role}
+      onLogin={() => setView('login')}
+      onSignup={() => setView('signup-s1')}
+      onSkip={onSkip}
+      onBack={onBack}
+    />
+  )
 
-  if (view === 'choose') {
-    return (
-      <ChooseScreen
-        role={role}
-        onLogin={() => setView('login')}
-        onSignup={() => setView('signup-s1')}
-        onSkip={onSkip}
-        onBack={onBack}
-      />
-    )
-  }
+  if (view === 'login') return (
+    <LoginScreen role={role} onSuccess={onSuccess} onBack={() => setView('choose')} />
+  )
 
-  if (view === 'confirm-email') {
-    return <ConfirmEmailScreen email={signupData.email ?? ''} onBack={() => setView('login')} />
-  }
+  if (view === 'confirm-email') return (
+    <ConfirmEmailScreen email={signupData.email ?? ''} onBack={() => setView('login')} />
+  )
 
-  if (view === 'signup-s1') {
-    return (
-      <SignupStep1
-        role={role}
-        onContinue={handleStep1Done}
-        onLogin={() => setView('login')}
-        onBack={() => setView('choose')}
-      />
-    )
-  }
+  if (view === 'signup-s1') return (
+    <SignupStep1
+      role={role}
+      onContinue={handleStep1Done}
+      onBack={() => setView('choose')}
+    />
+  )
 
-  if (view === 'signup-pat-s2') {
-    return (
-      <PatientStep2
-        onContinue={handlePatientStep2Done}
-        onBack={() => user ? onBack() : setView('signup-s1')}
-      />
-    )
-  }
+  if (view === 'signup-pat-s2') return (
+    <PatientStep2
+      onContinue={handlePatStep2Done}
+      onBack={() => user ? onBack() : setView('signup-s1')}
+    />
+  )
 
-  if (view === 'signup-pat-s3') {
-    return (
-      <PatientStep3
-        userId={userId}
-        childName={signupData.childName ?? ''}
-        childAge={signupData.childAge ?? 6}
-        diagnosis={signupData.diagnosis ?? 'Síndrome de Down'}
-        onSuccess={onSuccess}
-        onBack={() => setView('signup-pat-s2')}
-      />
-    )
-  }
+  if (view === 'signup-pat-s3') return (
+    <PatientStep3
+      userId={userId}
+      childName={signupData.childName ?? ''}
+      childAge={signupData.childAge ?? 6}
+      diagnosis={signupData.diagnosis ?? 'Síndrome de Down'}
+      onSuccess={onSuccess}
+      onBack={() => setView('signup-pat-s2')}
+    />
+  )
 
-  if (view === 'signup-ther-s2') {
-    return (
-      <TherapistStep2
-        onContinue={handleTherapistStep2Done}
-        onBack={() => user ? onBack() : setView('signup-s1')}
-      />
-    )
-  }
+  if (view === 'signup-ther-s2') return (
+    <TherapistStep2
+      onContinue={handleTherStep2Done}
+      onBack={() => user ? onBack() : setView('signup-s1')}
+    />
+  )
 
-  if (view === 'signup-ther-s3') {
-    return (
-      <TherapistStep3
-        userId={userId}
-        specialty={signupData.specialty ?? 'Logopeda'}
-        licenseNumber={signupData.licenseNumber ?? ''}
-        city={signupData.city ?? ''}
-        onSuccess={onSuccess}
-        onBack={() => setView('signup-ther-s2')}
-      />
-    )
-  }
+  if (view === 'signup-ther-s3') return (
+    <TherapistStep3
+      userId={userId}
+      specialty={signupData.specialty ?? 'Logopeda'}
+      licenseNumber={signupData.licenseNumber ?? ''}
+      city={signupData.city ?? ''}
+      onSuccess={onSuccess}
+      onBack={() => setView('signup-ther-s2')}
+    />
+  )
 
   return null
 }

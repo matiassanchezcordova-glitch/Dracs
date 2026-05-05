@@ -103,7 +103,7 @@ function AppInner({ role, onLogout }: Props) {
                 }}>
                   {childName[0].toUpperCase()}
                 </div>
-                <span style={{
+                <span className="dracs-user-name" style={{
                   fontFamily: 'Nunito, sans-serif',
                   fontWeight: 600,
                   fontSize: '14px',
@@ -117,7 +117,7 @@ function AppInner({ role, onLogout }: Props) {
 
             {role === 'therapist' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{
+                <span className="dracs-user-name" style={{
                   fontFamily: 'Nunito, sans-serif',
                   fontWeight: 600,
                   fontSize: '11px',
@@ -162,7 +162,7 @@ function AppInner({ role, onLogout }: Props) {
                   }}
                 >
                   <span style={{ display: 'flex' }}>{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  <span className="dracs-nav-tab-label">{tab.label}</span>
                 </button>
               )
             })}
