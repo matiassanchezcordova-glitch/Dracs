@@ -334,7 +334,7 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
         <button onClick={onSignup} style={BTN_SECONDARY}>
           {isTherapist ? 'Registrarme como terapeuta' : 'No, crear cuenta nueva'}
         </button>
-        {!isTherapist && (
+        {role === 'child' && (
           <button
             onClick={onSkip}
             style={{
@@ -345,6 +345,14 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
           >
             Continuar sin cuenta
           </button>
+        )}
+        {role === 'family' && (
+          <p style={{
+            margin: '4px 0 0', fontSize: '12px', color: '#94A3B8',
+            fontFamily: 'Nunito, sans-serif', textAlign: 'center', lineHeight: 1.4,
+          }}>
+            Para ver el progreso necesitás una cuenta.
+          </p>
         )}
       </div>
     </AuthLayout>
@@ -372,7 +380,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
       timedOut = true
       setLoading(false)
       setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
-    }, 8000)
+    }, 5000)
 
     try {
       // Sign in directly to get the user object for role verification
@@ -483,7 +491,7 @@ function SignupStep1({ role, onContinue, onBack }: {
       timedOut = true
       setLoading(false)
       setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
-    }, 8000)
+    }, 5000)
 
     try {
       const { error: err, userId: uid, needsConfirmation } = await signup(
@@ -501,8 +509,7 @@ function SignupStep1({ role, onContinue, onBack }: {
       }
 
       if (needsConfirmation) {
-        // Email confirmation required — show confirmation screen
-        onContinue(email.trim(), password, fullName.trim(), uid ?? '')
+        onContinue(email.trim(), password, fullName.trim(), '')
         return
       }
 
@@ -664,7 +671,7 @@ function PatientStep3({
       timedOut = true
       setSaving(false)
       setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
-    }, 8000)
+    }, 5000)
 
     try {
       const { data: pat, error: patErr } = await supabase
@@ -886,7 +893,7 @@ function TherapistStep3({
       timedOut = true
       setSaving(false)
       setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
-    }, 8000)
+    }, 5000)
 
     try {
       if (showNewCenter && newCenterName.trim()) {

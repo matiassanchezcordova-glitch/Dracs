@@ -24,10 +24,12 @@ function defaultTabForRole(role: Role): Tab {
 interface Props {
   role: Role
   onLogout: () => void
+  onRequestAuth?: (mode: 'login' | 'signup') => void
+  initialTab?: Tab
 }
 
-function AppInner({ role, onLogout }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>(() => defaultTabForRole(role))
+function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>(() => initialTab ?? defaultTabForRole(role))
   const { patient, profile } = useAuth()
 
   const visibleTabs = ALL_NAV_TABS.filter(t => t.roles.includes(role))
@@ -88,26 +90,16 @@ function AppInner({ role, onLogout }: Props) {
             {isChildOrFamily && childName && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: '#FFD93D',
-                  color: '#1A1A2E',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 800,
-                  fontFamily: 'Nunito, sans-serif',
-                  flexShrink: 0,
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  backgroundColor: '#FFD93D', color: '#1A1A2E',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '14px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
                 }}>
                   {childName[0].toUpperCase()}
                 </div>
                 <span className="dracs-user-name" style={{
-                  fontFamily: 'Nunito, sans-serif',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  color: '#1A1A2E',
+                  fontFamily: 'Nunito, sans-serif', fontWeight: 600,
+                  fontSize: '14px', color: '#1A1A2E',
                 }}>
                   {childName}
                 </span>
@@ -118,11 +110,8 @@ function AppInner({ role, onLogout }: Props) {
             {role === 'therapist' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="dracs-user-name" style={{
-                  fontFamily: 'Nunito, sans-serif',
-                  fontWeight: 600,
-                  fontSize: '11px',
-                  color: '#6B7280',
-                  letterSpacing: '0.02em',
+                  fontFamily: 'Nunito, sans-serif', fontWeight: 600,
+                  fontSize: '11px', color: '#6B7280', letterSpacing: '0.02em',
                 }}>
                   {therapistName ?? 'Terapeuta'} · Terapeuta
                 </span>
@@ -144,21 +133,14 @@ function AppInner({ role, onLogout }: Props) {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '2px',
-                    padding: '6px 16px',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: '2px', padding: '6px 16px',
                     backgroundColor: 'transparent',
-                    color: active ? '#0BAFBE' : '#6B7280',
-                    border: 'none',
+                    color: active ? '#0BAFBE' : '#6B7280', border: 'none',
                     borderBottom: active ? '2px solid #0BAFBE' : '2px solid transparent',
-                    cursor: 'pointer',
-                    fontFamily: 'Nunito, sans-serif',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    transition: 'all 0.2s ease',
-                    marginBottom: '-2px',
+                    cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700, fontSize: '11px',
+                    transition: 'all 0.2s ease', marginBottom: '-2px',
                   }}
                 >
                   <span style={{ display: 'flex' }}>{tab.icon}</span>
@@ -173,14 +155,9 @@ function AppInner({ role, onLogout }: Props) {
       {/* ── Content ─────────────────────────────────────────────── */}
       <main
         style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          width: '100%',
-          position: 'relative',
+          flex: 1, display: 'flex', flexDirection: 'column',
+          overflow: 'hidden', maxWidth: '1200px',
+          margin: '0 auto', width: '100%', position: 'relative',
         }}
       >
         <div
@@ -192,6 +169,7 @@ function AppInner({ role, onLogout }: Props) {
             <ExerciseTab
               onNavigateToFamilia={() => setActiveTab('familia')}
               onNavigateToTerapeuta={() => setActiveTab('terapeuta')}
+              onRequestAuth={onRequestAuth}
             />
           )}
           {activeTab === 'terapeuta' && <TherapistTab />}
@@ -207,10 +185,10 @@ function AppInner({ role, onLogout }: Props) {
   )
 }
 
-export default function App({ role, onLogout }: Props) {
+export default function App({ role, onLogout, onRequestAuth, initialTab }: Props) {
   return (
     <TherapistProvider>
-      <AppInner role={role} onLogout={onLogout} />
+      <AppInner role={role} onLogout={onLogout} onRequestAuth={onRequestAuth} initialTab={initialTab} />
     </TherapistProvider>
   )
 }
@@ -221,16 +199,9 @@ function LogoutBtn({ onLogout }: { onLogout: () => void }) {
       onClick={onLogout}
       title="Cerrar sesión"
       style={{
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        padding: '4px',
-        borderRadius: '6px',
-        display: 'flex',
-        alignItems: 'center',
-        color: '#94A3B8',
-        transition: 'color 0.2s ease',
-        flexShrink: 0,
+        background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+        borderRadius: '6px', display: 'flex', alignItems: 'center',
+        color: '#94A3B8', transition: 'color 0.2s ease', flexShrink: 0,
       }}
       onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#DC2626')}
       onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#94A3B8')}

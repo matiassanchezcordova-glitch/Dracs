@@ -233,7 +233,7 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
           />
         </div>
 
-        <span style={{ fontSize: '22px', fontWeight: 700, color: '#0BAFBE', fontFamily: 'Playfair Display, serif', flexShrink: 0 }}>
+        <span style={{ fontSize: '22px', fontWeight: 800, color: '#0BAFBE', fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
           {currentIndex + 1}/{total}
         </span>
       </div>

@@ -268,7 +268,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
             }}>
               EAE · BABSON 2026
             </div>
-            <h2 style={{
+            <h2 className="dracs-proyecto-title" style={{
               margin: '0 0 20px', fontFamily: '"Playfair Display", serif',
               fontSize: '40px', fontWeight: 700, color: '#1A1A2E', lineHeight: 1.15,
             }}>
@@ -279,9 +279,9 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
               fontFamily: 'Nunito, sans-serif', fontWeight: 400,
               maxWidth: '420px', lineHeight: 1.65,
             }}>
-              En España, 1.2 millones de personas esperan más de 18 meses para recibir
-              terapia. Dracs nació para que ningún niño pierda su ventana de aprendizaje
-              por culpa de una lista de espera.
+              En España, más de un millón de personas esperan más de un año para recibir
+              terapia del lenguaje. Dracs nació para que ningún niño pierda su ventana
+              de aprendizaje.
             </p>
             <button
               onClick={onAbout}
@@ -302,10 +302,10 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
 
           <div className="dracs-stats-grid" style={{ flex: '0 0 50%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {[
-              { value: '1.2M',     label: 'personas en lista de espera' },
-              { value: '18 meses', label: 'tiempo medio de espera' },
-              { value: '88%',      label: 'recibe terapia insuficiente' },
-              { value: '€8.5B',    label: 'coste anual evitable' },
+              { value: '1.2M',     label: 'personas esperan terapia en España' },
+              { value: '18 meses', label: 'de espera media para recibir atención' },
+              { value: '88%',      label: 'de familias recibe menos de 1 sesión semanal' },
+              { value: '€8.5B',    label: 'en costes evitables para el sistema público cada año' },
             ].map(({ value, label }) => (
               <div key={label} style={{ background: '#F0FAFA', borderRadius: '16px', padding: '24px' }}>
                 <div style={{
@@ -338,7 +338,7 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h2 style={{
+          <h2 className="dracs-futuro-title" style={{
             margin: '0 0 16px', fontFamily: '"Playfair Display", serif',
             fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#1A1A2E',
           }}>
@@ -393,6 +393,7 @@ function KnowProjectButton({ onClick }: { onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
     <button
+      className="dracs-know-btn"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

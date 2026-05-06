@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  ArrowDown, Clock, MapPin, Users,
+  MapPin, Users,
   Tablet, Brain, BarChart2,
   Smile, Stethoscope, Heart,
+  Euro,
 } from 'lucide-react'
 
 interface Props {
@@ -67,39 +68,6 @@ function WaveBottom({ fill }: { fill: string }) {
       >
         <path fill={fill} d="M0 35 C360 70 1080 0 1440 35 L1440 70 L0 70 Z" />
       </svg>
-    </div>
-  )
-}
-
-// ── Stat card (hero section) ──────────────────────────────────────────────
-
-function HeroStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        background: '#ffffff',
-        border: '1px solid #E0F2FE',
-        borderRadius: '16px',
-        padding: '20px 24px',
-        boxShadow: '0 4px 16px rgba(11,175,190,0.08)',
-      }}
-    >
-      <div className="stat-number" style={{ fontSize: '36px', color: '#0BAFBE', lineHeight: 1 }}>
-        {value}
-      </div>
-      <div
-        style={{
-          fontSize: '13px',
-          fontWeight: 600,
-          color: '#6B7280',
-          marginTop: '6px',
-          lineHeight: 1.4,
-          fontFamily: 'Nunito, sans-serif',
-        }}
-      >
-        {label}
-      </div>
     </div>
   )
 }
@@ -385,13 +353,9 @@ export default function AboutPage({ onBack }: Props) {
       <nav
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          height: '56px',
-          display: 'flex',
-          alignItems: 'center',
+          top: 0, left: 0, right: 0,
+          zIndex: 100, height: '56px',
+          display: 'flex', alignItems: 'center',
           padding: '0 32px',
           background: scrolled ? 'rgba(255,255,255,0.88)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
@@ -403,16 +367,10 @@ export default function AboutPage({ onBack }: Props) {
         <button
           onClick={onBack}
           style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 800,
-            fontSize: '22px',
-            color: '#0BAFBE',
-            letterSpacing: '2px',
-            padding: 0,
-            transition: 'color 0.3s ease',
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+            fontSize: '22px', color: '#0BAFBE', letterSpacing: '2px',
+            padding: 0, transition: 'color 0.3s ease',
           }}
         >
           DRACS
@@ -432,6 +390,7 @@ export default function AboutPage({ onBack }: Props) {
         }}
       >
         <div
+          className="dracs-about-hero-inner"
           style={{
             maxWidth: '1100px',
             margin: '0 auto',
@@ -496,10 +455,9 @@ export default function AboutPage({ onBack }: Props) {
             </Reveal>
 
             <Reveal delay={300}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{
+              <div
+                style={{
                   display: 'inline-flex',
-                  alignSelf: 'flex-start',
                   padding: '8px 18px',
                   borderRadius: '999px',
                   background: 'rgba(11,175,190,0.10)',
@@ -509,58 +467,16 @@ export default function AboutPage({ onBack }: Props) {
                   fontWeight: 700,
                   fontFamily: 'Nunito, sans-serif',
                   letterSpacing: '0.2px',
-                }}>
-                  Proyecto seleccionado · Babson Student Challenge 2026
-                </div>
-                <div style={{
-                  display: 'inline-flex',
-                  alignSelf: 'flex-start',
-                  padding: '8px 18px',
-                  borderRadius: '999px',
-                  background: 'rgba(11,175,190,0.08)',
-                  border: '1px solid rgba(11,175,190,0.20)',
-                  color: '#0BAFBE',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  fontFamily: 'Nunito, sans-serif',
-                  letterSpacing: '0.2px',
-                }}>
-                  EAE Business School · Barcelona
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={400}>
-              <button
-                onClick={() =>
-                  document.getElementById('section-problema')?.scrollIntoView({ behavior: 'smooth' })
-                }
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '14px 28px',
-                  borderRadius: '14px',
-                  border: '1.5px solid #0BAFBE',
-                  background: 'transparent',
-                  color: '#0BAFBE',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: 'Nunito, sans-serif',
                   width: 'fit-content',
-                  animation: 'heroBtnFloat 2.5s ease-in-out infinite',
-                  transition: 'background 0.2s ease',
                 }}
               >
-                Conocer el proyecto
-                <ArrowDown size={20} />
-              </button>
+                Babson Student Challenge 2026
+              </div>
             </Reveal>
           </div>
 
           {/* Right: dragon */}
-          <div style={{ flexShrink: 0 }}>
+          <div className="dracs-about-hero-dragon" style={{ flexShrink: 0 }}>
             <img
               src="/dragon.nb.png"
               alt="DRACS dragón"
@@ -580,6 +496,7 @@ export default function AboutPage({ onBack }: Props) {
       {/* ── SECCIÓN 2: EL PROBLEMA ────────────────────────────────── */}
       <section
         id="section-problema"
+        className="dracs-about-section"
         style={{
           background: '#ffffff',
           padding: '80px 32px 110px',
@@ -594,34 +511,44 @@ export default function AboutPage({ onBack }: Props) {
                 fontSize: '40px',
                 fontWeight: 800,
                 color: '#0BAFBE',
-                margin: '0 0 48px',
+                margin: '0 0 12px',
                 fontFamily: 'Nunito, sans-serif',
               }}
             >
-              Un problema que no puede esperar
+              Un problema que no puede esperar.
             </h2>
+            <p style={{
+              textAlign: 'center',
+              fontSize: '16px',
+              fontWeight: 500,
+              color: '#94A3B8',
+              margin: '0 0 48px',
+              fontFamily: 'Nunito, sans-serif',
+            }}>
+              Los datos hablan solos.
+            </p>
           </Reveal>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <div className="dracs-about-problem-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
             <Reveal delay={0}>
               <ProblemCard
-                icon={<Clock size={28} />}
-                value="88%"
-                label="de pacientes recibe menos de 1 sesión semanal"
+                icon={<MapPin size={28} />}
+                value="70%"
+                label="de las plazas de terapia están en grandes ciudades"
               />
             </Reveal>
             <Reveal delay={120}>
               <ProblemCard
-                icon={<MapPin size={28} />}
-                value="70%"
-                label="de las plazas están concentradas en grandes ciudades"
+                icon={<Users size={28} />}
+                value="1:1.200"
+                label="ratio terapeuta por paciente en zonas rurales"
               />
             </Reveal>
             <Reveal delay={240}>
               <ProblemCard
-                icon={<Users size={28} />}
-                value="1:1.200"
-                label="ratio terapeuta-paciente en zonas rurales"
+                icon={<Euro size={28} />}
+                value="3.800€/mes"
+                label="coste de terapia intensiva privada para autismo"
               />
             </Reveal>
           </div>
@@ -632,6 +559,7 @@ export default function AboutPage({ onBack }: Props) {
 
       {/* ── SECCIÓN 3: CÓMO FUNCIONA ──────────────────────────────── */}
       <section
+        className="dracs-about-section"
         style={{
           background: LIGHT_BG,
           padding: '80px 32px 110px',
@@ -658,6 +586,7 @@ export default function AboutPage({ onBack }: Props) {
           <Reveal delay={100}>
             <div style={{ position: 'relative' }}>
               <div
+                className="dracs-about-steps-connector"
                 style={{
                   position: 'absolute',
                   top: '68px',
@@ -667,7 +596,7 @@ export default function AboutPage({ onBack }: Props) {
                   zIndex: 0,
                 }}
               />
-              <div style={{ display: 'flex' }}>
+              <div className="dracs-about-steps-row" style={{ display: 'flex' }}>
                 <StepCard
                   index={1}
                   icon={<Tablet size={28} />}
@@ -700,6 +629,7 @@ export default function AboutPage({ onBack }: Props) {
 
       {/* ── SECCIÓN 4: PARA QUIÉN ─────────────────────────────────── */}
       <section
+        className="dracs-about-section"
         style={{
           background: '#ffffff',
           padding: '80px 32px 110px',
@@ -722,7 +652,7 @@ export default function AboutPage({ onBack }: Props) {
             </h2>
           </Reveal>
 
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
+          <div className="dracs-about-audience-row" style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
             <Reveal delay={0} style={{ flex: 1, display: 'flex' }}>
               <AudienceCard
                 icon={<Smile size={28} />}
@@ -818,7 +748,7 @@ export default function AboutPage({ onBack }: Props) {
               fontFamily: 'Nunito, sans-serif',
             }}
           >
-            Si eres terapeuta, logopeda o trabajas con niños con Síndrome de Down,
+            Si trabajás con niños con necesidades especiales,
             queremos conocerte.
           </p>
         </Reveal>
@@ -851,7 +781,7 @@ export default function AboutPage({ onBack }: Props) {
                 '0 4px 24px rgba(11,175,190,0.30)'
             }}
           >
-            Escríbenos
+            Escribinos
           </a>
         </Reveal>
 
@@ -866,8 +796,7 @@ export default function AboutPage({ onBack }: Props) {
               fontFamily: 'Nunito, sans-serif',
             }}
           >
-            Proyecto desarrollado en EAE Business School Barcelona<br />
-            Babson Student Challenge 2026
+            Babson Student Challenge 2026 · Barcelona
           </p>
         </Reveal>
       </section>

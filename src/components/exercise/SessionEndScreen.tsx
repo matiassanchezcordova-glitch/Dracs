@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Star, BookOpen, CheckCircle2, Target, ArrowUp, BookMarked, RotateCcw, TrendingUp } from 'lucide-react'
+import { Star, BookOpen, CheckCircle2, Target, ArrowUp, BookMarked, RotateCcw, TrendingUp, Lock } from 'lucide-react'
 
 interface Props {
   correct: number
@@ -7,6 +7,7 @@ interface Props {
   levelChanged: 'up' | 'down' | null
   onRepeat: () => void
   onViewProgress: () => void
+  hasAccount?: boolean
 }
 
 function getMessage(pct: number): string {
@@ -48,7 +49,7 @@ function StatCard({ icon, value, label, color = '#0F172A' }: {
   )
 }
 
-export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress }: Props) {
+export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, hasAccount = true }: Props) {
   const pct     = total > 0 ? Math.round((correct / total) * 100) : 0
   const message = getMessage(pct)
   const [btn1H, setBtn1H] = useState(false)
@@ -196,8 +197,8 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             transition: 'all 0.2s ease',
           }}
         >
-          <TrendingUp size={20} />
-          Ver mi progreso
+          {hasAccount ? <TrendingUp size={20} /> : <Lock size={14} />}
+          {hasAccount ? 'Ver mi progreso' : 'Guardá tu progreso'}
         </button>
       </div>
     </div>
