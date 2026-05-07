@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react'
-import { Gamepad2, BarChart2, Users, LogOut } from 'lucide-react'
+import { Gamepad2, BarChart2, Users, LogOut, X } from 'lucide-react'
 import ExerciseTab from './components/ExerciseTab'
 import TherapistTab from './components/therapist/TherapistTab'
 import FamiliaTab from './components/familia/FamiliaTab'
@@ -10,14 +10,15 @@ import { TherapistProvider } from './context/TherapistContext'
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
 
 const ALL_NAV_TABS: { id: Tab; label: string; icon: ReactNode; roles: Role[] }[] = [
-  { id: 'ejercicio', label: 'Ejercicio',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist'] },
-  { id: 'terapeuta', label: 'Terapeuta',  icon: <BarChart2 size={20} />, roles: ['therapist'] },
-  { id: 'familia',   label: 'Familia',    icon: <Users     size={20} />, roles: ['family', 'therapist'] },
+  { id: 'ejercicio', label: 'Ejercicio',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist', 'demo'] },
+  { id: 'terapeuta', label: 'Terapeuta',  icon: <BarChart2 size={20} />, roles: ['therapist', 'demo'] },
+  { id: 'familia',   label: 'Familia',    icon: <Users     size={20} />, roles: ['family', 'therapist', 'demo'] },
 ]
 
 function defaultTabForRole(role: Role): Tab {
   if (role === 'child') return 'ejercicio'
   if (role === 'family') return 'familia'
+  if (role === 'demo') return 'ejercicio'
   return 'terapeuta'
 }
 
@@ -30,13 +31,15 @@ interface Props {
 
 function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(() => initialTab ?? defaultTabForRole(role))
+  const [showDemoModal, setShowDemoModal] = useState(false)
   const { patient, profile } = useAuth()
 
+  const isDemo = role === 'demo'
   const visibleTabs = ALL_NAV_TABS.filter(t => t.roles.includes(role))
 
   const isChildOrFamily = role === 'child' || role === 'family'
-  const childName = patient?.child_name ?? null
-  const therapistName = profile?.full_name ?? null
+  const childName = isDemo ? null : (patient?.child_name ?? null)
+  const therapistName = isDemo ? null : (profile?.full_name ?? null)
 
   return (
     <div
@@ -73,7 +76,7 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
           }}
         >
           {/* ── Left: logo + user info ─────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <span
               style={{
                 fontFamily: 'Nunito, sans-serif',
@@ -86,6 +89,20 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
             >
               DRACS
             </span>
+
+            {isDemo && (
+              <button
+                onClick={() => setShowDemoModal(true)}
+                style={{
+                  background: '#FFD93D', border: 'none', borderRadius: '6px',
+                  padding: '3px 10px', fontSize: '11px', fontWeight: 800,
+                  color: '#1A1A2E', cursor: 'pointer', letterSpacing: '0.06em',
+                  fontFamily: 'Nunito, sans-serif',
+                }}
+              >
+                DEMO
+              </button>
+            )}
 
             {isChildOrFamily && childName && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -152,6 +169,54 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
         </div>
       </nav>
 
+      {/* ── Demo modal ──────────────────────────────────────────── */}
+      {showDemoModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(26,26,46,0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px', zIndex: 200,
+          }}
+          onClick={() => setShowDemoModal(false)}
+        >
+          <div
+            style={{
+              background: '#ffffff', borderRadius: '20px', padding: '28px 24px',
+              maxWidth: '340px', width: '100%', textAlign: 'center',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+              animation: 'wordSlideDown 0.22s ease',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
+              <button onClick={() => setShowDemoModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ background: '#FFD93D', borderRadius: '8px', padding: '4px 12px', fontSize: '11px', fontWeight: 800, color: '#1A1A2E', display: 'inline-block', letterSpacing: '0.06em', marginBottom: '12px' }}>
+              DEMO
+            </div>
+            <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#1A1A2E', fontFamily: 'Nunito, sans-serif', fontWeight: 600, lineHeight: 1.5 }}>
+              Estás en modo demo. Los datos son de ejemplo.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                onClick={() => { setShowDemoModal(false); onRequestAuth?.('signup') }}
+                style={{ width: '100%', height: '44px', borderRadius: '12px', border: 'none', background: '#0BAFBE', color: '#ffffff', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Crear cuenta real
+              </button>
+              <button
+                onClick={() => setShowDemoModal(false)}
+                style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1.5px solid #E5E7EB', background: '#ffffff', color: '#1A1A2E', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Seguir en demo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Content ─────────────────────────────────────────────── */}
       <main
         style={{
@@ -206,7 +271,7 @@ function LogoutBtn({ onLogout }: { onLogout: () => void }) {
       onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#DC2626')}
       onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#94A3B8')}
     >
-      <LogOut size={14} />
+      <LogOut size={16} />
     </button>
   )
 }

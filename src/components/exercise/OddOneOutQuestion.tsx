@@ -109,11 +109,17 @@ export default function OddOneOutQuestion({ exercise, onCorrect }: Props) {
                 {item.label}
               </span>
               {isCorrectPicked && (
-                <span
-                  style={{ position: 'absolute', top: '6px', right: '8px', fontSize: '16px' }}
+                <div
+                  style={{
+                    position: 'absolute', top: '6px', right: '8px',
+                    width: '20px', height: '20px', borderRadius: '50%',
+                    background: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
                 >
-                  ✓
-                </span>
+                  <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                    <path d="M1 4.5L4 7.5L10 1" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
               )}
             </button>
           )

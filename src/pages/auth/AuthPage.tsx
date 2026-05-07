@@ -307,9 +307,12 @@ function AuthLayout({
 
 function roleMismatchMsg(dbRole: string, _wanted: Role): string {
   if (dbRole === 'therapist') {
-    return 'Esta cuenta es de terapeuta. Usá "Logopedia" para entrar.'
+    return 'Esta cuenta es de terapeuta. Usá Logopedia para entrar.'
   }
-  return 'Esta cuenta no es de terapeuta. Usá "Ejercicios" o "Progreso" para entrar.'
+  if (dbRole === 'patient') {
+    return 'Esta cuenta es de paciente. Usá Ejercicios para entrar.'
+  }
+  return 'Esta cuenta es de familiar. Usá Progreso para entrar.'
 }
 
 // ── Screen: Choose ────────────────────────────────────────────────────────

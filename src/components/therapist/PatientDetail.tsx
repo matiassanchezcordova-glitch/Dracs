@@ -345,9 +345,9 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             <h2 style={{
               margin: '0 0 8px',
               fontSize: '24px',
-              fontWeight: 800,
+              fontWeight: 700,
               color: '#1A1A2E',
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: '"Playfair Display", serif',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -438,7 +438,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'Nunito, sans-serif' }}
-              width={45}
+              width={50}
             />
             <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#D0F1F4', strokeWidth: 1 }} />
             <Area
@@ -553,7 +553,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             marginBottom: '24px',
           }}>
             <p style={{ margin: 0, fontSize: '14px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
-              Este paciente todavía no ha completado ninguna sesión esta semana.
+              Todavía no hay sesiones esta semana. Los datos aparecerán cuando {firstName} complete su primera sesión.
             </p>
           </div>
         )}

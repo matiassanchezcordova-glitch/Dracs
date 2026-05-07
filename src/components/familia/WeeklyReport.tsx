@@ -6,6 +6,7 @@ import {
 
 interface Props {
   onBack: () => void
+  childName?: string
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -32,10 +33,10 @@ function getWeekKey(d: Date = new Date()): string {
 function getChildName(): string {
   try {
     const raw = localStorage.getItem('dracs_child_profile')
-    if (!raw) return 'el niño'
+    if (!raw) return 'el paciente'
     const p = JSON.parse(raw) as { name?: string }
-    return p.name ?? 'el niño'
-  } catch { return 'el niño' }
+    return p.name ?? 'el paciente'
+  } catch { return 'el paciente' }
 }
 
 function getHistory(): Session[] {
@@ -187,8 +188,9 @@ function getTherapistComment(childName: string): TherapistComment | null {
   } catch { return null }
 }
 
-export default function WeeklyReport({ onBack }: Props) {
-  const childName = useMemo(getChildName, [])
+export default function WeeklyReport({ onBack, childName: childNameProp }: Props) {
+  const localChildName = useMemo(getChildName, [])
+  const childName = childNameProp ?? localChildName
   const history   = useMemo(getHistory, [])
 
   const today      = useMemo(() => new Date(), [])

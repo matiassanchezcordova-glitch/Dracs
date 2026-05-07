@@ -132,7 +132,7 @@ export const EXERCISES: ExerciseDef[] = [
   { type: 'vocabulary', id: 'pajaro',   word: 'PÁJARO',  correct: { emoji: '🐦', name: 'pájaro' },  distractors: [{ emoji: '🐟', name: 'pez' }, { emoji: '🦋', name: 'mariposa' }],         forLevels: [2] },
   { type: 'vocabulary', id: 'manzana',  word: 'MANZANA', correct: { emoji: '🍎', name: 'manzana' }, distractors: [{ emoji: '🍐', name: 'pera' }, { emoji: '🍊', name: 'naranja' }],         forLevels: [2] },
   { type: 'vocabulary', id: 'pan',      word: 'PAN',     correct: { emoji: '🍞', name: 'pan' },     distractors: [{ emoji: '🍪', name: 'galleta' }, { emoji: '🎂', name: 'tarta' }],         forLevels: [2] },
-  { type: 'vocabulary', id: 'zapato',   word: 'ZAPATO',  correct: { emoji: '👟', name: 'zapato' },  distractors: [{ emoji: '👢', name: 'bota' }, { emoji: '👡', name: 'sandalia' }],         forLevels: [2] },
+  { type: 'vocabulary', id: 'zapato',   word: 'ZAPATO',  correct: { emoji: '👟', name: 'zapato' },  distractors: [{ emoji: '👢', name: 'bota' }, { emoji: '🩴', name: 'sandalia' }],         forLevels: [2] },
   { type: 'vocabulary', id: 'feliz',    word: 'FELIZ',   correct: { emoji: '😊', name: 'feliz' },   distractors: [{ emoji: '😢', name: 'triste' }, { emoji: '😠', name: 'enfadado' }],       forLevels: [2] },
   { type: 'vocabulary', id: 'triste',   word: 'TRISTE',  correct: { emoji: '😢', name: 'triste' },  distractors: [{ emoji: '😊', name: 'feliz' }, { emoji: '😨', name: 'asustado' }],        forLevels: [2] },
   { type: 'vocabulary', id: 'rojo',     word: 'ROJO',    correct: { emoji: '🔴', name: 'rojo' },    distractors: [{ emoji: '🔵', name: 'azul' }, { emoji: '🟡', name: 'amarillo' }],          forLevels: [2] },

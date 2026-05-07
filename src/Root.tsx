@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import App from './App'
 import AboutPage from './pages/AboutPage'
 import AuthPage from './pages/auth/AuthPage'
@@ -100,9 +101,9 @@ function RoleConflictScreen({
         <div style={{
           width: '56px', height: '56px', borderRadius: '50%',
           background: '#FEF3C7', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', margin: '0 auto 20px', fontSize: '28px',
+          justifyContent: 'center', margin: '0 auto 20px',
         }}>
-          ⚠️
+          <AlertTriangle size={28} color="#D97706" />
         </div>
 
         <h2 style={{
@@ -160,7 +161,6 @@ function RootInner() {
   const [view, setView]               = useState<View>('role-select')
   const [pendingRole, setPendingRole] = useState<Role>('child')
   const [localRole, setLocalRole]     = useState<Role | null>(null)
-  const [loginDirect, setLoginDirect] = useState(false)
   const [initialTab, setInitialTab]   = useState<Tab | undefined>(undefined)
 
   // When auth resolves with a user, navigate to app or onboarding
@@ -174,7 +174,6 @@ function RootInner() {
 
       if (needsOnboarding) {
         setPendingRole(dbRoleToUiRole(profile.role))
-        setLoginDirect(false)
         setView('auth')
       } else {
         setView('app')
@@ -195,7 +194,17 @@ function RootInner() {
   // ── Handlers ───────────────────────────────────────────────────────────
 
   function handleRoleSelect(r: Role) {
-    setLoginDirect(false)
+    if (r === 'demo') {
+      localStorage.setItem('dracs_child_profile', JSON.stringify({
+        name: 'Pablo', age: 6, level: 2, streak: 5,
+        sessionCount: 12, lastSessionDate: '',
+      }))
+      localStorage.setItem('dracs_role', 'demo')
+      setLocalRole('demo')
+      setInitialTab('ejercicio')
+      setView('app')
+      return
+    }
     if (user && profile) {
       if (isRoleConflict(profile.role, r)) {
         setPendingRole(r)
@@ -209,12 +218,6 @@ function RootInner() {
       setPendingRole(r)
       setView('auth')
     }
-  }
-
-  function handleLoginDirect() {
-    setLoginDirect(true)
-    setPendingRole('child')
-    setView('auth')
   }
 
   function handleAuthSuccess() {
@@ -240,12 +243,10 @@ function RootInner() {
     if (user) await logout()
     clearAllDracsStorage()
     setLocalRole(null)
-    setLoginDirect(false)
     setView('auth')   // pendingRole is already set to the target section
   }
 
-  function handleRequestAuth(mode: 'login' | 'signup') {
-    setLoginDirect(mode === 'login')
+  function handleRequestAuth(_mode: 'login' | 'signup') {
     setPendingRole('child')
     setView('auth')
   }
@@ -278,7 +279,7 @@ function RootInner() {
     return (
       <AuthPage
         role={pendingRole}
-        startAtLogin={loginDirect}
+        startAtLogin={false}
         onSuccess={handleAuthSuccess}
         onSkip={handleAuthSkip}
         onBack={() => setView('role-select')}
@@ -301,7 +302,6 @@ function RootInner() {
     <RoleSelector
       onSelect={handleRoleSelect}
       onAbout={() => setView('about')}
-      onLogin={handleLoginDirect}
     />
   )
 }

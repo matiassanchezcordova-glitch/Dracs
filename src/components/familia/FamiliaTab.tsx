@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Star, Flame, TrendingUp, ArrowRight, ArrowLeft, Check, FileText } from 'lucide-react'
+import { Star, Flame, TrendingUp, ArrowRight, ArrowLeft, Check, FileText, ClipboardList } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
@@ -272,7 +272,7 @@ function FamiliaContent({
 
   return (
     <>
-      {showReport && <WeeklyReport onBack={() => setShowReport(false)} />}
+      {showReport && <WeeklyReport onBack={() => setShowReport(false)} childName={childName} />}
 
       {!showReport && (
         <div style={{ width: '100%', maxWidth: '760px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -527,7 +527,9 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
         textAlign: 'center',
         gap: '16px',
       }}>
-        <div style={{ fontSize: '48px' }}>📋</div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <ClipboardList size={48} color="#0BAFBE" />
+        </div>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1A1A2E' }}>
           Selecciona un paciente
         </h2>

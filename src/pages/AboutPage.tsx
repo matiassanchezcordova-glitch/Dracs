@@ -433,7 +433,7 @@ export default function AboutPage({ onBack }: Props) {
                   fontFamily: 'Playfair Display, serif',
                 }}
               >
-                Terapia que<br />no espera.
+                Cada niño merece<br />su oportunidad.
               </h1>
             </Reveal>
 
@@ -449,8 +449,8 @@ export default function AboutPage({ onBack }: Props) {
                   fontFamily: 'Nunito, sans-serif',
                 }}
               >
-                Dracs nació para que ningún niño pierda su ventana de aprendizaje
-                por culpa de una lista de espera.
+                Dracs es una plataforma de terapia del lenguaje que acompaña al niño,
+                a su familia y a su terapeuta. Todos los días.
               </p>
             </Reveal>
 
@@ -515,7 +515,7 @@ export default function AboutPage({ onBack }: Props) {
                 fontFamily: 'Nunito, sans-serif',
               }}
             >
-              Un problema que no puede esperar.
+              El sistema no da abasto.
             </h2>
             <p style={{
               textAlign: 'center',
@@ -525,7 +525,7 @@ export default function AboutPage({ onBack }: Props) {
               margin: '0 0 48px',
               fontFamily: 'Nunito, sans-serif',
             }}>
-              Los datos hablan solos.
+              Y las familias asumen el coste.
             </p>
           </Reveal>
 
@@ -534,21 +534,21 @@ export default function AboutPage({ onBack }: Props) {
               <ProblemCard
                 icon={<MapPin size={28} />}
                 value="70%"
-                label="de las plazas de terapia están en grandes ciudades"
+                label="de las plazas disponibles se concentran en grandes ciudades"
               />
             </Reveal>
             <Reveal delay={120}>
               <ProblemCard
                 icon={<Users size={28} />}
-                value="1:1.200"
-                label="ratio terapeuta por paciente en zonas rurales"
+                value="1"
+                label="terapeuta por cada 1.200 pacientes en zonas rurales"
               />
             </Reveal>
             <Reveal delay={240}>
               <ProblemCard
                 icon={<Euro size={28} />}
-                value="3.800€/mes"
-                label="coste de terapia intensiva privada para autismo"
+                value="3.800€"
+                label="coste mensual medio de intervención intensiva privada"
               />
             </Reveal>
           </div>
@@ -656,8 +656,8 @@ export default function AboutPage({ onBack }: Props) {
             <Reveal delay={0} style={{ flex: 1, display: 'flex' }}>
               <AudienceCard
                 icon={<Smile size={28} />}
-                title="Niños con Síndrome de Down"
-                description="Ejercicios de vocabulario adaptados, gamificados y supervisados"
+                title="Niños que necesitan apoyo"
+                description="Ejercicios de vocabulario adaptados y gamificados, supervisados por un profesional. Para niños de 3 a 10 años."
                 tag="3 a 10 años"
                 bg="#0891A0"
                 textColor="#ffffff"
@@ -749,7 +749,7 @@ export default function AboutPage({ onBack }: Props) {
             }}
           >
             Si trabajás con niños con necesidades especiales,
-            queremos conocerte.
+            nos encantaría conocerte.
           </p>
         </Reveal>
 

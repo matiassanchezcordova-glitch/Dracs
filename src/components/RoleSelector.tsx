@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Gamepad2, Heart, Stethoscope, ChevronDown } from 'lucide-react'
+import { Gamepad2, Heart, Stethoscope, Play, ArrowUp } from 'lucide-react'
 
-export type Role = 'child' | 'family' | 'therapist'
+export type Role = 'child' | 'family' | 'therapist' | 'demo'
 
 interface Props {
   onSelect: (role: Role) => void
   onAbout: () => void
-  onLogin: () => void
 }
 
 // ── Scroll reveal ──────────────────────────────────────────────────────────
@@ -109,7 +108,7 @@ function scrollToId(id: string, offset = 24) {
 
 // ── Main ──────────────────────────────────────────────────────────────────
 
-export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
+export default function RoleSelector({ onSelect, onAbout }: Props) {
   const [phrase] = useState(() => PHRASES[Math.floor(Math.random() * PHRASES.length)])
   const { ref: futureRef, visible: futureVisible } = useScrollReveal()
   const { ref: knowRef,   visible: knowVisible   } = useScrollReveal()
@@ -180,6 +179,11 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
           flexDirection: 'column',
           gap: '10px',
         }}>
+          {/* Label */}
+          <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#C8C8C8', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
+            ¿Quién está aquí hoy?
+          </p>
+
           <RoleRowBtn
             icon={<Gamepad2 size={18} />}
             iconBg="#FFF8E8" iconBorder="#FDE68A" iconColor="#D97706"
@@ -205,44 +209,13 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
           {/* Separator */}
           <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
 
-          {/* Login link */}
-          <button
-            onClick={onLogin}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '13px',
-              color: '#6B7280',
-              fontFamily: 'Nunito, sans-serif',
-              fontWeight: 600,
-              textAlign: 'center',
-              padding: '6px 0',
-              transition: 'color 0.2s ease',
-            }}
-            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#0BAFBE')}
-            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#6B7280')}
-          >
-            ¿Ya tienes cuenta?{' '}
-            <span style={{ color: '#0BAFBE', fontWeight: 700 }}>Inicia sesión</span>
-          </button>
+          {/* Ver demo */}
+          <DemoLink onClick={() => onSelect('demo')} />
+
         </div>
 
-        {/* "Conoce el proyecto" button */}
+        {/* Conoce el proyecto — teal button outside card */}
         <KnowProjectButton onClick={() => scrollToId('proyecto-section')} />
-
-        {/* Logo DRACS firma */}
-        <p style={{
-          marginTop: '16px',
-          fontFamily: 'Nunito, sans-serif',
-          fontWeight: 900,
-          fontSize: '14px',
-          color: '#94A3B8',
-          letterSpacing: '0.1em',
-          textAlign: 'center',
-        }}>
-          DRACS
-        </p>
       </section>
 
       {/* ── EL PROYECTO DETRÁS DE DRACS ────────────────────────── */}
@@ -380,12 +353,32 @@ export default function RoleSelector({ onSelect, onAbout, onLogin }: Props) {
         </span>
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', fontWeight: 600, padding: '4px 8px' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', fontWeight: 600, padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
         >
-          ↑ Volver arriba
+          <ArrowUp size={12} /> Volver arriba
         </button>
       </footer>
     </div>
+  )
+}
+
+function DemoLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: '5px', fontSize: '13px', fontWeight: 500, color: '#94A3B8',
+        fontFamily: 'Nunito, sans-serif', padding: '2px 0',
+        transition: 'color 0.2s ease',
+      }}
+      onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#0BAFBE')}
+      onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#94A3B8')}
+    >
+      <Play size={12} />
+      Ver demo
+    </button>
   )
 }
 
@@ -393,34 +386,28 @@ function KnowProjectButton({ onClick }: { onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
     <button
-      className="dracs-know-btn"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        marginTop: '32px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '10px 20px',
-        borderRadius: '20px',
-        border: 'none',
         background: '#0BAFBE',
-        color: '#ffffff',
-        fontSize: '13px',
-        fontWeight: 700,
-        fontFamily: 'Nunito, sans-serif',
+        border: 'none',
         cursor: 'pointer',
-        outline: 'none',
+        color: '#ffffff',
+        fontFamily: 'Nunito, sans-serif',
+        fontWeight: 700,
+        fontSize: '14px',
+        borderRadius: '24px',
+        padding: '12px 28px',
+        marginTop: '32px',
         boxShadow: hovered
-          ? '0 6px 20px rgba(11,175,190,0.45)'
-          : '0 4px 12px rgba(11,175,190,0.3)',
+          ? '0 8px 20px rgba(11,175,190,0.45)'
+          : '0 4px 12px rgba(11,175,190,0.30)',
         transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+        transition: 'all 0.2s ease',
       }}
     >
       Conoce el proyecto
-      <ChevronDown size={14} />
     </button>
   )
 }

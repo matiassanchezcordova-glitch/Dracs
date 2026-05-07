@@ -1,5 +1,46 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Star, BookOpen, CheckCircle2, Target, ArrowUp, BookMarked, RotateCcw, TrendingUp, Lock } from 'lucide-react'
+
+// ── Full-screen confetti (perfect session) ────────────────────────────────
+
+const CONFETTI_COLORS = ['#0BAFBE', '#FFD93D', '#059669', '#F97316', '#DC2626']
+
+function PerfectConfetti() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const pieces: HTMLDivElement[] = []
+    for (let i = 0; i < 20; i++) {
+      const el = document.createElement('div')
+      const duration = 2 + Math.random() * 2
+      const delay = Math.random()
+      el.style.cssText = `
+        position:absolute; width:8px; height:8px; border-radius:2px;
+        left:${Math.random() * 100}%; top:-10px;
+        background:${CONFETTI_COLORS[i % CONFETTI_COLORS.length]};
+        animation:confettiFallFull ${duration}s ease ${delay}s forwards;
+      `
+      container.appendChild(el)
+      pieces.push(el)
+    }
+    const cleanup = setTimeout(() => {
+      pieces.forEach(el => el.remove())
+    }, 3000)
+    return () => { clearTimeout(cleanup); pieces.forEach(el => el.remove()) }
+  }, [])
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none',
+        overflow: 'hidden', zIndex: 50,
+      }}
+    />
+  )
+}
 
 interface Props {
   correct: number
@@ -52,6 +93,7 @@ function StatCard({ icon, value, label, color = '#0F172A' }: {
 export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, hasAccount = true }: Props) {
   const pct     = total > 0 ? Math.round((correct / total) * 100) : 0
   const message = getMessage(pct)
+  const isPerfect = pct === 100
   const [btn1H, setBtn1H] = useState(false)
   const [btn2H, setBtn2H] = useState(false)
 
@@ -67,6 +109,8 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
         gap: '24px',
       }}
     >
+      {isPerfect && <PerfectConfetti />}
+
       {/* Header */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>

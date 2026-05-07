@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BarChart2, Stethoscope } from 'lucide-react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
 import { buildSession, type RuntimeExercise, type Level } from '../data/exercises'
 import { useAuth } from '../context/AuthContext'
@@ -45,7 +46,9 @@ function ProgressAuthPrompt({
         textAlign: 'center',
         animation: 'wordSlideDown 0.25s ease',
       }}>
-        <div style={{ fontSize: '42px', marginBottom: '12px' }}>📊</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+          <BarChart2 size={44} color="#0BAFBE" />
+        </div>
         <h2 style={{
           margin: '0 0 8px',
           fontFamily: '"Playfair Display", serif',
@@ -118,7 +121,9 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
         padding: '40px 24px', fontFamily: 'Nunito, sans-serif',
         textAlign: 'center', gap: '16px',
       }}>
-        <div style={{ fontSize: '48px' }}>🩺</div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Stethoscope size={48} color="#0BAFBE" />
+        </div>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1A1A2E' }}>
           Esta sección es para los pacientes
         </h2>

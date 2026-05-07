@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Volume2 } from 'lucide-react'
 import { type RuntimeExercise, type Level } from '../../data/exercises'
 import AnswerCard, { type CardState } from './AnswerCard'
 import SequenceQuestion from './SequenceQuestion'
@@ -78,6 +79,17 @@ function Confetti() {
 
 // ── Main ─────────────────────────────────────────────────────────────────
 
+function speak(text: string) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'es-ES'
+    utterance.rate = 0.8
+    utterance.pitch = 1.1
+    window.speechSynthesis.speak(utterance)
+  }
+}
+
 export default function ExerciseScreen({ exercises, childName, level, sessionNumber, onComplete }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [cardStates, setCardStates]     = useState<CardState[]>([])
@@ -90,12 +102,19 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
   const current = exercises[currentIndex]
   const total   = exercises.length
 
+  const handleRepeatAudio = useCallback(() => {
+    if (current?.type === 'vocabulary') speak(current.word)
+  }, [current])
+
   useEffect(() => {
     if (!current) return
     setCardStates(current.type === 'vocabulary' ? current.options.map(() => 'idle') : [])
     setFeedback(null)
     setLocked(false)
     setShowConfetti(false)
+    if (current.type === 'vocabulary') {
+      setTimeout(() => speak(current.word), 300)
+    }
   }, [currentIndex]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCorrect() {
@@ -270,17 +289,45 @@ export default function ExerciseScreen({ exercises, childName, level, sessionNum
             {category}
           </span>
 
+          <button
+            onClick={handleRepeatAudio}
+            title="Escuchar palabra"
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#ffffff',
+              flexShrink: 0,
+              transition: 'background 0.2s ease',
+              zIndex: 2,
+            }}
+            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.35)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.2)')}
+          >
+            <Volume2 size={18} />
+          </button>
+
           <div
             key={currentIndex}
             className="dracs-word-text"
             style={{
               fontSize: 'clamp(40px, 5vw, 60px)',
-              fontWeight: 800,
+              fontWeight: 900,
               color: '#ffffff',
               lineHeight: 1.1,
-              fontFamily: 'Playfair Display, serif',
+              fontFamily: 'Nunito, sans-serif',
               animation: 'wordSlideDown 0.32s ease',
               textAlign: 'center',
+              paddingRight: '48px',
             }}
           >
             {current.word}
