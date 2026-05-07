@@ -305,7 +305,7 @@ function AuthLayout({
 
 // ── Role helpers ──────────────────────────────────────────────────────────
 
-function roleMismatchMsg(dbRole: string, wanted: Role): string {
+function roleMismatchMsg(dbRole: string, _wanted: Role): string {
   if (dbRole === 'therapist') {
     return 'Esta cuenta es de terapeuta. Usá "Logopedia" para entrar.'
   }
