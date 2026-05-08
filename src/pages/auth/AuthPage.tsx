@@ -640,6 +640,7 @@ function PatientStep3({
   userId: string; childName: string; childAge: number; diagnosis: string
   onSuccess: () => void; onBack: () => void
 }) {
+  const { refreshPatient } = useAuth()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<TherapistWithProfile[]>([])
   const [selected, setSelected] = useState<TherapistWithProfile | null>(null)
@@ -694,6 +695,9 @@ function PatientStep3({
         if (timedOut) return
         if (!linkErr) setLinkSent(true)
       }
+
+      await refreshPatient()
+      if (timedOut) return
 
       clearTimeout(timeout)
       onSuccess()

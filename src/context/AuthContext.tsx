@@ -143,6 +143,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     if (profErr) return { error: profErr.message }
 
+    // onAuthStateChange fires before this insert completes (race condition),
+    // so loadProfile found no profile. Set it directly to avoid wrong role in app.
+    setProfile({ id: data.user.id, role, full_name: fullName, email, avatar_url: null, created_at: new Date().toISOString() })
+
     return { error: null, userId: data.user.id }
   }
 
