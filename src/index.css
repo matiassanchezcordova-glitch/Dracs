@@ -340,3 +340,55 @@ body, #root {
   .dracs-section-proyecto { padding: 48px 16px !important; }
   .dracs-section-futuro { padding: 48px 16px !important; }
 }
+
+/* ── AboutPage responsive (≤768px) ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Sections: padding lateral seguro */
+  .dracs-about-section {
+    padding: 60px 20px !important;
+  }
+
+  /* Hero: stack vertical, ocultar dragón */
+  .dracs-about-hero-inner {
+    flex-direction: column !important;
+    padding: 60px 20px 100px !important;
+    gap: 32px !important;
+  }
+  .dracs-about-hero-dragon {
+    display: none !important;
+  }
+
+  /* Título hero: responsive con clamp */
+  .dracs-about-hero-inner h1 {
+    font-size: clamp(28px, 8vw, 40px) !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Sección problema: 3 cards en columna */
+  .dracs-about-problem-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Cómo funciona: steps en columna, ocultar conector */
+  .dracs-about-steps-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 32px !important;
+  }
+  .dracs-about-steps-connector {
+    display: none !important;
+  }
+
+  /* Diseñado para todos: 3 audience cards en columna */
+  .dracs-about-audience-row {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+}
+
+/* ── Overflow global anti-scroll horizontal ──────────────────────────────── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

@@ -755,7 +755,7 @@ export default function AboutPage({ onBack }: Props) {
 
         <Reveal delay={300} style={{ display: 'flex', justifyContent: 'center' }}>
           <a
-            href="mailto:dracs.app@gmail.com"
+            href="mailto:dracs@dracs.health"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
