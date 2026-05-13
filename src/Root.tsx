@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import App from './App'
-import AboutPage from './pages/AboutPage'
 import AuthPage from './pages/auth/AuthPage'
 import RoleSelector, { type Role } from './components/RoleSelector'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -9,7 +8,7 @@ import type { Profile } from './lib/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-type View = 'role-select' | 'auth' | 'app' | 'about' | 'role-conflict'
+type View = 'role-select' | 'auth' | 'app' | 'role-conflict'
 type Tab  = 'ejercicio' | 'terapeuta' | 'familia'
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -260,10 +259,6 @@ function RootInner() {
 
   if (loading) return <LoadingSpinner />
 
-  if (view === 'about') {
-    return <AboutPage onBack={() => setView('role-select')} />
-  }
-
   if (view === 'role-conflict' && profile) {
     return (
       <RoleConflictScreen
@@ -301,7 +296,6 @@ function RootInner() {
   return (
     <RoleSelector
       onSelect={handleRoleSelect}
-      onAbout={() => setView('about')}
     />
   )
 }
