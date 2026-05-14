@@ -384,7 +384,8 @@ function SolucionSection() {
 
             {/* Frame 3 — calendario semanal */}
             {(() => {
-              const calDays = [
+              type CalSession = { n: string; h: string; muted?: boolean }
+              const calDays: Array<{ label: string; sessions: CalSession[] }> = [
                 { label: 'L', sessions: [{ n: 'Marc', h: '10h' }, { n: 'Pol', h: '16h' }] },
                 { label: 'M', sessions: [{ n: 'Júlia', h: '11h' }] },
                 { label: 'X', sessions: [{ n: 'Marc', h: '9h' }, { n: 'Aina', h: '14h' }, { n: 'Pol', h: '17h' }] },
