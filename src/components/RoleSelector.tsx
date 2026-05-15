@@ -239,7 +239,7 @@ function ProblemaSection() {
         <div className="problema-right">
           {PROBLEM_DATA.map((data, i) => (
             <div key={i} ref={blockRefs[i]} className="problema-step" style={{
-              opacity: isMobile ? 1 : (activeIndex === i ? 1 : 0.35),
+              opacity: activeIndex === i ? 1 : (isMobile ? 0 : 0.35),
               transition: 'opacity 0.5s ease',
             }}>
               <div className="step-marker">
@@ -310,8 +310,8 @@ function SolucionSection() {
   }, [])
 
   const getOpacity = (i: number) => {
-    if (isMobile) return 1
     if (i === activeStep) return 1
+    if (isMobile) return 0
     if (i === activeStep + 1) return 0.25
     return 0
   }
@@ -434,7 +434,7 @@ function SolucionSection() {
               opacity: getOpacity(i),
               transition: 'opacity 0.5s ease',
             }}>
-              <div style={{ fontFamily: '"Playfair Display", serif', fontStyle: 'italic', fontSize: '72px', fontWeight: 400, color: '#0BAFBE', lineHeight: 1, marginBottom: '16px' }}>
+              <div className="solucion-step-num">
                 {step.num}
               </div>
               <h3 style={{ margin: '0 0 16px', fontFamily: '"Playfair Display", serif', fontSize: '44px', fontWeight: 500, color: '#1A1A2E', lineHeight: 1.1 }}>
@@ -976,22 +976,51 @@ export default function RoleSelector({ onSelect }: Props) {
           box-shadow: 0 20px 40px -20px rgba(11,175,190,0.3) !important;
         }
 
+        /* ── Step numbers — La Solución ─────────────────────────────────── */
+        .solucion-step-num {
+          font-family: 'Playfair Display', serif;
+          font-style: normal;
+          font-weight: 500;
+          font-size: 72px;
+          color: #0BAFBE;
+          letter-spacing: -0.02em;
+          line-height: 1;
+          margin-bottom: 16px;
+        }
+
         /* ── Mobile responsive ──────────────────────────────────────── */
         @media (max-width: 900px) {
+          .solucion-step-num { font-size: 48px; }
           .problema-grid, .solucion-grid {
             grid-template-columns: 1fr;
-            padding: 0 24px;
-            gap: 40px;
+            padding: 0;
+            gap: 0;
           }
-          .problema-left, .solucion-left {
-            position: relative;
-            top: 0;
-            height: auto;
-            margin-bottom: 40px;
+          .problema-left {
+            position: sticky;
+            top: 80px;
+            height: 45vh;
+            z-index: 5;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
+          }
+          .solucion-left {
+            position: sticky;
+            top: 80px;
+            height: 45vh;
+            z-index: 5;
+            background: #F0FAFA;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
           }
           .problema-step, .solucion-step {
-            min-height: auto;
-            padding: 32px 0;
+            min-height: 55vh;
+            padding: 24px 24px;
           }
           .dracs-audience-grid {
             flex-direction: column !important;
@@ -1004,7 +1033,7 @@ export default function RoleSelector({ onSelect }: Props) {
             width: 100% !important;
             max-width: 100% !important;
             aspect-ratio: unset !important;
-            height: 280px !important;
+            height: 260px !important;
           }
         }
 
