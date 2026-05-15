@@ -343,8 +343,8 @@ function SolucionSection() {
           <div style={{ position: 'relative', width: '100%', maxWidth: '420px', aspectRatio: '1/1.1' }}>
 
             {/* Frame 1 — clinical exercise mockup */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #0BAFBE 0%, #088a96 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}>
-              <div style={{ background: '#ffffff', borderRadius: '20px', padding: '20px', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #0BAFBE 0%, #088a96 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px 14px' : '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
+              <div style={{ background: '#ffffff', borderRadius: '20px', padding: '20px', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)', boxSizing: 'border-box' }}>
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#F0FAFA', border: '1px solid #A5F3FC', borderRadius: '100px', padding: '4px 12px' }}>
                   <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.1em', color: '#0BAFBE', textTransform: 'uppercase' }}>Ejercicio 3 de 8</span>
                 </div>
@@ -837,6 +837,15 @@ export default function RoleSelector({ onSelect }: Props) {
 
       {/* ── Global CSS ──────────────────────────────────────────────────── */}
       <style>{`
+        /* ── Scroll snap — EL PROBLEMA y LA SOLUCIÓN ─────────────── */
+        html {
+          scroll-snap-type: y proximity;
+          scroll-padding-top: 80px;
+        }
+        @media (max-width: 900px) {
+          html { scroll-padding-top: calc(80px + 45vh); }
+        }
+
         @keyframes heroFadeIn {
           from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -888,6 +897,8 @@ export default function RoleSelector({ onSelect }: Props) {
           flex-direction: column;
           justify-content: center;
           padding: 60px 0;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
         }
 
         /* LA SOLUCIÓN — same pattern */
@@ -918,6 +929,8 @@ export default function RoleSelector({ onSelect }: Props) {
           flex-direction: column;
           justify-content: center;
           padding: 60px 0;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
         }
 
         /* ── Audience cards ─────────────────────────────────────────── */
