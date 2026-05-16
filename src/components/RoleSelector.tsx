@@ -120,7 +120,7 @@ const PROBLEM_DATA = [
   {
     value: '18 meses',
     headline: 'Antes de la primera sesión',
-    desc: 'Es la media para entrar al sistema. Año y medio mirando cómo no avanza tu hijo.',
+    desc: 'Es la media de espera en el sistema. Año y medio sin atención profesional.',
   },
   {
     value: '70%',
@@ -130,7 +130,7 @@ const PROBLEM_DATA = [
   {
     value: '3.800€',
     headline: 'Cuesta al mes ir por privado',
-    desc: 'Una intervención intensiva privada. Lo pagan las familias que pueden. Las que no, siguen esperando.',
+    desc: 'Cuesta una intervención intensiva privada. Acceso desigual por defecto.',
   },
 ]
 
@@ -202,7 +202,7 @@ function ProblemaSection() {
 
         {/* LEFT: sticky orbital circle */}
         <div className="sticky-left">
-          <div style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
+          <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
             {/* Dashed border — subtle */}
             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #0BAFBE', opacity: 0.25 }} />
@@ -313,7 +313,7 @@ function SolucionSection() {
   }
 
   const steps = [
-    { num: '01', title: 'El niño practica en casa', desc: 'Ejercicios adaptativos diarios desde cualquier tablet. Bilingüe catalán-castellano, gamificados, pensados para que el niño quiera abrir la app cada día.',    tag: '10 minutos diarios'  },
+    { num: '01', title: 'El niño practica en casa', desc: 'Ejercicios adaptativos diarios desde cualquier tablet. Bilingüe catalán-castellano, gamificados, pensados para que el niño quiera abrir la app cada día.',    tag: 'Tantas sesiones como el niño necesite'  },
     { num: '02', title: 'La IA se adapta',           desc: 'Ajusta dificultad en tiempo real según atención y rendimiento. Un motor basado en reglas clínicas, no en cajas negras, para que el terapeuta entienda y confíe.', tag: 'Adaptación cognitiva' },
     { num: '03', title: 'El terapeuta supervisa',    desc: 'Dashboard completo con informes automáticos. El profesional ve qué practicó el niño, qué le costó, qué progresa. Sin trabajo administrativo extra.',               tag: 'Hasta 80 pacientes'   },
   ]
@@ -544,9 +544,6 @@ function ConnectedAudienceGrid() {
         {/* Card: Niño */}
         <div className="dracs-audience-card" style={{ '--card-delay': '0ms', backgroundColor: '#1A1A2E', borderRadius: '20px', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupNino />
-          <div style={{ width: '52px', height: '52px', borderRadius: '14px', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', marginBottom: '16px' }}>
-            <Smile size={28} />
-          </div>
           <h3 style={{ margin: '0 0 10px', fontFamily: '"Playfair Display", serif', fontSize: '22px', fontWeight: 600, color: '#ffffff', lineHeight: 1.2 }}>
             Niños que necesitan apoyo
           </h3>
@@ -561,9 +558,6 @@ function ConnectedAudienceGrid() {
         {/* Card: Terapeuta */}
         <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#ffffff', borderRadius: '20px', border: '1.5px solid #0BAFBE', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupTerapeuta />
-          <div style={{ width: '52px', height: '52px', borderRadius: '14px', backgroundColor: '#F0FAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0BAFBE', marginBottom: '16px' }}>
-            <Stethoscope size={28} />
-          </div>
           <h3 style={{ margin: '0 0 10px', fontFamily: '"Playfair Display", serif', fontSize: '22px', fontWeight: 600, color: '#1A1A2E', lineHeight: 1.2 }}>
             Terapeutas y logopedas
           </h3>
@@ -578,9 +572,6 @@ function ConnectedAudienceGrid() {
         {/* Card: Familia */}
         <div className="dracs-audience-card" style={{ '--card-delay': '300ms', backgroundColor: '#FFF6E5', borderRadius: '20px', border: '1.5px solid #FDE68A', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupFamilia />
-          <div style={{ width: '52px', height: '52px', borderRadius: '14px', backgroundColor: 'rgba(217,119,6,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', marginBottom: '16px' }}>
-            <Heart size={28} />
-          </div>
           <h3 style={{ margin: '0 0 10px', fontFamily: '"Playfair Display", serif', fontSize: '22px', fontWeight: 600, color: '#92400E', lineHeight: 1.2 }}>
             Familias
           </h3>
@@ -922,6 +913,20 @@ export default function RoleSelector({ onSelect }: Props) {
           box-shadow: 0 16px 48px rgba(0,0,0,0.1) !important;
         }
 
+        /* ── Audience card structure alignment ──────────────────────── */
+        /* First child = MiniMockup — reserve equal height across 3 cards */
+        .dracs-audience-card > div:first-child {
+          min-height: 140px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          margin-bottom: 20px;
+        }
+        /* Title — reserve 2-line height so all 3 titles align */
+        .dracs-audience-card h3 {
+          min-height: 60px;
+        }
+
         /* ── SVG connection paths ────────────────────────────────────── */
         .connection-path {
           stroke-dasharray: 6 8;
@@ -990,9 +995,16 @@ export default function RoleSelector({ onSelect }: Props) {
         }
         .frame-1-label { max-width: 260px; }
         @media (max-width: 900px) {
-          .frame-1-container { padding: 18px 14px !important; }
-          .frame-1-tablet { max-width: 220px; padding: 12px !important; }
-          .frame-1-label { font-size: 11px !important; max-width: 200px !important; margin-top: 10px !important; }
+          .frame-1-container { padding: 12px 10px !important; max-height: 42vh; overflow: hidden !important; }
+          .frame-1-tablet { max-width: 190px; padding: 10px !important; gap: 8px !important; }
+          .frame-1-grid { gap: 4px !important; }
+          .frame-1-grid-item { padding: 4px !important; }
+          .frame-1-label { font-size: 10px !important; max-width: 180px !important; margin-top: 6px !important; }
+        }
+        @media (max-width: 600px) {
+          .frame-1-container { transform: scale(0.85); transform-origin: center top; }
+        }
+        @media (max-width: 900px) and (min-width: 601px) {
         }
 
         /* ── Mobile responsive ──────────────────────────────────────── */
@@ -1014,25 +1026,47 @@ export default function RoleSelector({ onSelect }: Props) {
             top: 70px;
             height: 45vh;
             z-index: 5;
+            width: 100%;
           }
+          /* Opaque background extended to cover padding edges */
           .problem .sticky-left { background: #ffffff; }
           .solution .sticky-left { background: #F0FAFA; }
+          .sticky-left::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            left: -20px; right: -20px;
+            background: inherit;
+            z-index: -1;
+          }
           .step {
             min-height: 55vh;
             padding: 30px 0;
           }
-          .dracs-audience-grid {
-            flex-direction: column !important;
+          /* EL PROBLEMA: circle keeps 1:1 ratio on mobile */
+          .circle-visual {
+            width: auto !important;
+            height: auto !important;
+            max-width: 240px !important;
+            aspect-ratio: 1 / 1 !important;
+            margin: 0 auto;
           }
-          .dracs-about-body {
-            grid-template-columns: 1fr !important;
-            gap: 40px !important;
-          }
-          .sticky-left > div {
+          /* LA SOLUCIÓN: frame wrapper fills available height */
+          .solution .sticky-left > div {
             width: 100% !important;
             max-width: 100% !important;
             aspect-ratio: unset !important;
             height: 200px !important;
+          }
+          .dracs-audience-grid {
+            flex-direction: column !important;
+          }
+          .dracs-audience-card h3 {
+            min-height: auto !important;
+          }
+          .dracs-about-body {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
           }
         }
 
