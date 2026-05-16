@@ -186,26 +186,22 @@ function ProblemaSection() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const circleSize = isMobile ? 260 : 440
+  const circleSize = isMobile ? 240 : 440
 
   return (
-    <section id="problema" style={{ background: '#ffffff', paddingTop: '120px', paddingBottom: '80px' }}>
+    <section id="problema" className="problem" style={{ background: '#ffffff' }}>
 
-      {/* Header — outside the sticky grid */}
-      <div style={{ textAlign: 'center', padding: '0 clamp(24px, 5vw, 48px)', marginBottom: '80px', maxWidth: '1280px', marginLeft: 'auto', marginRight: 'auto' }}>
-        <Reveal>
-          <h2 style={{ margin: 0, fontFamily: '"Playfair Display", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#1A1A2E', lineHeight: 1.1 }}>
-            <em style={{ color: '#0BAFBE', fontStyle: 'italic' }}>Una década</em>{' '}
-            perdida en listas de espera.
-          </h2>
-        </Reveal>
+      <div className="section-header">
+        <h2 className="section-title">
+          <em>Una década</em>{' '}
+          perdida en listas de espera.
+        </h2>
       </div>
 
-      {/* Sticky 2-col grid */}
-      <div className="problema-grid">
+      <div className="sticky-grid">
 
         {/* LEFT: sticky orbital circle */}
-        <div className="problema-left">
+        <div className="sticky-left">
           <div style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
             {/* Dashed border — subtle */}
@@ -236,9 +232,9 @@ function ProblemaSection() {
         </div>
 
         {/* RIGHT: 4 scrollable data steps */}
-        <div className="problema-right">
+        <div className="sticky-right">
           {PROBLEM_DATA.map((data, i) => (
-            <div key={i} ref={blockRefs[i]} className="problema-step" style={{
+            <div key={i} ref={blockRefs[i]} className="step" style={{
               opacity: activeIndex === i ? 1 : (isMobile ? 0 : 0.35),
               transition: 'opacity 0.5s ease',
             }}>
@@ -263,9 +259,9 @@ function ProblemaSection() {
 
 // ── La Solución — fixed sticky scroll ─────────────────────────────────────────
 
-function AnimalCard({ icon, label, active }: { icon: React.ReactNode; label: string; active: boolean }) {
+function AnimalCard({ icon, label, active, className = '' }: { icon: React.ReactNode; label: string; active: boolean; className?: string }) {
   return (
-    <div style={{ borderRadius: '10px', border: active ? '2px solid #0BAFBE' : '2px solid #F1F5F9', padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative', background: active ? '#F0FAFA' : '#ffffff', transition: 'all 0.3s ease' }}>
+    <div className={className} style={{ borderRadius: '10px', border: active ? '2px solid #0BAFBE' : '2px solid #F1F5F9', padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative', background: active ? '#F0FAFA' : '#ffffff', transition: 'all 0.3s ease' }}>
       {active && (
         <div style={{ position: 'absolute', top: '-6px', right: '-6px', width: '18px', height: '18px', borderRadius: '50%', background: '#0BAFBE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Check size={10} color="#ffffff" strokeWidth={3} />
@@ -323,41 +319,37 @@ function SolucionSection() {
   ]
 
   return (
-    <section id="solucion" style={{ background: 'linear-gradient(180deg, #F0FAFA 0%, #E8F8FF 100%)', paddingTop: '120px', paddingBottom: '80px' }}>
+    <section id="solucion" className="solution" style={{ background: 'linear-gradient(180deg, #F0FAFA 0%, #E8F8FF 100%)' }}>
 
-      {/* Header — outside the sticky grid */}
-      <div style={{ textAlign: 'center', padding: '0 clamp(24px, 5vw, 48px)', marginBottom: '80px', maxWidth: '1280px', marginLeft: 'auto', marginRight: 'auto' }}>
-        <Reveal>
-          <h2 style={{ margin: 0, fontFamily: '"Playfair Display", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#1A1A2E', lineHeight: 1.1 }}>
-            Dracs convierte la espera{' '}
-            <em style={{ color: '#0BAFBE', fontStyle: 'italic' }}>en práctica diaria.</em>
-          </h2>
-        </Reveal>
+      <div className="section-header">
+        <h2 className="section-title">
+          Dracs convierte la espera{' '}
+          <em>en práctica diaria.</em>
+        </h2>
       </div>
 
-      {/* Sticky 2-col grid */}
-      <div className="solucion-grid">
+      <div className="sticky-grid">
 
         {/* LEFT: sticky frames */}
-        <div className="solucion-left">
-          <div style={{ position: 'relative', width: '100%', maxWidth: '420px', aspectRatio: '1/1.1' }}>
+        <div className="sticky-left">
+          <div style={{ position: 'relative', width: '100%', maxWidth: '380px', aspectRatio: '1/1.1' }}>
 
             {/* Frame 1 — clinical exercise mockup */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #0BAFBE 0%, #088a96 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px 14px' : '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
-              <div style={{ background: '#ffffff', borderRadius: '20px', padding: '20px', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)', boxSizing: 'border-box' }}>
+            <div className="frame-1-container" style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #0BAFBE 0%, #088a96 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px 14px' : '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
+              <div className="frame-1-tablet" style={{ background: '#ffffff', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}>
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#F0FAFA', border: '1px solid #A5F3FC', borderRadius: '100px', padding: '4px 12px' }}>
                   <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.1em', color: '#0BAFBE', textTransform: 'uppercase' }}>Ejercicio 3 de 8</span>
                 </div>
                 <p style={{ margin: 0, fontFamily: '"Playfair Display", serif', fontWeight: 600, fontSize: '15px', color: '#1A1A2E', lineHeight: 1.25 }}>
                   Encuentra los animales que viven en el agua
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                  <AnimalCard icon={<Fish size={22} />}   label="Pez"     active={true}  />
-                  <AnimalCard icon={<Cat size={22} />}    label="Gato"    active={false} />
-                  <AnimalCard icon={<Turtle size={22} />} label="Tortuga" active={true}  />
-                  <AnimalCard icon={<Turtle size={22} />} label="Rana"    active={false} />
-                  <AnimalCard icon={<Cat size={22} />}    label="Conejo"  active={false} />
-                  <AnimalCard icon={<Fish size={22} />}   label="Pulpo"   active={true}  />
+                <div className="frame-1-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                  <AnimalCard className="frame-1-grid-item" icon={<Fish size={22} />}   label="Pez"     active={true}  />
+                  <AnimalCard className="frame-1-grid-item" icon={<Cat size={22} />}    label="Gato"    active={false} />
+                  <AnimalCard className="frame-1-grid-item" icon={<Turtle size={22} />} label="Tortuga" active={true}  />
+                  <AnimalCard className="frame-1-grid-item" icon={<Turtle size={22} />} label="Rana"    active={false} />
+                  <AnimalCard className="frame-1-grid-item" icon={<Cat size={22} />}    label="Conejo"  active={false} />
+                  <AnimalCard className="frame-1-grid-item" icon={<Fish size={22} />}   label="Pulpo"   active={true}  />
                 </div>
                 <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', paddingTop: '4px' }}>
                   {[0,1,2,3].map(i => (
@@ -365,7 +357,7 @@ function SolucionSection() {
                   ))}
                 </div>
               </div>
-              <p style={{ margin: '20px 0 0', fontFamily: 'Nunito, sans-serif', fontStyle: 'italic', fontWeight: 500, fontSize: '14px', color: 'rgba(255,255,255,0.9)', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>
+              <p className="frame-1-label" style={{ margin: '20px 0 0', fontFamily: 'Nunito, sans-serif', fontStyle: 'italic', fontWeight: 500, fontSize: '14px', color: 'rgba(255,255,255,0.9)', textAlign: 'center', maxWidth: '280px', lineHeight: 1.4 }}>
                 Cada ejercicio adapta dificultad, contenido y refuerzo en tiempo real.
               </p>
             </div>
@@ -428,9 +420,9 @@ function SolucionSection() {
         </div>
 
         {/* RIGHT: scrollable steps */}
-        <div className="solucion-right">
+        <div className="sticky-right">
           {steps.map((step, i) => (
-            <div key={step.num} ref={blockRefs[i]} className="solucion-step" style={{
+            <div key={step.num} ref={blockRefs[i]} className="step" style={{
               opacity: getOpacity(i),
               transition: 'opacity 0.5s ease',
             }}>
@@ -837,14 +829,7 @@ export default function RoleSelector({ onSelect }: Props) {
 
       {/* ── Global CSS ──────────────────────────────────────────────────── */}
       <style>{`
-        /* ── Scroll snap — EL PROBLEMA y LA SOLUCIÓN ─────────────── */
-        html {
-          scroll-snap-type: y proximity;
-          scroll-padding-top: 80px;
-        }
-        @media (max-width: 900px) {
-          html { scroll-padding-top: calc(80px + 45vh); }
-        }
+        /* Scroll snap gestionado por JavaScript */
 
         @keyframes heroFadeIn {
           from { opacity: 0; transform: translateY(12px); }
@@ -868,50 +853,38 @@ export default function RoleSelector({ onSelect }: Props) {
           .cal-session-text { display: none; }
         }
 
-        /* ── Sticky 2-column grid pattern ───────────────────────────── */
-        /* EL PROBLEMA */
-        .problema-grid {
+        /* ── Section header — título normal, no sticky ──────────────── */
+        .section-header {
+          text-align: center;
+          padding: 100px 48px 60px;
           max-width: 1280px;
           margin: 0 auto;
-          padding: 0 clamp(24px, 5vw, 48px);
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 80px;
-          align-items: start;
         }
-        .problema-left {
-          position: sticky;
-          top: 100px;
-          height: calc(100vh - 100px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .section-title {
+          font-family: 'Playfair Display', serif;
+          font-weight: 500;
+          font-size: clamp(40px, 5.5vw, 72px);
+          line-height: 1.05;
+          letter-spacing: -0.02em;
+          color: #1A1A2E;
+          margin: 0;
         }
-        .problema-right {
-          display: flex;
-          flex-direction: column;
-        }
-        .problema-step {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding: 60px 0;
-          scroll-snap-align: start;
-          scroll-snap-stop: always;
+        .section-title em {
+          font-style: italic;
+          color: #0BAFBE;
         }
 
-        /* LA SOLUCIÓN — same pattern */
-        .solucion-grid {
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 0 clamp(24px, 5vw, 48px);
+        /* ── Sticky 2-column grid — animación fija, texto scrollea ──── */
+        .sticky-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 80px;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 clamp(24px, 5vw, 48px) 100px;
           align-items: start;
         }
-        .solucion-left {
+        .sticky-left {
           position: sticky;
           top: 100px;
           height: calc(100vh - 100px);
@@ -919,18 +892,16 @@ export default function RoleSelector({ onSelect }: Props) {
           align-items: center;
           justify-content: center;
         }
-        .solucion-right {
+        .sticky-right {
           display: flex;
           flex-direction: column;
         }
-        .solucion-step {
+        .step {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
           justify-content: center;
           padding: 60px 0;
-          scroll-snap-align: start;
-          scroll-snap-stop: always;
         }
 
         /* ── Audience cards ─────────────────────────────────────────── */
@@ -1001,39 +972,54 @@ export default function RoleSelector({ onSelect }: Props) {
           margin-bottom: 16px;
         }
 
+
+        /* ── Frame 1: tablet containment ───────────────────────────── */
+        .frame-1-container { overflow: hidden !important; }
+        .frame-1-tablet {
+          max-width: 260px;
+          width: 100%;
+          overflow: hidden;
+          box-sizing: border-box;
+        }
+        .frame-1-grid { width: 100%; }
+        .frame-1-grid-item {
+          min-width: 0;
+          aspect-ratio: 1;
+          padding: 6px !important;
+          box-sizing: border-box;
+        }
+        .frame-1-label { max-width: 260px; }
+        @media (max-width: 900px) {
+          .frame-1-container { padding: 18px 14px !important; }
+          .frame-1-tablet { max-width: 220px; padding: 12px !important; }
+          .frame-1-label { font-size: 11px !important; max-width: 200px !important; margin-top: 10px !important; }
+        }
+
         /* ── Mobile responsive ──────────────────────────────────────── */
         @media (max-width: 900px) {
           .solucion-step-num { font-size: 48px; }
-          .problema-grid, .solucion-grid {
+          .section-header {
+            padding: 60px 20px 40px;
+          }
+          .section-title {
+            font-size: clamp(28px, 7vw, 40px) !important;
+          }
+          .sticky-grid {
             grid-template-columns: 1fr;
-            padding: 0;
             gap: 0;
+            padding: 0 20px 60px;
           }
-          .problema-left {
+          .sticky-left {
             position: sticky;
-            top: 80px;
+            top: 70px;
             height: 45vh;
             z-index: 5;
-            background: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 24px;
           }
-          .solucion-left {
-            position: sticky;
-            top: 80px;
-            height: 45vh;
-            z-index: 5;
-            background: #F0FAFA;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 24px;
-          }
-          .problema-step, .solucion-step {
+          .problem .sticky-left { background: #ffffff; }
+          .solution .sticky-left { background: #F0FAFA; }
+          .step {
             min-height: 55vh;
-            padding: 24px 24px;
+            padding: 30px 0;
           }
           .dracs-audience-grid {
             flex-direction: column !important;
@@ -1042,11 +1028,11 @@ export default function RoleSelector({ onSelect }: Props) {
             grid-template-columns: 1fr !important;
             gap: 40px !important;
           }
-          .solucion-left > div {
+          .sticky-left > div {
             width: 100% !important;
             max-width: 100% !important;
             aspect-ratio: unset !important;
-            height: 260px !important;
+            height: 200px !important;
           }
         }
 
