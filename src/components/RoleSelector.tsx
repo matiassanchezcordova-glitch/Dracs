@@ -205,7 +205,7 @@ function ProblemaSection() {
           <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
             {/* Dashed border — subtle */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #0BAFBE', opacity: 0.25 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #0BAFBE', opacity: 0.5 }} />
 
             {/* 4 cardinal dots */}
             {DOT_POS.map((pos, i) => (
@@ -995,16 +995,14 @@ export default function RoleSelector({ onSelect }: Props) {
         }
         .frame-1-label { max-width: 260px; }
         @media (max-width: 900px) {
-          .frame-1-container { padding: 12px 10px !important; max-height: 42vh; overflow: hidden !important; }
+          .frame-1-container { padding: 12px 10px !important; overflow: hidden !important; }
           .frame-1-tablet { max-width: 190px; padding: 10px !important; gap: 8px !important; }
           .frame-1-grid { gap: 4px !important; }
           .frame-1-grid-item { padding: 4px !important; }
           .frame-1-label { font-size: 10px !important; max-width: 180px !important; margin-top: 6px !important; }
         }
         @media (max-width: 600px) {
-          .frame-1-container { transform: scale(0.85); transform-origin: center top; }
-        }
-        @media (max-width: 900px) and (min-width: 601px) {
+          .frame-1-label { display: none !important; }
         }
 
         /* ── Mobile responsive ──────────────────────────────────────── */
@@ -1025,38 +1023,39 @@ export default function RoleSelector({ onSelect }: Props) {
             position: sticky;
             top: 70px;
             height: 45vh;
-            z-index: 5;
+            z-index: 20;
             width: 100%;
           }
-          /* Opaque background extended to cover padding edges */
+          /* Opaque backgrounds — explicit colors (not inherit) */
           .problem .sticky-left { background: #ffffff; }
           .solution .sticky-left { background: #F0FAFA; }
-          .sticky-left::before {
+          /* Extend background into the grid's 20px padding on each side */
+          .problem .sticky-left::before {
             content: '';
             position: absolute;
-            top: 0; bottom: 0;
+            top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: inherit;
+            background: #ffffff;
+            z-index: -1;
+          }
+          .solution .sticky-left::before {
+            content: '';
+            position: absolute;
+            top: -80px; bottom: 0;
+            left: -20px; right: -20px;
+            background: #F0FAFA;
             z-index: -1;
           }
           .step {
             min-height: 55vh;
             padding: 30px 0;
           }
-          /* EL PROBLEMA: circle keeps 1:1 ratio on mobile */
-          .circle-visual {
-            width: auto !important;
-            height: auto !important;
-            max-width: 240px !important;
-            aspect-ratio: 1 / 1 !important;
-            margin: 0 auto;
-          }
-          /* LA SOLUCIÓN: frame wrapper fills available height */
+          /* LA SOLUCIÓN: frame wrapper fills sticky-left height */
           .solution .sticky-left > div {
             width: 100% !important;
             max-width: 100% !important;
             aspect-ratio: unset !important;
-            height: 200px !important;
+            height: 100% !important;
           }
           .dracs-audience-grid {
             flex-direction: column !important;
