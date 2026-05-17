@@ -124,13 +124,13 @@ const PROBLEM_DATA = [
   },
   {
     value: '70%',
-    headline: 'Concentrado en 5 ciudades',
+    headline: 'De los logopedas, en 5 ciudades',
     desc: 'Si vivís fuera de Barcelona, Madrid, Valencia, Sevilla o Bilbao, encontrar logopeda público es casi imposible.',
   },
   {
-    value: '3.800€',
-    headline: 'Cuesta al mes ir por privado',
-    desc: 'Cuesta una intervención intensiva privada. Acceso desigual por defecto.',
+    value: '600€',
+    headline: 'Al mes en logopedia privada',
+    desc: 'El coste medio de una intervención semanal privada. Acceso desigual por defecto.',
   },
 ]
 
@@ -339,7 +339,7 @@ function SolucionSection() {
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#F0FAFA', border: '1px solid #A5F3FC', borderRadius: '100px', padding: '4px 12px' }}>
                   <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.1em', color: '#0BAFBE', textTransform: 'uppercase' }}>Ejercicio 3 de 8</span>
                 </div>
-                <p style={{ margin: 0, fontFamily: '"Playfair Display", serif', fontWeight: 600, fontSize: '15px', color: '#1A1A2E', lineHeight: 1.25 }}>
+                <p style={{ margin: 0, fontFamily: '"Playfair Display", serif', fontWeight: 600, fontSize: '15px', color: '#1A1A2E', lineHeight: 1.25, textAlign: 'center' }}>
                   Encuentra los animales que viven en el agua
                 </p>
                 <div className="frame-1-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -915,7 +915,7 @@ export default function RoleSelector({ onSelect }: Props) {
         /* ── Audience card structure alignment ──────────────────────── */
         /* First child = MiniMockup — reserve equal height across 3 cards */
         .dracs-audience-card > div:first-child {
-          min-height: 140px;
+          min-height: 200px;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
