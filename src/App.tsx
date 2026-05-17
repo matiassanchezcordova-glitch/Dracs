@@ -1,45 +1,56 @@
 import { type ReactNode, useState } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Gamepad2, BarChart2, Users, LogOut, X } from 'lucide-react'
-import ExerciseTab from './components/ExerciseTab'
-import TherapistTab from './components/therapist/TherapistTab'
-import FamiliaTab from './components/familia/FamiliaTab'
 import { type Role } from './components/RoleSelector'
 import { useAuth } from './context/AuthContext'
 import { TherapistProvider } from './context/TherapistContext'
+import {
+  clearAllDracsStorage,
+  dbRoleToUiRole,
+  getLocalRole,
+} from './lib/role'
 
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
 
-const ALL_NAV_TABS: { id: Tab; label: string; icon: ReactNode; roles: Role[] }[] = [
-  { id: 'ejercicio', label: 'Ejercicio',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist', 'demo'] },
-  { id: 'terapeuta', label: 'Terapeuta',  icon: <BarChart2 size={20} />, roles: ['therapist', 'demo'] },
-  { id: 'familia',   label: 'Familia',    icon: <Users     size={20} />, roles: ['family', 'therapist', 'demo'] },
+const ALL_NAV_TABS: { id: Tab; label: string; icon: ReactNode; roles: Role[]; path: string }[] = [
+  { id: 'ejercicio', label: 'Ejercicio',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist', 'demo'], path: '/app/nino' },
+  { id: 'terapeuta', label: 'Terapeuta',  icon: <BarChart2 size={20} />, roles: ['therapist', 'demo'],                    path: '/app/terapeuta' },
+  { id: 'familia',   label: 'Familia',    icon: <Users     size={20} />, roles: ['family', 'therapist', 'demo'],          path: '/app/familia' },
 ]
 
-function defaultTabForRole(role: Role): Tab {
-  if (role === 'child') return 'ejercicio'
-  if (role === 'family') return 'familia'
-  if (role === 'demo') return 'ejercicio'
-  return 'terapeuta'
+function pathToTab(pathname: string): Tab | null {
+  if (pathname.startsWith('/app/nino')) return 'ejercicio'
+  if (pathname.startsWith('/app/terapeuta')) return 'terapeuta'
+  if (pathname.startsWith('/app/familia')) return 'familia'
+  return null
 }
 
-interface Props {
-  role: Role
-  onLogout: () => void
-  onRequestAuth?: (mode: 'login' | 'signup') => void
-  initialTab?: Tab
-}
-
-function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>(() => initialTab ?? defaultTabForRole(role))
+function AppInner() {
+  const { user, profile, patient, logout } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [showDemoModal, setShowDemoModal] = useState(false)
-  const { patient, profile } = useAuth()
 
+  const localRole = getLocalRole()
+  const role: Role = profile ? dbRoleToUiRole(profile.role) : (localRole ?? 'child')
   const isDemo = role === 'demo'
   const visibleTabs = ALL_NAV_TABS.filter(t => t.roles.includes(role))
+  const activeTab = pathToTab(location.pathname)
 
   const isChildOrFamily = role === 'child' || role === 'family'
   const childName = isDemo ? null : (patient?.child_name ?? null)
   const therapistName = isDemo ? null : (profile?.full_name ?? null)
+
+  async function handleLogout() {
+    if (user) await logout()
+    clearAllDracsStorage()
+    navigate('/', { replace: true })
+  }
+
+  function handleDemoCreateAccount() {
+    setShowDemoModal(false)
+    navigate('/login?role=child')
+  }
 
   return (
     <div
@@ -85,7 +96,9 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
                 color: '#0BAFBE',
                 lineHeight: 1,
                 letterSpacing: '2px',
+                cursor: 'pointer',
               }}
+              onClick={() => navigate('/')}
             >
               DRACS
             </span>
@@ -120,7 +133,7 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
                 }}>
                   {childName}
                 </span>
-                <LogoutBtn onLogout={onLogout} />
+                <LogoutBtn onLogout={handleLogout} />
               </div>
             )}
 
@@ -132,12 +145,12 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
                 }}>
                   {therapistName ?? 'Terapeuta'} · Terapeuta
                 </span>
-                <LogoutBtn onLogout={onLogout} />
+                <LogoutBtn onLogout={handleLogout} />
               </div>
             )}
 
             {!childName && !therapistName && role !== 'therapist' && (
-              <LogoutBtn onLogout={onLogout} />
+              <LogoutBtn onLogout={handleLogout} />
             )}
           </div>
 
@@ -148,7 +161,7 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => navigate(tab.path)}
                   style={{
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', gap: '2px', padding: '6px 16px',
@@ -201,7 +214,7 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
-                onClick={() => { setShowDemoModal(false); onRequestAuth?.('signup') }}
+                onClick={handleDemoCreateAccount}
                 style={{ width: '100%', height: '44px', borderRadius: '12px', border: 'none', background: '#0BAFBE', color: '#ffffff', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
               >
                 Crear cuenta real
@@ -219,41 +232,24 @@ function AppInner({ role, onLogout, onRequestAuth, initialTab }: Props) {
 
       {/* ── Content ─────────────────────────────────────────────── */}
       <main
+        key={activeTab ?? location.pathname}
+        className="tab-enter"
         style={{
           flex: 1, display: 'flex', flexDirection: 'column',
           overflow: 'hidden', maxWidth: '1200px',
           margin: '0 auto', width: '100%', position: 'relative',
         }}
       >
-        <div
-          key={activeTab}
-          className="tab-enter"
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        >
-          {activeTab === 'ejercicio' && (
-            <ExerciseTab
-              onNavigateToFamilia={() => setActiveTab('familia')}
-              onNavigateToTerapeuta={() => setActiveTab('terapeuta')}
-              onRequestAuth={onRequestAuth}
-            />
-          )}
-          {activeTab === 'terapeuta' && <TherapistTab />}
-          {activeTab === 'familia' && (
-            <FamiliaTab
-              onNavigateToEjercicio={() => setActiveTab('ejercicio')}
-              onNavigateToTerapeuta={() => setActiveTab('terapeuta')}
-            />
-          )}
-        </div>
+        <Outlet />
       </main>
     </div>
   )
 }
 
-export default function App({ role, onLogout, onRequestAuth, initialTab }: Props) {
+export default function App() {
   return (
     <TherapistProvider>
-      <AppInner role={role} onLogout={onLogout} onRequestAuth={onRequestAuth} initialTab={initialTab} />
+      <AppInner />
     </TherapistProvider>
   )
 }
