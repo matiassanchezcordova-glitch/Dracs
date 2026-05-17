@@ -267,8 +267,7 @@ function AnimalCard({ icon, label, active, className = '' }: { icon: React.React
           <Check size={10} color="#ffffff" strokeWidth={3} />
         </div>
       )}
-      <div style={{ color: active ? '#0BAFBE' : '#94A3B8' }}>{icon}</div>
-      <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '10px', fontWeight: 600, color: active ? '#0BAFBE' : '#94A3B8', letterSpacing: '0.02em' }}>{label}</span>
+      <div style={{ color: active ? '#0BAFBE' : '#94A3B8' }} aria-label={label}>{icon}</div>
     </div>
   )
 }
@@ -1009,7 +1008,7 @@ export default function RoleSelector({ onSelect }: Props) {
         @media (max-width: 900px) {
           .solucion-step-num { font-size: 48px; }
           .section-header {
-            padding: 60px 20px 40px;
+            padding: 60px 20px 90px;
           }
           .section-title {
             font-size: clamp(28px, 7vw, 40px) !important;
@@ -1021,11 +1020,13 @@ export default function RoleSelector({ onSelect }: Props) {
           }
           .sticky-left {
             position: sticky;
-            top: 70px;
+            top: 90px;
             height: 45vh;
             z-index: 20;
             width: 100%;
           }
+          /* LA SOLUCIÓN: frames más compactos para dejar aire al texto debajo */
+          .solution .sticky-left { height: 38vh; }
           /* Opaque backgrounds — explicit colors (not inherit) */
           .problem .sticky-left { background: #ffffff; }
           .solution .sticky-left { background: #F0FAFA; }
