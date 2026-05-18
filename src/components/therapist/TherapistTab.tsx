@@ -72,7 +72,7 @@ function adaptPatient(sp: SupaPatient, sessions: DbSession[]): MockPatient {
     id: sp.id,
     name: sp.child_name,
     age: sp.child_age,
-    condition: sp.diagnosis,
+    condition: sp.diagnosis ?? '',
     area: 'Logopedia',
     avatar: '🧒',
     status: thisWeek.length >= 5 ? 'completed' : thisWeek.length > 0 ? 'pending' : 'overdue',

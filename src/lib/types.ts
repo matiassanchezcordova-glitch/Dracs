@@ -1,37 +1,19 @@
-export interface Profile {
-  id: string
-  role: 'patient' | 'family' | 'therapist'
-  full_name: string
-  email: string | null
-  avatar_url: string | null
-  created_at: string
-}
+import type { Database } from './database.types'
 
-export interface Patient {
-  id: string
-  profile_id: string
-  child_name: string
-  child_age: number
-  diagnosis: string
-  current_level: number
-  streak_days: number
-  therapist_id: string | null
-  center_name: string | null
-  notes: string | null
-  created_at: string
-}
+type Row<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Row']
 
-export interface TherapistRecord {
-  id: string
-  profile_id: string
-  specialty: string
-  license_number: string
-  center_name: string
-  city: string
-  max_patients: number
-  created_at: string
-}
+export type Profile = Row<'profiles'>
+export type Patient = Row<'patients'>
+export type TherapistRecord = Row<'therapists'>
+export type TherapistComment = Row<'therapist_comments'>
+export type LinkRequest = Row<'link_requests'>
+export type Center = Row<'centers'>
 
+// NOTE: DbSession does not match the live `sessions` table schema.
+// The app code (FamiliaTab, PatientDetail, TherapistTab, ExerciseTab) was
+// written against this shape. Refactor to Row<'sessions'> is scheduled for
+// Sesión 3 — until then this type is kept manual to keep the build green.
 export interface DbSession {
   id: string
   patient_id: string
@@ -45,41 +27,15 @@ export interface DbSession {
   completed_at: string
 }
 
-export interface TherapistComment {
-  id: string
-  therapist_id: string
-  patient_id: string
-  week_code: string
-  comment_text: string
-  created_at: string
-}
-
-export interface LinkRequest {
-  id: string
-  patient_id: string
-  therapist_id: string
-  status: 'pending' | 'accepted' | 'rejected'
-  created_at: string
-}
-
-export interface Center {
-  id: string
-  name: string
-  city: string
-  type: 'hospital' | 'cdiap' | 'private' | 'public' | 'other'
-  address: string | null
-  created_at: string
-}
-
 // Joined types for queries
-export interface TherapistWithProfile extends TherapistRecord {
+export type TherapistWithProfile = TherapistRecord & {
   profiles: { full_name: string }
 }
 
-export interface LinkRequestWithPatient extends LinkRequest {
+export type LinkRequestWithPatient = LinkRequest & {
   patients: {
     child_name: string
     child_age: number
-    diagnosis: string
+    diagnosis: string | null
   }
 }

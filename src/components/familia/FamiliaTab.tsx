@@ -241,7 +241,7 @@ function FamiliaContent({
 
   const displayedComment = isSupabaseMode && sbLoaded
     ? sbComment
-      ? { texto: sbComment.comment_text, fecha: new Date(sbComment.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), terapeuta: 'Tu terapeuta' }
+      ? { texto: sbComment.comment_text, fecha: new Date(sbComment.created_at ?? Date.now()).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), terapeuta: 'Tu terapeuta' }
       : null
     : localComment
 

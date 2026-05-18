@@ -3,7 +3,9 @@ import type { Profile } from './types'
 
 export function dbRoleToUiRole(dbRole: Profile['role']): Role {
   if (dbRole === 'patient') return 'child'
-  return dbRole
+  if (dbRole === 'family' || dbRole === 'therapist') return dbRole
+  console.warn(`[Dracs] Unexpected profile.role from DB: ${dbRole} — falling back to 'family'`)
+  return 'family'
 }
 
 export function roleToPath(role: Role): 'nino' | 'terapeuta' | 'familia' {
