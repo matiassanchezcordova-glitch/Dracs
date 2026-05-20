@@ -640,7 +640,7 @@ function PatientStep3({
   userId: string; childName: string; childAge: number; diagnosis: string
   onSuccess: () => void; onBack: () => void
 }) {
-  const { refreshPatient } = useAuth()
+  const { refreshPatient, refreshChild } = useAuth()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<TherapistWithProfile[]>([])
   const [selected, setSelected] = useState<TherapistWithProfile | null>(null)
@@ -694,9 +694,23 @@ function PatientStep3({
         })
         if (timedOut) return
         if (!linkErr) setLinkSent(true)
+
+        // Mirror to children (Sesión 3 - Bloque 1, double-write, best-effort).
+        // Deferred when no therapist is selected: row is created in
+        // TherapistTab.handleAccept after the therapist accepts the link.
+        const { error: childErr } = await supabase.from('children').insert({
+          id: pat.id,
+          family_id: userId,
+          therapist_id: therapistToLink.profile_id,
+          full_name: childName,
+          birth_date: new Date(new Date().getFullYear() - childAge, 0, 1)
+            .toISOString().split('T')[0],
+          family_notes: diagnosis,
+        })
+        if (childErr) console.warn('[Dracs] children mirror insert failed:', childErr.message)
       }
 
-      await refreshPatient()
+      await Promise.all([refreshPatient(), refreshChild()])
       if (timedOut) return
 
       clearTimeout(timeout)

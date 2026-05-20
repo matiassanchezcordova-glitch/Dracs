@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { type User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import type { Profile, Patient, TherapistRecord } from '../lib/types'
+import type { Profile, Patient, TherapistRecord, DbChild } from '../lib/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -15,6 +15,7 @@ interface AuthContextValue {
   user: User | null
   profile: Profile | null
   patient: Patient | null
+  child: DbChild | null
   therapistData: TherapistRecord | null
   loading: boolean
   login: (email: string, password: string) => Promise<{ error: string | null }>
@@ -26,6 +27,7 @@ interface AuthContextValue {
   ) => Promise<{ error: string | null; userId?: string; needsConfirmation?: boolean }>
   logout: () => Promise<void>
   refreshPatient: () => Promise<void>
+  refreshChild: () => Promise<void>
   refreshTherapist: () => Promise<void>
 }
 
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [patient, setPatient] = useState<Patient | null>(null)
+  const [child, setChild] = useState<DbChild | null>(null)
   const [therapistData, setTherapistData] = useState<TherapistRecord | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -66,6 +69,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq('profile_id', userId)
           .single()
         setPatient(pat as Patient | null)
+
+        const { data: ch } = await supabase
+          .from('children')
+          .select('*')
+          .eq('family_id', userId)
+          .maybeSingle()
+        setChild(ch as DbChild | null)
       }
 
       if (prof.role === 'therapist') {
@@ -86,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setProfile(null)
     setPatient(null)
+    setChild(null)
     setTherapistData(null)
     setLoading(false)
   }
@@ -164,6 +175,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPatient(data as Patient | null)
   }
 
+  async function refreshChild() {
+    if (!user) return
+    const { data } = await supabase
+      .from('children')
+      .select('*')
+      .eq('family_id', user.id)
+      .maybeSingle()
+    setChild(data as DbChild | null)
+  }
+
   async function refreshTherapist() {
     if (!user) return
     const { data } = await supabase
@@ -177,8 +198,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user, profile, patient, therapistData, loading,
-        login, signup, logout, refreshPatient, refreshTherapist,
+        user, profile, patient, child, therapistData, loading,
+        login, signup, logout, refreshPatient, refreshChild, refreshTherapist,
       }}
     >
       {children}

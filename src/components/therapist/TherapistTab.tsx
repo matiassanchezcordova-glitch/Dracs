@@ -224,6 +224,9 @@ export default function TherapistTab() {
   }
 
   async function handleAccept(req: LinkRequestWithPatient) {
+    // TODO Sesión 3 - Bloque 2: also create a row in `children` if one does
+    // not exist yet (deferred path for families that signed up without
+    // selecting a therapist — see AuthPage.PatientStep3.handleFinish).
     await Promise.all([
       supabase.from('link_requests').update({ status: 'accepted' }).eq('id', req.id),
       supabase.from('patients').update({ therapist_id: user!.id }).eq('id', req.patient_id),

@@ -5,6 +5,7 @@ type Row<T extends keyof Database['public']['Tables']> =
 
 export type Profile = Row<'profiles'>
 export type Patient = Row<'patients'>
+export type DbChild = Row<'children'>
 export type TherapistRecord = Row<'therapists'>
 export type TherapistComment = Row<'therapist_comments'>
 export type LinkRequest = Row<'link_requests'>
