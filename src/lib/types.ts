@@ -11,11 +11,12 @@ export type TherapistComment = Row<'therapist_comments'>
 export type LinkRequest = Row<'link_requests'>
 export type Center = Row<'centers'>
 
-// NOTE: DbSession does not match the live `sessions` table schema.
-// The app code (FamiliaTab, PatientDetail, TherapistTab, ExerciseTab) was
-// written against this shape. Refactor to Row<'sessions'> is scheduled for
-// Sesión 3 — until then this type is kept manual to keep the build green.
-export interface DbSession {
+export type DbSession = Row<'sessions'>
+
+// Legacy session shape — only used by FamiliaTab (and ExerciseTab inserts)
+// during the Sesión 3 transition. Removed once those files are refactored
+// in Bloque 3.
+export interface LegacyDbSession {
   id: string
   patient_id: string
   session_number: number
@@ -38,5 +39,6 @@ export type LinkRequestWithPatient = LinkRequest & {
     child_name: string
     child_age: number
     diagnosis: string | null
+    profile_id: string | null
   }
 }

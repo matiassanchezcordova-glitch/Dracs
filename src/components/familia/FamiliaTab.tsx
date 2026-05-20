@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
 import { getWeekCode } from '../../lib/utils'
-import type { DbSession, TherapistComment, Patient } from '../../lib/types'
+import type { LegacyDbSession as DbSession, TherapistComment, Patient } from '../../lib/types'
 import WeeklyReport from './WeeklyReport'
 
 interface Props {

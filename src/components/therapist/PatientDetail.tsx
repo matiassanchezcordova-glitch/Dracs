@@ -14,6 +14,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { getWeekCode } from '../../lib/utils'
 import type { DbSession } from '../../lib/types'
+import { getDurationMinutes } from '../../lib/derived'
 
 interface Props {
   patient: Patient
@@ -221,24 +222,35 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
   const [toast, setToast] = useState<string | null>(null)
   const [focusedTA, setFocusedTA] = useState(false)
 
-  // Fetch real sessions when in Supabase mode
+  // Fetch real sessions + clinical notes when in Supabase mode
   const [sbSessions, setSbSessions] = useState<DbSession[]>([])
   const [sbLoaded, setSbLoaded] = useState(false)
+  const [clinicalNotes, setClinicalNotes] = useState('')
+  const [savingClinical, setSavingClinical] = useState(false)
+  const [focusedClinical, setFocusedClinical] = useState(false)
 
   useEffect(() => {
     if (!isReal) { setSbLoaded(false); return }
     setSbLoaded(false)
     setSbSessions([])
-    supabase
-      .from('sessions')
-      .select('*')
-      .eq('patient_id', supabasePatientId!)
-      .order('completed_at', { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        setSbSessions((data ?? []) as DbSession[])
-        setSbLoaded(true)
-      })
+    setClinicalNotes('')
+    Promise.all([
+      supabase
+        .from('sessions')
+        .select('*')
+        .eq('child_id', supabasePatientId!)
+        .order('started_at', { ascending: false })
+        .limit(50),
+      supabase
+        .from('children')
+        .select('clinical_notes')
+        .eq('id', supabasePatientId!)
+        .maybeSingle(),
+    ]).then(([sessRes, childRes]) => {
+      setSbSessions((sessRes.data ?? []) as DbSession[])
+      setClinicalNotes(((childRes.data?.clinical_notes as string | null) ?? '') as string)
+      setSbLoaded(true)
+    })
   }, [isReal, supabasePatientId])
 
   // Compute week data from real sessions or mock data
@@ -249,10 +261,10 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
       const weekStart = new Date(now)
       weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
       weekStart.setHours(0, 0, 0, 0)
-      const thisWeek = sbSessions.filter(s => new Date(s.completed_at) >= weekStart)
+      const thisWeek = sbSessions.filter(s => new Date(s.ended_at ?? s.started_at) >= weekStart)
       const total = thisWeek.reduce((a, s) => a + s.total_exercises, 0)
-      const correct = thisWeek.reduce((a, s) => a + s.correct_answers, 0)
-      const minutes = thisWeek.reduce((a, s) => a + (s.duration_minutes ?? 15), 0)
+      const correct = thisWeek.reduce((a, s) => a + s.correct_count, 0)
+      const minutes = thisWeek.reduce((a, s) => a + (getDurationMinutes(s) ?? 15), 0)
       return {
         sessions: thisWeek.length,
         minutes,
@@ -274,6 +286,23 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
   const autoMsg = hasData ? buildAutoMessage(firstName, weekData.accuracy, weekData.sessions) : null
 
   const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
+
+  async function handleSaveClinicalNotes() {
+    if (!isReal) return
+    setSavingClinical(true)
+    const trimmed = clinicalNotes.trim()
+    const { error } = await supabase
+      .from('children')
+      .update({ clinical_notes: trimmed || null })
+      .eq('id', supabasePatientId!)
+    setSavingClinical(false)
+    if (error) {
+      setToast('Error al guardar las notas. Inténtalo de nuevo.')
+    } else {
+      setToast('Notas clínicas guardadas.')
+    }
+    setTimeout(() => setToast(null), 3000)
+  }
 
   async function handlePublish() {
     if (!comment.trim()) return
@@ -373,6 +402,17 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
                 fontWeight: 600,
                 fontFamily: 'Nunito, sans-serif',
               }}>{p.area}</span>
+              {p.level && (
+                <span style={{
+                  padding: '3px 10px',
+                  borderRadius: '999px',
+                  backgroundColor: '#F0FAFA',
+                  color: '#0BAFBE',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  fontFamily: 'Nunito, sans-serif',
+                }}>Nivel {p.level.min}-{p.level.max}</span>
+              )}
             </div>
           </div>
         </div>
@@ -500,6 +540,68 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
           </tbody>
         </table>
       </div>
+
+      {/* ── Clinical notes (private) ────────────────────────────── */}
+      {isReal && (
+        <div style={{ ...CARD, borderLeft: '4px solid #D97706' }}>
+          <p style={SECTION_LABEL}>Notas clínicas (privadas)</p>
+          <p style={{
+            margin: '0 0 12px',
+            fontSize: '13px',
+            color: '#94A3B8',
+            fontFamily: 'Nunito, sans-serif',
+            lineHeight: 1.5,
+          }}>
+            🔒 Solo visible para vos. La familia NO ve estas notas.
+          </p>
+          <textarea
+            value={clinicalNotes}
+            onChange={e => setClinicalNotes(e.target.value)}
+            onFocus={() => setFocusedClinical(true)}
+            onBlur={() => setFocusedClinical(false)}
+            placeholder="Historial clínico, evolución, observaciones para tu propio registro..."
+            rows={4}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '12px 14px',
+              borderRadius: '10px',
+              border: `1.5px solid ${focusedClinical ? '#D97706' : '#E2E8F0'}`,
+              background: '#ffffff',
+              color: '#0F172A',
+              fontSize: '14px',
+              fontFamily: 'Nunito, sans-serif',
+              resize: 'vertical',
+              maxHeight: '200px',
+              outline: 'none',
+              transition: 'border-color 0.18s ease',
+              lineHeight: 1.6,
+              marginBottom: '12px',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={handleSaveClinicalNotes}
+              disabled={savingClinical}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: '#D97706',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: 600,
+                fontFamily: 'Nunito, sans-serif',
+                cursor: savingClinical ? 'default' : 'pointer',
+                opacity: savingClinical ? 0.5 : 1,
+                transition: 'opacity 0.18s ease',
+              }}
+            >
+              {savingClinical ? 'Guardando...' : 'Guardar notas'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Informe + comentario ────────────────────────────────── */}
       <div style={CARD}>

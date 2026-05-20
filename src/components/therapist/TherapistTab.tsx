@@ -4,7 +4,8 @@ import { getPatients, type Patient as MockPatient } from '../../data/patients'
 import { useAuth } from '../../context/AuthContext'
 import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
-import type { Patient as SupaPatient, DbSession, LinkRequestWithPatient } from '../../lib/types'
+import type { DbSession, DbChild, LinkRequestWithPatient } from '../../lib/types'
+import { getAge, getAccuracyPercent, getDurationMinutes, getCurrentLevel } from '../../lib/derived'
 import PatientList from './PatientList'
 import PatientDetail from './PatientDetail'
 
@@ -17,15 +18,20 @@ function formatDate(iso: string): string {
   return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
 }
 
-function adaptPatient(sp: SupaPatient, sessions: DbSession[]): MockPatient {
+function adaptPatient(
+  sp: DbChild,
+  sessions: DbSession[],
+  level: { min: number; max: number } | null,
+): MockPatient {
   const now = new Date()
   const dow = now.getDay()
   const weekStart = new Date(now)
   weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
   weekStart.setHours(0, 0, 0, 0)
 
-  const thisWeek = sessions.filter(s => new Date(s.completed_at) >= weekStart)
-  const sortedDesc = [...sessions].sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+  const sessionTime = (s: DbSession) => new Date(s.ended_at ?? s.started_at).getTime()
+  const thisWeek = sessions.filter(s => sessionTime(s) >= weekStart.getTime())
+  const sortedDesc = [...sessions].sort((a, b) => sessionTime(b) - sessionTime(a))
 
   // Weekly progress: group last 4 weeks
   const weeklyProgress = (() => {
@@ -36,11 +42,11 @@ function adaptPatient(sp: SupaPatient, sessions: DbSession[]): MockPatient {
       const wEnd = new Date(wStart)
       wEnd.setDate(wStart.getDate() + 7)
       const wSessions = sessions.filter(s => {
-        const d = new Date(s.completed_at)
-        return d >= wStart && d < wEnd
+        const t = sessionTime(s)
+        return t >= wStart.getTime() && t < wEnd.getTime()
       })
       const total = wSessions.reduce((a, s) => a + s.total_exercises, 0)
-      const correct = wSessions.reduce((a, s) => a + s.correct_answers, 0)
+      const correct = wSessions.reduce((a, s) => a + s.correct_count, 0)
       const score = total > 0 ? Math.round((correct / total) * 100) : 0
       result.push({ week: `Sem ${4 - w}`, score })
     }
@@ -48,31 +54,31 @@ function adaptPatient(sp: SupaPatient, sessions: DbSession[]): MockPatient {
   })()
 
   const recentSessions = sortedDesc.slice(0, 5).map(s => ({
-    date: formatDate(s.completed_at),
-    duration: s.duration_minutes ?? 15,
+    date: formatDate(s.ended_at ?? s.started_at),
+    duration: getDurationMinutes(s) ?? 15,
     exercises: s.total_exercises,
-    accuracy: Math.round(s.accuracy_percent ?? 0),
+    accuracy: getAccuracyPercent(s),
   }))
 
   const thisWeekAcc = thisWeek.length > 0
-    ? Math.round(thisWeek.reduce((a, s) => a + (s.accuracy_percent ?? 0), 0) / thisWeek.length)
+    ? Math.round(thisWeek.reduce((a, s) => a + getAccuracyPercent(s), 0) / thisWeek.length)
     : 0
 
   const prevWeekStart = new Date(weekStart)
   prevWeekStart.setDate(weekStart.getDate() - 7)
   const prevWeek = sessions.filter(s => {
-    const d = new Date(s.completed_at)
-    return d >= prevWeekStart && d < weekStart
+    const t = sessionTime(s)
+    return t >= prevWeekStart.getTime() && t < weekStart.getTime()
   })
   const prevAcc = prevWeek.length > 0
-    ? Math.round(prevWeek.reduce((a, s) => a + (s.accuracy_percent ?? 0), 0) / prevWeek.length)
+    ? Math.round(prevWeek.reduce((a, s) => a + getAccuracyPercent(s), 0) / prevWeek.length)
     : 0
 
   return {
     id: sp.id,
-    name: sp.child_name,
-    age: sp.child_age,
-    condition: sp.diagnosis ?? '',
+    name: sp.full_name,
+    age: getAge(sp.birth_date),
+    condition: sp.family_notes ?? '',
     area: 'Logopedia',
     avatar: '🧒',
     status: thisWeek.length >= 5 ? 'completed' : thisWeek.length > 0 ? 'pending' : 'overdue',
@@ -86,7 +92,8 @@ function adaptPatient(sp: SupaPatient, sessions: DbSession[]): MockPatient {
     },
     weeklyProgress,
     recentSessions,
-    notes: sp.notes ?? undefined,
+    notes: sp.clinical_notes ?? undefined,
+    level,
   }
 }
 
@@ -186,33 +193,36 @@ export default function TherapistTab() {
   async function fetchRealData() {
     setLoadingReal(true)
 
-    // Fetch patients linked to this therapist
+    // Fetch children linked to this therapist
     const { data: pats } = await supabase
-      .from('patients')
+      .from('children')
       .select('*')
       .eq('therapist_id', user!.id)
 
-    // Fetch pending link requests
+    // Fetch pending link requests (still joined to patients per decisión 1c)
     const { data: reqs } = await supabase
       .from('link_requests')
-      .select('*, patients(child_name, child_age, diagnosis)')
+      .select('*, patients(child_name, child_age, diagnosis, profile_id)')
       .eq('therapist_id', user!.id)
       .eq('status', 'pending')
 
     setLinkRequests((reqs ?? []) as LinkRequestWithPatient[])
 
-    // For each patient, fetch their sessions
-    const patList = (pats ?? []) as import('../../lib/types').Patient[]
+    // For each child, fetch sessions + assigned difficulty range in parallel
+    const patList = (pats ?? []) as DbChild[]
     const adapted: MockPatient[] = []
 
     for (const p of patList) {
-      const { data: sessions } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('patient_id', p.id)
-        .order('completed_at', { ascending: false })
-        .limit(50)
-      adapted.push(adaptPatient(p, (sessions ?? []) as DbSession[]))
+      const [sessionsRes, level] = await Promise.all([
+        supabase
+          .from('sessions')
+          .select('*')
+          .eq('child_id', p.id)
+          .order('started_at', { ascending: false })
+          .limit(50),
+        getCurrentLevel(p.id),
+      ])
+      adapted.push(adaptPatient(p, (sessionsRes.data ?? []) as DbSession[], level))
     }
 
     setRealPatients(adapted)
@@ -224,9 +234,27 @@ export default function TherapistTab() {
   }
 
   async function handleAccept(req: LinkRequestWithPatient) {
-    // TODO Sesión 3 - Bloque 2: also create a row in `children` if one does
-    // not exist yet (deferred path for families that signed up without
-    // selecting a therapist — see AuthPage.PatientStep3.handleFinish).
+    // Deferred children mirror — for families that signed up without
+    // selecting a therapist (see AuthPage.PatientStep3.handleFinish).
+    const { data: existingChild } = await supabase
+      .from('children')
+      .select('id')
+      .eq('id', req.patient_id)
+      .maybeSingle()
+
+    if (!existingChild && req.patients.profile_id) {
+      const { error: childErr } = await supabase.from('children').insert({
+        id: req.patient_id,
+        family_id: req.patients.profile_id,
+        therapist_id: user!.id,
+        full_name: req.patients.child_name,
+        birth_date: new Date(new Date().getFullYear() - req.patients.child_age, 0, 1)
+          .toISOString().split('T')[0],
+        family_notes: req.patients.diagnosis,
+      })
+      if (childErr) console.warn('[Dracs] children deferred insert failed:', childErr.message)
+    }
+
     await Promise.all([
       supabase.from('link_requests').update({ status: 'accepted' }).eq('id', req.id),
       supabase.from('patients').update({ therapist_id: user!.id }).eq('id', req.patient_id),

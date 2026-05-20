@@ -31,6 +31,7 @@ export interface Patient {
   weeklyProgress: WeekData[]
   recentSessions: RecentSession[]
   notes?: string
+  level?: { min: number; max: number } | null
 }
 
 /** Static patient records -------------------------------------------------- */
