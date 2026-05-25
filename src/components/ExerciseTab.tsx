@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { BarChart2, Stethoscope } from 'lucide-react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
-import { buildSession, type RuntimeExercise, type Level } from '../data/exercises'
+import { buildSession, type RuntimeExercise } from '../data/exercises'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import SetupScreen from './exercise/SetupScreen'
@@ -106,12 +106,13 @@ function ProgressAuthPrompt({
 
 export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, onRequestAuth }: Props) {
   const { profile, createProfile, completeSession } = useChildProfile()
-  const { user, patient, profile: authProfile } = useAuth()
+  const { user, child, profile: authProfile } = useAuth()
 
   const [screen, setScreen] = useState<Screen>(profile ? 'welcome' : 'setup')
   const [session, setSession] = useState<RuntimeExercise[]>([])
   const [endState, setEndState] = useState<EndState | null>(null)
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
 
   if (authProfile?.role === 'therapist') {
     return (
@@ -152,6 +153,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
   function handleStartSession() {
     if (!profile) return
     setSession(buildSession(profile.level))
+    setSessionStartTime(new Date())
     setScreen('exercise')
   }
 
@@ -160,45 +162,33 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
 
     const pct = total > 0 ? correct / total : 0
     let levelChanged: 'up' | 'down' | null = null
-    let newLevel: Level = profile.level
     if (total >= 7) {
-      if (pct >= 0.8 && profile.level < 4) { levelChanged = 'up'; newLevel = (profile.level + 1) as Level }
-      else if (pct < 0.5 && profile.level > 1) { levelChanged = 'down'; newLevel = (profile.level - 1) as Level }
+      if (pct >= 0.8 && profile.level < 4) levelChanged = 'up'
+      else if (pct < 0.5 && profile.level > 1) levelChanged = 'down'
     }
-
-    const today = new Date().toISOString().split('T')[0]
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
-    let newStreak = profile.streak
-    if (profile.lastSessionDate !== today) {
-      newStreak = profile.lastSessionDate === yesterdayStr ? profile.streak + 1 : 1
-    }
-
-    const sessionNumber = loadHistory().length + 1
 
     completeSession(correct, total)
     setEndState({ correct, total, levelChanged })
     setScreen('end')
 
-    if (user && patient) {
-      const [sessRes, patRes] = await Promise.all([
-        supabase.from('sessions').insert({
-          patient_id: patient.id,
-          session_number: sessionNumber,
-          total_exercises: total,
-          correct_answers: correct,
-          accuracy_percent: total > 0 ? Math.round((correct / total) * 100) : 0,
-          level_at_session: profile.level,
-        }),
-        supabase
-          .from('patients')
-          .update({ streak_days: newStreak, current_level: newLevel })
-          .eq('id', patient.id),
-      ])
-      if (sessRes.error) console.warn('Supabase session save:', sessRes.error.message)
-      if (patRes.error) console.warn('Supabase patient update:', patRes.error.message)
+    if (user && child) {
+      const startedAt = sessionStartTime ?? new Date()
+      const endedAt = new Date()
+      const durationSec = Math.max(
+        0,
+        Math.round((endedAt.getTime() - startedAt.getTime()) / 1000),
+      )
+      const { error } = await supabase.from('sessions').insert({
+        child_id: child.id,
+        total_exercises: total,
+        correct_count: correct,
+        started_at: startedAt.toISOString(),
+        ended_at: endedAt.toISOString(),
+        duration_seconds: durationSec,
+      })
+      if (error) console.warn('[Dracs] sessions insert failed:', error.message)
     }
+    setSessionStartTime(null)
   }
 
   function handleRepeat() {

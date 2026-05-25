@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Star, Flame, TrendingUp, ArrowRight, ArrowLeft, Check, FileText, ClipboardList } from 'lucide-react'
+import { Star, Flame, TrendingUp, ArrowRight, ArrowLeft, Check, FileText, ClipboardList, BookOpen } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
 import { getWeekCode } from '../../lib/utils'
-import type { LegacyDbSession as DbSession, TherapistComment, Patient } from '../../lib/types'
+import type { DbSession, TherapistComment, DbChild } from '../../lib/types'
+import { getAccuracyPercent, getDurationMinutes, getStreakDays, getCurrentLevel } from '../../lib/derived'
 import WeeklyReport from './WeeklyReport'
 
 interface Props {
@@ -84,7 +85,7 @@ function getLocalWeekStats(): WeekStats {
 
 // ── Supabase stats from sessions ──────────────────────────────────────────
 
-function computeStatsFromSessions(sessions: DbSession[], streakDays: number): WeekStats {
+function computeStatsFromSessions(sessions: DbSession[]): WeekStats {
   const now = new Date()
   const dow = now.getDay()
   const weekStart = new Date(now)
@@ -93,20 +94,21 @@ function computeStatsFromSessions(sessions: DbSession[], streakDays: number): We
   const lastWeekStart = new Date(weekStart)
   lastWeekStart.setDate(weekStart.getDate() - 7)
 
-  const thisWeek = sessions.filter(s => new Date(s.completed_at) >= weekStart)
+  const sessionTime = (s: DbSession) => new Date(s.ended_at ?? s.started_at).getTime()
+  const thisWeek = sessions.filter(s => sessionTime(s) >= weekStart.getTime())
   const lastWeek = sessions.filter(s => {
-    const d = new Date(s.completed_at)
-    return d >= lastWeekStart && d < weekStart
+    const t = sessionTime(s)
+    return t >= lastWeekStart.getTime() && t < weekStart.getTime()
   })
 
   const calcAcc = (arr: DbSession[]) => {
     const total = arr.reduce((a, s) => a + s.total_exercises, 0)
-    const correct = arr.reduce((a, s) => a + s.correct_answers, 0)
+    const correct = arr.reduce((a, s) => a + s.correct_count, 0)
     return total > 0 ? Math.round((correct / total) * 100) : 0
   }
 
   return {
-    streak: streakDays,
+    streak: getStreakDays(sessions),
     sessionsThisWeek: thisWeek.length,
     lastWeekSessions: lastWeek.length,
     accuracyThisWeek: calcAcc(thisWeek),
@@ -177,9 +179,10 @@ const CARD_TITLE: React.CSSProperties = {
 // ── FamiliaContent — shared between family and therapist views ────────────
 
 interface FamiliaContentProps {
-  activePatient: Patient | null
+  activePatient: DbChild | null
   sbSessions: DbSession[]
   sbComment: TherapistComment | null
+  sbLevel: { min: number; max: number } | null
   sbLoaded: boolean
   isSupabaseMode: boolean
   localChildName: string
@@ -189,14 +192,14 @@ interface FamiliaContentProps {
 }
 
 function FamiliaContent({
-  activePatient, sbSessions, sbComment, sbLoaded, isSupabaseMode,
+  activePatient, sbSessions, sbComment, sbLevel, sbLoaded, isSupabaseMode,
   localChildName, localStats, localComment, onNavigateToEjercicio,
 }: FamiliaContentProps) {
   const [showReport, setShowReport] = useState(false)
 
-  const childName = isSupabaseMode ? (activePatient?.child_name ?? 'Paciente') : localChildName
+  const childName = isSupabaseMode ? (activePatient?.full_name ?? 'Paciente') : localChildName
   const stats = isSupabaseMode && sbLoaded
-    ? computeStatsFromSessions(sbSessions, activePatient?.streak_days ?? 0)
+    ? computeStatsFromSessions(sbSessions)
     : localStats
 
   const noSessionsYet = isSupabaseMode && sbLoaded && stats.sessionsThisWeek === 0
@@ -220,7 +223,7 @@ function FamiliaContent({
       const dayEnd = new Date(day)
       dayEnd.setHours(23, 59, 59, 999)
       return sbSessions.some(s => {
-        const d = new Date(s.completed_at)
+        const d = new Date(s.ended_at ?? s.started_at)
         return d >= day && d <= dayEnd
       })
     })
@@ -228,10 +231,10 @@ function FamiliaContent({
 
   const recentSessions = isSupabaseMode && sbLoaded
     ? sbSessions.slice(0, 3).map(s => ({
-        date: formatSessionDate(s.completed_at),
-        duration: s.duration_minutes ?? 15,
+        date: formatSessionDate(s.ended_at ?? s.started_at),
+        duration: getDurationMinutes(s) ?? 15,
         exercises: s.total_exercises,
-        accuracy: s.accuracy_percent ?? 0,
+        accuracy: getAccuracyPercent(s),
       }))
     : [
         { date: 'Lun 13 abr', duration: 28, exercises: 7, accuracy: 85 },
@@ -255,6 +258,13 @@ function FamiliaContent({
 
   interface ChipDef { icon: React.ReactNode; label: string; bg: string; color: string }
   const chips: ChipDef[] = []
+  if (sbLevel) {
+    chips.push({
+      icon: <BookOpen size={14} />,
+      label: `Nivel ${sbLevel.min}-${sbLevel.max}`,
+      bg: '#E0F2FE', color: '#0BAFBE',
+    })
+  }
   if (!noSessionsYet) {
     if (stats.sessionsThisWeek >= 5)
       chips.push({ icon: <Star size={14} />, label: 'Semana perfecta', bg: '#FFD93D', color: '#1A1A2E' })
@@ -264,15 +274,20 @@ function FamiliaContent({
       chips.push({ icon: <Flame size={14} />, label: `${stats.streak} días en racha`, bg: '#FFF3CD', color: '#D97706' })
   }
 
-  const levelPct = Math.min((activePatient?.current_level ?? 1) * 10, 100)
-  const progressPct = noSessionsYet ? levelPct : accuracyVal
+  const progressPct = noSessionsYet ? 0 : accuracyVal
   const progressLabel = noSessionsYet
-    ? `Nivel ${activePatient?.current_level ?? 1} de vocabulario`
+    ? 'Esperando primera sesión'
     : `${stats.accuracyThisWeek}% de aciertos${improvingVsLast ? ` · +${stats.accuracyThisWeek - stats.lastWeekAccuracy}% vs semana anterior` : ''}`
 
   return (
     <>
-      {showReport && <WeeklyReport onBack={() => setShowReport(false)} childName={childName} />}
+      {showReport && (
+        <WeeklyReport
+          onBack={() => setShowReport(false)}
+          childName={childName}
+          sbSessions={isSupabaseMode && sbLoaded ? sbSessions : undefined}
+        />
+      )}
 
       {!showReport && (
         <div style={{ width: '100%', maxWidth: '760px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -468,7 +483,8 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
   const [sbSessions, setSbSessions] = useState<DbSession[]>([])
   const [sbComment, setSbComment] = useState<TherapistComment | null>(null)
   const [sbLoaded, setSbLoaded] = useState(false)
-  const [selectedPatientData, setSelectedPatientData] = useState<Patient | null>(null)
+  const [sbChild, setSbChild] = useState<DbChild | null>(null)
+  const [sbLevel, setSbLevel] = useState<{ min: number; max: number } | null>(null)
 
   // localStorage fallback (demo mode only)
   const localChildName = useMemo(getChildName, [])
@@ -480,18 +496,22 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
     setSbLoaded(false)
     setSbSessions([])
     setSbComment(null)
+    setSbChild(null)
+    setSbLevel(null)
 
     async function fetchData() {
-      const fetchPatient = isTherapist
-        ? supabase.from('patients').select('*').eq('id', patientId!).single()
-        : Promise.resolve({ data: patient })
+      // Child data: from `children` for therapist, `children_family_view` for
+      // family (PD-4 — keeps clinical_notes off the family client).
+      const fetchChild = isTherapist
+        ? supabase.from('children').select('*').eq('id', patientId!).single()
+        : supabase.from('children_family_view').select('*').eq('family_id', user!.id).maybeSingle()
 
-      const [sessRes, commentRes, patRes] = await Promise.all([
+      const [sessRes, commentRes, chRes, level] = await Promise.all([
         supabase
           .from('sessions')
           .select('*')
-          .eq('patient_id', patientId!)
-          .order('completed_at', { ascending: false })
+          .eq('child_id', patientId!)
+          .order('started_at', { ascending: false })
           .limit(50),
         supabase
           .from('therapist_comments')
@@ -499,19 +519,21 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
           .eq('patient_id', patientId!)
           .eq('week_code', getWeekCode())
           .single(),
-        fetchPatient,
+        fetchChild,
+        getCurrentLevel(patientId!),
       ])
 
       setSbSessions((sessRes.data ?? []) as DbSession[])
       setSbComment(commentRes.data as TherapistComment | null)
-      if (isTherapist) setSelectedPatientData(patRes.data as Patient | null)
+      setSbChild(chRes.data as DbChild | null)
+      setSbLevel(level)
       setSbLoaded(true)
     }
 
     fetchData()
-  }, [isSupabaseMode, patientId, isTherapist])
+  }, [isSupabaseMode, patientId, isTherapist, user])
 
-  const activePatient = isTherapist ? selectedPatientData : patient
+  const activePatient = sbChild
 
   // ── Therapist: no patient selected ──────────────────────────────────────
   if (isTherapist && !selectedPatientId) {
@@ -597,7 +619,7 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
           </button>
           <div style={{ width: '1px', height: '14px', background: '#E2E8F0', flexShrink: 0 }} />
           <span style={{ fontSize: '13px', fontWeight: 600, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
-            Viendo como: <strong>{activePatient?.child_name ?? 'Paciente'}</strong>
+            Viendo como: <strong>{activePatient?.full_name ?? 'Paciente'}</strong>
           </span>
           <span style={{
             marginLeft: 'auto',
@@ -614,6 +636,7 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
         activePatient={activePatient}
         sbSessions={sbSessions}
         sbComment={sbComment}
+        sbLevel={sbLevel}
         sbLoaded={sbLoaded}
         isSupabaseMode={isSupabaseMode}
         localChildName={localChildName}

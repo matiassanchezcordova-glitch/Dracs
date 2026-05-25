@@ -3,10 +3,12 @@ import {
   ArrowLeft, Calendar, CheckCircle2, Clock, FileText,
   MessageCircle, Share2, Stethoscope, Target, TrendingDown, TrendingUp,
 } from 'lucide-react'
+import type { DbSession } from '../../lib/types'
 
 interface Props {
   onBack: () => void
   childName?: string
+  sbSessions?: DbSession[]
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -44,6 +46,15 @@ function getHistory(): Session[] {
     const raw = localStorage.getItem('dracs_session_history')
     return raw ? (JSON.parse(raw) as Session[]) : []
   } catch { return [] }
+}
+
+// Adapter: DbSession (real schema) → internal Session shape.
+function adaptDbSessions(sessions: DbSession[]): Session[] {
+  return sessions.map(s => ({
+    date: (s.ended_at ?? s.started_at).slice(0, 10),
+    total: s.total_exercises,
+    correct: s.correct_count,
+  }))
 }
 
 function getMondayOf(d: Date): Date {
@@ -188,10 +199,13 @@ function getTherapistComment(childName: string): TherapistComment | null {
   } catch { return null }
 }
 
-export default function WeeklyReport({ onBack, childName: childNameProp }: Props) {
+export default function WeeklyReport({ onBack, childName: childNameProp, sbSessions }: Props) {
   const localChildName = useMemo(getChildName, [])
   const childName = childNameProp ?? localChildName
-  const history   = useMemo(getHistory, [])
+  const history   = useMemo(
+    () => sbSessions ? adaptDbSessions(sbSessions) : getHistory(),
+    [sbSessions],
+  )
 
   const today      = useMemo(() => new Date(), [])
   const weekStart  = useMemo(() => getMondayOf(today), [today])

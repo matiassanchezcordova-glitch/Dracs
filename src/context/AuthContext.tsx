@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPatient(pat as Patient | null)
 
         const { data: ch } = await supabase
-          .from('children')
+          .from('children_family_view')
           .select('*')
           .eq('family_id', userId)
           .maybeSingle()
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refreshChild() {
     if (!user) return
     const { data } = await supabase
-      .from('children')
+      .from('children_family_view')
       .select('*')
       .eq('family_id', user.id)
       .maybeSingle()
