@@ -5,6 +5,7 @@ import { type ChildProfile } from '../../hooks/useChildProfile'
 interface Props {
   profile: ChildProfile
   onStart: () => void
+  errorMessage?: string | null
 }
 
 const LEVEL_LABELS: Record<number, string> = {
@@ -14,7 +15,7 @@ const LEVEL_LABELS: Record<number, string> = {
   4: 'Nivel 4 · Avanzado',
 }
 
-export default function WelcomeScreen({ profile, onStart }: Props) {
+export default function WelcomeScreen({ profile, onStart, errorMessage }: Props) {
   const [btnHovered, setBtnHovered] = useState(false)
 
   return (
@@ -28,7 +29,7 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
         flex: 1,
         padding: '40px 24px',
         gap: '20px',
-        background: 'linear-gradient(145deg, #FFF8E8 0%, #E8F8FF 40%, #E0F9F0 100%)',
+        background: '#E0F2FE',
         minHeight: '100%',
       }}
     >
@@ -54,7 +55,7 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
             color: '#1A1A2E',
             lineHeight: 1.1,
             margin: 0,
-            fontFamily: 'Playfair Display, serif',
+            fontFamily: 'Fredoka, system-ui, sans-serif',
             animation: 'wordSlideDown 0.4s ease',
           }}
         >
@@ -159,6 +160,28 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
         </div>
       </div>
 
+      {/* Error banner */}
+      {errorMessage && (
+        <div
+          role="alert"
+          style={{
+            background: '#FEF2F2',
+            border: '1.5px solid #FCA5A5',
+            color: '#B91C1C',
+            borderRadius: '14px',
+            padding: '12px 18px',
+            maxWidth: '360px',
+            textAlign: 'center',
+            fontFamily: 'Nunito, sans-serif',
+            fontSize: '14px',
+            fontWeight: 600,
+            lineHeight: 1.4,
+          }}
+        >
+          {errorMessage}
+        </div>
+      )}
+
       {/* CTA */}
       <button
         onClick={onStart}
@@ -176,9 +199,9 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
           background: '#FFD93D',
           color: '#1A1A2E',
           fontSize: '18px',
-          fontWeight: 800,
+          fontWeight: 600,
           cursor: 'pointer',
-          fontFamily: 'Nunito, sans-serif',
+          fontFamily: 'Fredoka, system-ui, sans-serif',
           boxShadow: btnHovered
             ? '0 8px 30px rgba(255,217,61,0.55)'
             : '0 4px 20px rgba(255,217,61,0.4)',
@@ -186,7 +209,7 @@ export default function WelcomeScreen({ profile, onStart }: Props) {
           transition: 'all 0.2s ease',
         }}
       >
-        Empezar sesión
+        Empezar partida
         <Play size={18} fill="#1A1A2E" />
       </button>
     </div>

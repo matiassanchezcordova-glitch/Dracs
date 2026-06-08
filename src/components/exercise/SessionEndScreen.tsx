@@ -131,10 +131,10 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             color: '#1A1A2E',
             lineHeight: 1.1,
             margin: 0,
-            fontFamily: 'Playfair Display, serif',
+            fontFamily: 'Fredoka, system-ui, sans-serif',
           }}
         >
-          ¡Sesión completada!
+          ¡Partida completada!
         </h1>
         <p
           style={{
@@ -151,7 +151,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
 
       {/* Stats */}
       <div style={{ display: 'flex', gap: '10px' }}>
-        <StatCard icon={<BookOpen size={22} />}     value={total}   label="ejercicios" color="#0891A0" />
+        <StatCard icon={<BookOpen size={22} />}     value={total}   label="juegos" color="#0891A0" />
         <StatCard icon={<CheckCircle2 size={22} />} value={correct} label="aciertos"   color="#22C55E" />
         <StatCard icon={<Target size={22} />}       value={`${pct}%`} label="precisión" color="#0BAFBE" />
       </div>
@@ -183,7 +183,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             }}
           >
             {levelChanged === 'up'
-              ? '¡Subiste de nivel en la próxima sesión!'
+              ? '¡Subiste de nivel en la próxima partida!'
               : 'Vamos a practicar un poco más en este nivel'}
           </span>
         </div>
@@ -203,9 +203,9 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             background: '#FFD93D',
             color: '#0F172A',
             fontSize: '18px',
-            fontWeight: 900,
+            fontWeight: 700,
             cursor: 'pointer',
-            fontFamily: 'Nunito, sans-serif',
+            fontFamily: 'Fredoka, system-ui, sans-serif',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -216,7 +216,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
           }}
         >
           <RotateCcw size={20} />
-          Otra sesión
+          Otra partida
         </button>
         <button
           onClick={onViewProgress}
@@ -230,9 +230,9 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             background: 'transparent',
             color: '#0BAFBE',
             fontSize: '18px',
-            fontWeight: 800,
+            fontWeight: 600,
             cursor: 'pointer',
-            fontFamily: 'Nunito, sans-serif',
+            fontFamily: 'Fredoka, system-ui, sans-serif',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -13,7 +13,7 @@ import {
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
 
 const ALL_NAV_TABS: { id: Tab; label: string; icon: ReactNode; roles: Role[]; path: string }[] = [
-  { id: 'ejercicio', label: 'Ejercicio',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist', 'demo'], path: '/app/nino' },
+  { id: 'ejercicio', label: 'Jugar',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist', 'demo'], path: '/app/nino' },
   { id: 'terapeuta', label: 'Terapeuta',  icon: <BarChart2 size={20} />, roles: ['therapist', 'demo'],                    path: '/app/terapeuta' },
   { id: 'familia',   label: 'Familia',    icon: <Users     size={20} />, roles: ['family', 'therapist', 'demo'],          path: '/app/familia' },
 ]
@@ -58,16 +58,16 @@ function AppInner() {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100svh',
-        background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)',
+        background: '#E0F2FE',
         animation: 'fadeIn 0.4s ease',
       }}
     >
       {/* ── Navbar ──────────────────────────────────────────────── */}
       <nav
         style={{
-          backgroundColor: 'rgba(255,248,232,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          // Navbar fundida con el fondo: mismo sky-100 que el resto de la app,
+          // diferenciada solo por contenido, no por color.
+          backgroundColor: '#E0F2FE',
           borderBottom: '1px solid rgba(11,175,190,0.12)',
           position: 'sticky',
           top: 0,
@@ -90,8 +90,8 @@ function AppInner() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <span
               style={{
-                fontFamily: 'Nunito, sans-serif',
-                fontWeight: 800,
+                fontFamily: 'Fredoka, system-ui, sans-serif',
+                fontWeight: 700,
                 fontSize: '24px',
                 color: '#0BAFBE',
                 lineHeight: 1,
@@ -168,8 +168,8 @@ function AppInner() {
                     backgroundColor: 'transparent',
                     color: active ? '#0BAFBE' : '#6B7280', border: 'none',
                     borderBottom: active ? '2px solid #0BAFBE' : '2px solid transparent',
-                    cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
-                    fontWeight: 700, fontSize: '11px',
+                    cursor: 'pointer', fontFamily: 'Fredoka, system-ui, sans-serif',
+                    fontWeight: 600, fontSize: '12px',
                     transition: 'all 0.2s ease', marginBottom: '-2px',
                   }}
                 >

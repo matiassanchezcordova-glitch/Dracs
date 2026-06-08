@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Volume2 } from 'lucide-react'
-import { type RuntimeExercise, type Level } from '../../data/exercises'
-import AnswerCard, { type CardState } from './AnswerCard'
+import { useState, useEffect } from 'react'
+import { Volume2, X } from 'lucide-react'
+import { type RuntimeExercise, type RuntimeFillBlank } from '../../data/exercises'
+import IdentifyImageQuestion from './IdentifyImageQuestion'
 import SequenceQuestion from './SequenceQuestion'
 import OddOneOutQuestion from './OddOneOutQuestion'
 import FillBlankQuestion from './FillBlankQuestion'
@@ -9,434 +9,423 @@ import FillBlankQuestion from './FillBlankQuestion'
 interface Props {
   exercises: RuntimeExercise[]
   childName: string
-  level: Level
   sessionNumber: number
   onComplete: (correct: number, total: number) => void
+  onExit: () => void
 }
 
-type FeedbackMessage = { text: string; isPositive: boolean } | null
+// ── Feedback pools ──────────────────────────────────────────────────────────
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+const PRAISE_POOL = ['¡Bien!', '¡Lo lograste!', '¡Genial!', '¡Crack!', '¡Eso es!', '¡Increíble!']
+const ENCOURAGE_POOL = ['Mirá bien', 'Casi', 'Probá otra vez', 'Estás cerca']
 
-const CATEGORY_BY_LEVEL: Record<Level, string> = {
-  1: 'Vocabulario · Cuerpo y hogar',
-  2: 'Vocabulario · Animales y alimentos',
-  3: 'Vocabulario · Acciones y objetos',
-  4: 'Vocabulario · Conceptos avanzados',
+function pickRandom<T>(pool: readonly T[]): T {
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
-// ── Confetti ──────────────────────────────────────────────────────────────
+// ── Header pieces ───────────────────────────────────────────────────────────
 
-interface ConfettiDot { id: number; x: number; color: string; delay: number; size: number }
-
-function Confetti() {
-  const dots: ConfettiDot[] = [
-    { id: 0, x: 12,  color: '#FFD93D', delay: 0,   size: 10 },
-    { id: 1, x: 25,  color: '#0BAFBE', delay: 60,  size: 14 },
-    { id: 2, x: 40,  color: '#22C55E', delay: 30,  size: 8  },
-    { id: 3, x: 55,  color: '#F87171', delay: 90,  size: 12 },
-    { id: 4, x: 68,  color: '#FFD93D', delay: 20,  size: 10 },
-    { id: 5, x: 80,  color: '#0BAFBE', delay: 70,  size: 14 },
-    { id: 6, x: 92,  color: '#22C55E', delay: 40,  size: 8  },
-  ]
+function ProgressBar({ value, total }: { value: number; total: number }) {
+  const pct = total > 0 ? (value / total) * 100 : 0
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '50%',
-        pointerEvents: 'none',
-        overflow: 'hidden',
-        zIndex: 20,
-      }}
-    >
-      {dots.map(d => (
-        <div
-          key={d.id}
-          style={{
-            position: 'absolute',
-            left: `${d.x}%`,
-            top: '-16px',
-            width: `${d.size}px`,
-            height: `${d.size}px`,
-            borderRadius: '50%',
-            backgroundColor: d.color,
-            animation: `confettiFall 1.1s ease-in ${d.delay}ms forwards`,
-          }}
-        />
-      ))}
-      <style>{`
-        @keyframes confettiFall {
-          0%   { transform: translateY(0)     rotate(0deg);   opacity: 1; }
-          100% { transform: translateY(280px) rotate(400deg); opacity: 0; }
-        }
-      `}</style>
-    </div>
-  )
-}
-
-// ── Main ─────────────────────────────────────────────────────────────────
-
-function speak(text: string) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'es-ES'
-    utterance.rate = 0.8
-    utterance.pitch = 1.1
-    window.speechSynthesis.speak(utterance)
-  }
-}
-
-export default function ExerciseScreen({ exercises, childName, level, sessionNumber, onComplete }: Props) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [cardStates, setCardStates]     = useState<CardState[]>([])
-  const [correctCount, setCorrectCount] = useState(0)
-  const [feedback, setFeedback]         = useState<FeedbackMessage>(null)
-  const [locked, setLocked]             = useState(false)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [dragonJumping, setDragonJumping] = useState(false)
-
-  const current = exercises[currentIndex]
-  const total   = exercises.length
-
-  const handleRepeatAudio = useCallback(() => {
-    if (current?.type === 'vocabulary') speak(current.word)
-  }, [current])
-
-  useEffect(() => {
-    if (!current) return
-    setCardStates(current.type === 'vocabulary' ? current.options.map(() => 'idle') : [])
-    setFeedback(null)
-    setLocked(false)
-    setShowConfetti(false)
-    if (current.type === 'vocabulary') {
-      setTimeout(() => speak(current.word), 300)
-    }
-  }, [currentIndex]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleCorrect() {
-    const newCount = correctCount + 1
-    setCorrectCount(newCount)
-    setLocked(true)
-    setFeedback({ text: '¡Muy bien!', isPositive: true })
-    setShowConfetti(true)
-    setDragonJumping(true)
-    setTimeout(() => setDragonJumping(false), 750)
-    setTimeout(() => {
-      const next = currentIndex + 1
-      if (next >= total) onComplete(newCount, total)
-      else setCurrentIndex(next)
-    }, 1400)
-  }
-
-  function handleVocabCardTap(optionIndex: number) {
-    if (locked || !current || current.type !== 'vocabulary') return
-
-    const isCorrect = optionIndex === current.correctIndex
-    const state = cardStates[optionIndex]
-
-    if (isCorrect) {
-      setCardStates(prev => prev.map((s, i) => (i === optionIndex ? 'correct' : s)))
-      handleCorrect()
-    } else {
-      if (state === 'idle') {
-        setCardStates(prev => prev.map((s, i) => (i === optionIndex ? 'shake' : s)))
-        setFeedback({ text: '¡Tú puedes!', isPositive: false })
-        setTimeout(() => {
-          setCardStates(prev =>
-            prev.map((s, i) => (i === optionIndex && s === 'shake' ? 'attempted' : s)),
-          )
-        }, 500)
-      } else if (state === 'attempted') {
-        setCardStates(prev => prev.map((s, i) => (i === optionIndex ? 'wrong' : s)))
-        setFeedback({ text: '¡Tú puedes!', isPositive: false })
-      }
-    }
-  }
-
-  if (!current) return null
-
-  const progressPct  = (currentIndex / total) * 100
-  const childInitial = childName.charAt(0).toUpperCase()
-  const category     = CATEGORY_BY_LEVEL[level]
-  const cols = current.type === 'vocabulary'
-    ? (current.options.length === 2 ? 2 : current.options.length === 3 ? 3 : 2)
-    : 2
-
-  return (
-    <div style={{
-      flex: 1,
-      background: 'linear-gradient(145deg, #FFF8E8 0%, #E8F8FF 40%, #E0F9F0 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      overflowY: 'auto',
-      overflowX: 'hidden',
-      minHeight: '100%',
-    }}>
-    {showConfetti && <Confetti />}
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        maxWidth: '480px',
-        margin: '0 auto',
-        padding: '12px 16px 100px',
-        gap: '12px',
-        position: 'relative',
-        flex: 1,
-      }}
-    >
-
-      {/* ── Progress header ─────────────────────────────────────────── */}
-      <div
-        className="dracs-progress-header"
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+      <span
         style={{
-          background: '#ffffff',
-          border: '1px solid #F1F5F9',
-          borderRadius: '18px',
-          padding: '12px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          flexShrink: 0,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          fontFamily: 'Nunito, sans-serif',
+          fontWeight: 800,
+          fontSize: '13px',
+          color: '#0BAFBE',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '0.3px',
+        }}
+      >
+        {value}/{total}
+      </span>
+      <div
+        style={{
+          width: '100%',
+          height: '6px',
+          background: '#E5F4F6',
+          borderRadius: '999px',
+          overflow: 'hidden',
         }}
       >
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#FFD93D',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
+            width: `${pct}%`,
+            height: '100%',
+            background: '#0BAFBE',
+            borderRadius: '999px',
+            transition: 'width 0.5s ease',
           }}
-        >
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '16px', color: '#1A1A2E' }}>
-            {childInitial}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
-            {childName}
-          </span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>
-            Sesión {sessionNumber}
-          </span>
-        </div>
-
-        <div
-          style={{
-            flex: 1,
-            height: '8px',
-            backgroundColor: '#F0FAFA',
-            borderRadius: '99px',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: `${progressPct}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #0BAFBE, #FFD93D)',
-              borderRadius: '99px',
-              transition: 'width 0.5s ease',
-            }}
-          />
-        </div>
-
-        <span style={{ fontSize: '22px', fontWeight: 800, color: '#0BAFBE', fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-          {currentIndex + 1}/{total}
-        </span>
+        />
       </div>
+    </div>
+  )
+}
 
-      {/* ── Vocabulary word card ─────────────────────────────────────── */}
-      {current.type === 'vocabulary' && (
-        <div
-          className="dracs-word-card"
+// Sentence with fillable blank, rendered for fill_blank exercises in the header.
+function FillBlankSentence({
+  exercise, filledWord,
+}: { exercise: RuntimeFillBlank; filledWord: string | null }) {
+  const [before, after] = exercise.sentence.split('___')
+  return (
+    <span style={{ display: 'inline' }}>
+      {before}
+      {filledWord ? (
+        <span
           style={{
-            background: 'linear-gradient(135deg, #0BAFBE 0%, #0891A0 100%)',
-            borderRadius: '20px',
-            padding: '32px 40px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px',
-            flexShrink: 0,
-            position: 'relative',
-            overflow: 'hidden',
+            color: '#047857',
+            fontWeight: 800,
+            margin: '0 6px',
+            borderBottom: '2px solid #10B981',
+            padding: '0 6px',
+            transition: 'all 0.2s ease',
           }}
         >
-          <span
+          {filledWord}
+        </span>
+      ) : (
+        <span
+          style={{
+            display: 'inline-block',
+            minWidth: '90px',
+            margin: '0 6px',
+            padding: '0 10px',
+            borderBottom: '2px solid #F59E0B',
+            background: '#FEF3C7',
+            borderRadius: '6px',
+            color: 'transparent',
+            userSelect: 'none',
+            verticalAlign: 'middle',
+          }}
+        >
+          ___
+        </span>
+      )}
+      {after}
+    </span>
+  )
+}
+
+// ── Exit confirm dialog (inline) ────────────────────────────────────────────
+
+function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(15,23,42,0.55)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px', zIndex: 200,
+      }}
+    >
+      <div
+        style={{
+          background: '#FFFFFF', borderRadius: '20px',
+          padding: '28px 24px', maxWidth: '340px', width: '100%',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.22)',
+          textAlign: 'center', fontFamily: 'Nunito, sans-serif',
+        }}
+      >
+        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#1F2937' }}>
+          ¿Querés terminar el juego?
+        </h3>
+        <p style={{ margin: '0 0 22px', fontSize: '14px', color: '#6B7280', lineHeight: 1.5 }}>
+          Perderás el progreso de esta partida.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button
+            onClick={onConfirm}
             style={{
-              padding: '4px 14px',
-              borderRadius: '999px',
-              background: 'rgba(255,255,255,0.20)',
-              color: '#ffffff',
-              fontSize: '12px',
-              fontWeight: 600,
+              height: '46px', borderRadius: '14px', border: 'none',
+              background: '#F59E0B', color: '#FFFFFF',
+              fontSize: '15px', fontWeight: 800, cursor: 'pointer',
               fontFamily: 'Nunito, sans-serif',
-              letterSpacing: '0.3px',
             }}
           >
-            {category}
-          </span>
-
+            Sí, terminar
+          </button>
           <button
-            onClick={handleRepeatAudio}
-            title="Escuchar palabra"
+            onClick={onCancel}
             style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              background: 'rgba(255,255,255,0.2)',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
+              height: '46px', borderRadius: '14px',
+              border: '1.5px solid #E5E7EB', background: '#FFFFFF',
+              color: '#1F2937', fontSize: '15px', fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'Nunito, sans-serif',
+            }}
+          >
+            Seguir jugando
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+export default function ExerciseScreen({
+  exercises, childName, sessionNumber, onComplete, onExit,
+}: Props) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [correctCount, setCorrectCount] = useState(0)
+  const [feedbackText, setFeedbackText] = useState<string | null>(null)
+  const [filledWord, setFilledWord] = useState<string | null>(null)
+  const [showExit, setShowExit] = useState(false)
+
+  const current = exercises[currentIndex]
+  const total   = exercises.length
+
+  useEffect(() => {
+    setFeedbackText(null)
+    setFilledWord(null)
+  }, [currentIndex])
+
+  function advance(success: boolean) {
+    const nextCorrect = correctCount + (success ? 1 : 0)
+    if (success) setCorrectCount(nextCorrect)
+    const next = currentIndex + 1
+    if (next >= total) {
+      onComplete(nextCorrect, total)
+    } else {
+      setCurrentIndex(next)
+    }
+  }
+
+  function handleAttempt({ success, isFinal }: { success: boolean; isFinal: boolean }) {
+    if (success) {
+      setFeedbackText(pickRandom(PRAISE_POOL))
+      setTimeout(() => advance(true), 1700)
+    } else if (!isFinal) {
+      const msg = pickRandom(ENCOURAGE_POOL)
+      setFeedbackText(msg)
+      setTimeout(() => setFeedbackText(curr => curr === msg ? null : curr), 1200)
+    } else {
+      // Sequence final fail (no reveal). For other types, the sub-component
+      // shows its own "Era la {label}" line and we just advance.
+      setFeedbackText(null)
+      setTimeout(() => advance(false), 1500)
+    }
+  }
+
+  function handleFillBlankFilled(word: string) {
+    setFilledWord(word)
+  }
+
+  if (!current) return null
+
+  // Compute the heading text per exercise type.
+  let heading: React.ReactNode
+  if (current.type === 'fill_blank') {
+    heading = <FillBlankSentence exercise={current} filledWord={filledWord} />
+  } else if (current.type === 'odd_one_out' || current.type === 'sequence') {
+    heading = current.question || current.prompt
+  } else {
+    heading = current.prompt
+  }
+
+  const audioAvailable = !!current.audioUrl
+
+  function handlePlayAudio() {
+    if (!current.audioUrl) return
+    try {
+      const audio = new Audio(current.audioUrl)
+      audio.play().catch(() => { /* user gesture or network — silent fail */ })
+    } catch {
+      /* silent */
+    }
+  }
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        background: '#E0F2FE',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        minHeight: '100%',
+        position: 'relative',
+        fontFamily: 'Nunito, sans-serif',
+      }}
+    >
+      {/* Inline animations + shake keyframes for ExerciseCard */}
+      <style>{`
+        @keyframes exercise-card-enter {
+          from { opacity: 0; transform: translateY(14px) scale(0.96); }
+          to   { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+        @keyframes exercise-card-pop {
+          0%   { transform: scale(1); }
+          45%  { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+        @keyframes exercise-soft-shake {
+          0%, 100% { transform: translateX(0); }
+          20%       { transform: translateX(-4px); }
+          40%       { transform: translateX(4px); }
+          60%       { transform: translateX(-3px); }
+          80%       { transform: translateX(3px); }
+        }
+        .exercise-card-shake { animation: exercise-soft-shake 0.4s ease-in-out; }
+        @keyframes exercise-feedback-in {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Close button */}
+      <button
+        type="button"
+        aria-label="Terminar"
+        onClick={() => setShowExit(true)}
+        style={{
+          position: 'absolute',
+          top: '14px',
+          right: '14px',
+          width: '38px',
+          height: '38px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.7)',
+          border: '1px solid #E5E7EB',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#6B7280',
+          zIndex: 10,
+        }}
+      >
+        <X size={18} />
+      </button>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          maxWidth: '720px',
+          margin: '0 auto',
+          padding: '24px 24px 64px',
+          gap: '20px',
+          flex: 1,
+        }}
+      >
+        {/* Header — progress + heading + audio */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', paddingTop: '8px' }}>
+          <ProgressBar value={currentIndex + 1} total={total} />
+
+          <div
+            style={{
               display: 'flex',
               alignItems: 'center',
+              gap: '12px',
               justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#ffffff',
-              flexShrink: 0,
-              transition: 'background 0.2s ease',
-              zIndex: 2,
             }}
-            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.35)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.2)')}
           >
-            <Volume2 size={18} />
-          </button>
+            <h1
+              key={currentIndex}
+              style={{
+                margin: 0,
+                fontFamily: 'Nunito, sans-serif',
+                fontSize: 'clamp(22px, 4.4vw, 30px)',
+                fontWeight: 800,
+                color: '#1F2937',
+                textAlign: 'center',
+                lineHeight: 1.25,
+                animation: 'exercise-feedback-in 0.3s ease',
+              }}
+            >
+              {heading}
+            </h1>
 
-          <div
-            key={currentIndex}
-            className="dracs-word-text"
-            style={{
-              fontSize: 'clamp(40px, 5vw, 60px)',
-              fontWeight: 900,
-              color: '#ffffff',
-              lineHeight: 1.1,
-              fontFamily: 'Nunito, sans-serif',
-              animation: 'wordSlideDown 0.32s ease',
-              textAlign: 'center',
-              paddingRight: '48px',
-            }}
-          >
-            {current.word}
+            {audioAvailable && (
+              <button
+                type="button"
+                aria-label="Escuchar consigna"
+                onClick={handlePlayAudio}
+                style={{
+                  width: '40px', height: '40px',
+                  borderRadius: '50%',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #E5E7EB',
+                  cursor: 'pointer',
+                  color: '#0BAFBE',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Volume2 size={20} />
+              </button>
+            )}
           </div>
 
-          <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>
-            Encuentra la imagen correcta
-          </span>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-            <div
-              style={{
-                width: '7px', height: '7px', borderRadius: '50%',
-                backgroundColor: '#ffffff',
-                animation: 'aiPulse 1.6s ease-in-out infinite',
-                flexShrink: 0,
-              }}
-            />
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.60)', fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
-              IA adaptándose...
-            </span>
+          {/* Feedback toast (random praise/encourage) */}
+          <div style={{ minHeight: '24px', display: 'flex', justifyContent: 'center' }}>
+            {feedbackText && (
+              <span
+                key={feedbackText + currentIndex}
+                style={{
+                  fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 800,
+                  fontSize: '17px',
+                  color: PRAISE_POOL.includes(feedbackText) ? '#10B981' : '#F59E0B',
+                  animation: 'exercise-feedback-in 0.25s ease',
+                }}
+              >
+                {feedbackText}
+              </span>
+            )}
           </div>
         </div>
-      )}
 
-      {/* ── Feedback area (all types) ────────────────────────────────── */}
-      <div style={{ minHeight: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {feedback && (
-          <span
-            style={{
-              fontSize: '18px',
-              fontWeight: 900,
-              color: feedback.isPositive ? '#22C55E' : '#FFD93D',
-              fontFamily: 'Nunito, sans-serif',
-              animation: 'wordSlideDown 0.25s ease',
-            }}
-          >
-            {feedback.text}
-          </span>
-        )}
+        {/* Body — dispatched by type */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '8px' }}>
+          {current.type === 'vocabulary' && (
+            <IdentifyImageQuestion
+              key={current.id + ':' + currentIndex}
+              exercise={current}
+              onAttempt={handleAttempt}
+            />
+          )}
+          {current.type === 'sequence' && (
+            <SequenceQuestion
+              key={current.id + ':' + currentIndex}
+              exercise={current}
+              onAttempt={handleAttempt}
+            />
+          )}
+          {current.type === 'odd_one_out' && (
+            <OddOneOutQuestion
+              key={current.id + ':' + currentIndex}
+              exercise={current}
+              onAttempt={handleAttempt}
+            />
+          )}
+          {current.type === 'fill_blank' && (
+            <FillBlankQuestion
+              key={current.id + ':' + currentIndex}
+              exercise={current}
+              onAttempt={handleAttempt}
+              onFilled={handleFillBlankFilled}
+            />
+          )}
+        </div>
       </div>
 
-      {/* ── Exercise content (type-dispatched) ──────────────────────── */}
-      {current.type === 'vocabulary' && (
-        <div
-          key={currentIndex}
-          className="dracs-answer-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gap: '12px',
-            flex: 1,
-          }}
-        >
-          {current.options.map((option, i) => (
-            <AnswerCard
-              key={`${current.id}-${i}`}
-              option={option}
-              state={cardStates[i] ?? 'idle'}
-              onTap={() => handleVocabCardTap(i)}
-              enterDelay={i * 60}
-            />
-          ))}
-        </div>
-      )}
-
-      {current.type === 'sequence' && (
-        <SequenceQuestion
-          key={currentIndex}
-          exercise={current}
-          onCorrect={handleCorrect}
+      {showExit && (
+        <ExitConfirm
+          onCancel={() => setShowExit(false)}
+          onConfirm={() => { setShowExit(false); onExit() }}
         />
       )}
 
-      {current.type === 'odd_one_out' && (
-        <OddOneOutQuestion
-          key={currentIndex}
-          exercise={current}
-          onCorrect={handleCorrect}
-        />
-      )}
-
-      {current.type === 'fill_blank' && (
-        <FillBlankQuestion
-          key={currentIndex}
-          exercise={current}
-          onCorrect={handleCorrect}
-        />
-      )}
-
-      {/* ── Dragon ───────────────────────────────────────────────────── */}
-      <img
-        src="/dragon.nb.png"
-        alt=""
-        style={{
-          position: 'fixed',
-          bottom: '18px',
-          right: '18px',
-          height: '110px',
-          width: 'auto',
-          pointerEvents: 'none',
-          zIndex: 5,
-          animation: dragonJumping
-            ? 'dragonJump 0.75s ease'
-            : 'floatDragon 3s ease-in-out infinite',
-          transformOrigin: 'bottom center',
-        }}
-      />
-    </div>
+      {/* childName + sessionNumber currently unused in the new layout, kept in
+          props for future surface (header avatar). Reference them so TS does
+          not complain about unused props. */}
+      <span style={{ display: 'none' }}>{childName} #{sessionNumber}</span>
     </div>
   )
 }

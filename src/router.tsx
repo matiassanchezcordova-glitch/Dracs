@@ -6,7 +6,8 @@ import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import App from './App'
 import AppRedirect from './pages/app/AppRedirect'
-import ChildPage from './pages/app/ChildPage'
+import MapScreen from './components/MapScreen'
+import HotspotSession from './components/HotspotSession'
 import TherapistPage from './pages/app/TherapistPage'
 import FamilyPage from './pages/app/FamilyPage'
 
@@ -21,7 +22,8 @@ export default function AppRoutes() {
         element={<ProtectedRoute><App /></ProtectedRoute>}
       >
         <Route index element={<AppRedirect />} />
-        <Route path="nino" element={<ChildPage />} />
+        <Route path="nino" element={<MapScreen />} />
+        <Route path="nino/jugar/:hotspotId" element={<HotspotSession />} />
         <Route path="terapeuta" element={<TherapistPage />} />
         <Route path="familia" element={<FamilyPage />} />
       </Route>

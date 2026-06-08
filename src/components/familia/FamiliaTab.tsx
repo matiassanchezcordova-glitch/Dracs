@@ -302,7 +302,7 @@ function FamiliaContent({
             justifyContent: 'space-between',
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, fontFamily: 'Playfair Display, serif' }}>
+              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, fontFamily: 'Fredoka, system-ui, sans-serif' }}>
                 Hola, familia de {childName}.
               </h1>
               <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', fontFamily: 'Nunito, sans-serif' }}>

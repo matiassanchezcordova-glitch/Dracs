@@ -1,68 +1,26 @@
+import { supabase } from '../lib/supabase'
+
 export type Level = 1 | 2 | 3 | 4
 
+// ─── Runtime types consumed by UI components ──────────────────────────────────
+
 export interface Option {
-  emoji: string
-  name: string
+  imageUrl: string
+  label: string
 }
-
-// ─── Exercise Definitions ─────────────────────────────────────────────────────
-
-export interface VocabExerciseDef {
-  type: 'vocabulary'
-  id: string
-  word: string
-  correct: Option
-  distractors: Option[]
-  forLevels: Level[]
-}
-
-export interface SequenceExerciseDef {
-  type: 'sequence'
-  id: string
-  question: string
-  steps: string[]
-  labels: string[]
-  correctOrder: number[]
-  forLevels: Level[]
-}
-
-export interface OddOneOutExerciseDef {
-  type: 'odd_one_out'
-  id: string
-  question: string
-  options: string[]
-  labels: string[]
-  oddIndex: number
-  forLevels: Level[]
-}
-
-export interface FillBlankExerciseDef {
-  type: 'fill_blank'
-  id: string
-  sentence: string
-  options: string[]
-  correctIndex: number
-  forLevels: Level[]
-}
-
-export type ExerciseDef =
-  | VocabExerciseDef
-  | SequenceExerciseDef
-  | OddOneOutExerciseDef
-  | FillBlankExerciseDef
-
-// ─── Runtime Exercises ────────────────────────────────────────────────────────
 
 export interface RuntimeVocabulary {
   type: 'vocabulary'
   id: string
   word: string
+  prompt: string
+  audioUrl: string | null
   options: Option[]
   correctIndex: number
 }
 
 export interface RuntimeSequenceItem {
-  emoji: string
+  imageUrl: string
   label: string
   originalIndex: number
 }
@@ -71,12 +29,14 @@ export interface RuntimeSequence {
   type: 'sequence'
   id: string
   question: string
+  prompt: string
+  audioUrl: string | null
   items: RuntimeSequenceItem[]
   correctOrder: number[]
 }
 
 export interface RuntimeOddOneOutItem {
-  emoji: string
+  imageUrl: string
   label: string
   isOdd: boolean
 }
@@ -85,6 +45,8 @@ export interface RuntimeOddOneOut {
   type: 'odd_one_out'
   id: string
   question: string
+  prompt: string
+  audioUrl: string | null
   items: RuntimeOddOneOutItem[]
 }
 
@@ -92,6 +54,8 @@ export interface RuntimeFillBlank {
   type: 'fill_blank'
   id: string
   sentence: string
+  prompt: string
+  audioUrl: string | null
   options: string[]
   correctIndex: number
 }
@@ -102,98 +66,7 @@ export type RuntimeExercise =
   | RuntimeOddOneOut
   | RuntimeFillBlank
 
-// ─── Exercise Catalog ─────────────────────────────────────────────────────────
-
-export const EXERCISES: ExerciseDef[] = [
-  // ══ LEVEL 1 · Vocabulary · 2 options ═════════════════════════════════════
-  { type: 'vocabulary', id: 'mano',     word: 'MANO',    correct: { emoji: '🤚', name: 'mano' },   distractors: [{ emoji: '🦶', name: 'pie' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'ojo',      word: 'OJO',     correct: { emoji: '👁️', name: 'ojo' },    distractors: [{ emoji: '👄', name: 'boca' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'nariz',    word: 'NARIZ',   correct: { emoji: '👃', name: 'nariz' },  distractors: [{ emoji: '👂', name: 'oreja' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'cama',     word: 'CAMA',    correct: { emoji: '🛏️', name: 'cama' },  distractors: [{ emoji: '🪑', name: 'silla' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'mesa',     word: 'MESA',    correct: { emoji: '🪵', name: 'mesa' },   distractors: [{ emoji: '🪑', name: 'silla' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'vaso',     word: 'VASO',    correct: { emoji: '🥛', name: 'vaso' },   distractors: [{ emoji: '🍽️', name: 'plato' }],        forLevels: [1] },
-  { type: 'vocabulary', id: 'mama',     word: 'MAMÁ',    correct: { emoji: '👩', name: 'mamá' },   distractors: [{ emoji: '👨', name: 'papá' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'perro-l1', word: 'PERRO',   correct: { emoji: '🐶', name: 'perro' },  distractors: [{ emoji: '🐱', name: 'gato' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'gato-l1',  word: 'GATO',   correct: { emoji: '🐱', name: 'gato' },   distractors: [{ emoji: '🐶', name: 'perro' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'arbol',    word: 'ÁRBOL',   correct: { emoji: '🌳', name: 'árbol' },  distractors: [{ emoji: '🌸', name: 'flor' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'sol',      word: 'SOL',     correct: { emoji: '☀️', name: 'sol' },    distractors: [{ emoji: '🌙', name: 'luna' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'luna',     word: 'LUNA',    correct: { emoji: '🌙', name: 'luna' },   distractors: [{ emoji: '☀️', name: 'sol' }],           forLevels: [1] },
-  { type: 'vocabulary', id: 'agua',     word: 'AGUA',    correct: { emoji: '💧', name: 'agua' },   distractors: [{ emoji: '🍎', name: 'manzana' }],       forLevels: [1] },
-  { type: 'vocabulary', id: 'pelota',   word: 'PELOTA',  correct: { emoji: '⚽', name: 'pelota' }, distractors: [{ emoji: '🎈', name: 'globo' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'libro',    word: 'LIBRO',   correct: { emoji: '📚', name: 'libro' },  distractors: [{ emoji: '✏️', name: 'lápiz' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'pie',      word: 'PIE',     correct: { emoji: '🦶', name: 'pie' },    distractors: [{ emoji: '🤚', name: 'mano' }],          forLevels: [1] },
-  { type: 'vocabulary', id: 'boca',     word: 'BOCA',    correct: { emoji: '👄', name: 'boca' },   distractors: [{ emoji: '👃', name: 'nariz' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'oreja',    word: 'OREJA',   correct: { emoji: '👂', name: 'oreja' },  distractors: [{ emoji: '👁️', name: 'ojo' }],           forLevels: [1] },
-  { type: 'vocabulary', id: 'silla',    word: 'SILLA',   correct: { emoji: '🪑', name: 'silla' },  distractors: [{ emoji: '🛏️', name: 'cama' }],         forLevels: [1] },
-  { type: 'vocabulary', id: 'puerta',   word: 'PUERTA',  correct: { emoji: '🚪', name: 'puerta' }, distractors: [{ emoji: '🪟', name: 'ventana' }],       forLevels: [1] },
-
-  // ══ LEVEL 2 · Vocabulary · 3 options ═════════════════════════════════════
-  { type: 'vocabulary', id: 'perro',    word: 'PERRO',   correct: { emoji: '🐶', name: 'perro' },   distractors: [{ emoji: '🐱', name: 'gato' }, { emoji: '🐰', name: 'conejo' }],          forLevels: [2] },
-  { type: 'vocabulary', id: 'pajaro',   word: 'PÁJARO',  correct: { emoji: '🐦', name: 'pájaro' },  distractors: [{ emoji: '🐟', name: 'pez' }, { emoji: '🦋', name: 'mariposa' }],         forLevels: [2] },
-  { type: 'vocabulary', id: 'manzana',  word: 'MANZANA', correct: { emoji: '🍎', name: 'manzana' }, distractors: [{ emoji: '🍐', name: 'pera' }, { emoji: '🍊', name: 'naranja' }],         forLevels: [2] },
-  { type: 'vocabulary', id: 'pan',      word: 'PAN',     correct: { emoji: '🍞', name: 'pan' },     distractors: [{ emoji: '🍪', name: 'galleta' }, { emoji: '🎂', name: 'tarta' }],         forLevels: [2] },
-  { type: 'vocabulary', id: 'zapato',   word: 'ZAPATO',  correct: { emoji: '👟', name: 'zapato' },  distractors: [{ emoji: '👢', name: 'bota' }, { emoji: '🩴', name: 'sandalia' }],         forLevels: [2] },
-  { type: 'vocabulary', id: 'feliz',    word: 'FELIZ',   correct: { emoji: '😊', name: 'feliz' },   distractors: [{ emoji: '😢', name: 'triste' }, { emoji: '😠', name: 'enfadado' }],       forLevels: [2] },
-  { type: 'vocabulary', id: 'triste',   word: 'TRISTE',  correct: { emoji: '😢', name: 'triste' },  distractors: [{ emoji: '😊', name: 'feliz' }, { emoji: '😨', name: 'asustado' }],        forLevels: [2] },
-  { type: 'vocabulary', id: 'rojo',     word: 'ROJO',    correct: { emoji: '🔴', name: 'rojo' },    distractors: [{ emoji: '🔵', name: 'azul' }, { emoji: '🟡', name: 'amarillo' }],          forLevels: [2] },
-  { type: 'vocabulary', id: 'azul',     word: 'AZUL',    correct: { emoji: '🔵', name: 'azul' },    distractors: [{ emoji: '🔴', name: 'rojo' }, { emoji: '🟢', name: 'verde' }],             forLevels: [2] },
-  { type: 'vocabulary', id: 'camiseta', word: 'CAMISETA',correct: { emoji: '👕', name: 'camiseta' },distractors: [{ emoji: '👖', name: 'pantalón' }, { emoji: '🧤', name: 'guante' }],       forLevels: [2] },
-  { type: 'vocabulary', id: 'pantalon', word: 'PANTALÓN',correct: { emoji: '👖', name: 'pantalón' },distractors: [{ emoji: '👕', name: 'camiseta' }, { emoji: '🧦', name: 'calcetín' }],     forLevels: [2] },
-  { type: 'vocabulary', id: 'manzana2', word: 'MANZANA', correct: { emoji: '🍎', name: 'manzana' }, distractors: [{ emoji: '🍌', name: 'plátano' }, { emoji: '🍇', name: 'uvas' }],          forLevels: [2] },
-  { type: 'vocabulary', id: 'platano',  word: 'PLÁTANO', correct: { emoji: '🍌', name: 'plátano' }, distractors: [{ emoji: '🍎', name: 'manzana' }, { emoji: '🍊', name: 'naranja' }],       forLevels: [2] },
-  { type: 'vocabulary', id: 'vaca',     word: 'VACA',    correct: { emoji: '🐄', name: 'vaca' },    distractors: [{ emoji: '🐷', name: 'cerdo' }, { emoji: '🐑', name: 'oveja' }],            forLevels: [2] },
-  { type: 'vocabulary', id: 'caballo',  word: 'CABALLO', correct: { emoji: '🐴', name: 'caballo' }, distractors: [{ emoji: '🐄', name: 'vaca' }, { emoji: '🐑', name: 'oveja' }],            forLevels: [2] },
-  { type: 'vocabulary', id: 'naranja',  word: 'NARANJA', correct: { emoji: '🍊', name: 'naranja' }, distractors: [{ emoji: '🍎', name: 'manzana' }, { emoji: '🍋', name: 'limón' }],         forLevels: [2] },
-  { type: 'vocabulary', id: 'pez',      word: 'PEZ',     correct: { emoji: '🐟', name: 'pez' },     distractors: [{ emoji: '🐸', name: 'rana' }, { emoji: '🦀', name: 'cangrejo' }],          forLevels: [2] },
-  { type: 'vocabulary', id: 'leche',    word: 'LECHE',   correct: { emoji: '🥛', name: 'leche' },   distractors: [{ emoji: '🧃', name: 'zumo' }, { emoji: '🍵', name: 'té' }],                forLevels: [2] },
-  { type: 'vocabulary', id: 'conejo',   word: 'CONEJO',  correct: { emoji: '🐰', name: 'conejo' },  distractors: [{ emoji: '🐶', name: 'perro' }, { emoji: '🐱', name: 'gato' }],             forLevels: [2] },
-
-  // ══ LEVELS 3–4 · Vocabulary · 4 options ══════════════════════════════════
-  { type: 'vocabulary', id: 'correr',   word: 'CORRER',   correct: { emoji: '🏃', name: 'correr' },   distractors: [{ emoji: '🚶', name: 'caminar' }, { emoji: '🦘', name: 'saltar' }, { emoji: '🏊', name: 'nadar' }],        forLevels: [3, 4] },
-  { type: 'vocabulary', id: 'comer',    word: 'COMER',    correct: { emoji: '🍽️', name: 'comer' },   distractors: [{ emoji: '🥤', name: 'beber' }, { emoji: '👨‍🍳', name: 'cocinar' }, { emoji: '🫧', name: 'lavar' }],     forLevels: [3, 4] },
-  { type: 'vocabulary', id: 'contento', word: 'CONTENTO', correct: { emoji: '😊', name: 'contento' }, distractors: [{ emoji: '😢', name: 'triste' }, { emoji: '😠', name: 'enfadado' }, { emoji: '😨', name: 'asustado' }],   forLevels: [3, 4] },
-  { type: 'vocabulary', id: 'enfadado', word: 'ENFADADO', correct: { emoji: '😠', name: 'enfadado' }, distractors: [{ emoji: '😊', name: 'contento' }, { emoji: '😢', name: 'triste' }, { emoji: '😨', name: 'asustado' }],   forLevels: [3] },
-  { type: 'vocabulary', id: 'asustado', word: 'ASUSTADO', correct: { emoji: '😨', name: 'asustado' }, distractors: [{ emoji: '😠', name: 'enfadado' }, { emoji: '😊', name: 'contento' }, { emoji: '😴', name: 'dormido' }],   forLevels: [3] },
-  { type: 'vocabulary', id: 'grande',   word: 'GRANDE',   correct: { emoji: '🐘', name: 'grande' },   distractors: [{ emoji: '🐭', name: 'pequeño' }, { emoji: '🐱', name: 'mediano' }, { emoji: '🐝', name: 'diminuto' }],    forLevels: [3] },
-  { type: 'vocabulary', id: 'pequeno',  word: 'PEQUEÑO',  correct: { emoji: '🐭', name: 'pequeño' },  distractors: [{ emoji: '🐘', name: 'grande' }, { emoji: '🦁', name: 'mediano' }, { emoji: '🐊', name: 'normal' }],       forLevels: [3] },
-  { type: 'vocabulary', id: 'caliente', word: 'CALIENTE', correct: { emoji: '☀️', name: 'caliente' }, distractors: [{ emoji: '❄️', name: 'frío' }, { emoji: '🌧️', name: 'lluvia' }, { emoji: '🍃', name: 'viento' }],         forLevels: [3] },
-  { type: 'vocabulary', id: 'frio',     word: 'FRÍO',     correct: { emoji: '❄️', name: 'frío' },     distractors: [{ emoji: '☀️', name: 'caliente' }, { emoji: '🌊', name: 'ola' }, { emoji: '🔥', name: 'fuego' }],          forLevels: [3] },
-  { type: 'vocabulary', id: 'dormir',   word: 'DORMIR',   correct: { emoji: '😴', name: 'dormir' },   distractors: [{ emoji: '🏃', name: 'correr' }, { emoji: '🍽️', name: 'comer' }, { emoji: '📚', name: 'leer' }],          forLevels: [3] },
-  { type: 'vocabulary', id: 'jugar',    word: 'JUGAR',    correct: { emoji: '🎮', name: 'jugar' },    distractors: [{ emoji: '📚', name: 'estudiar' }, { emoji: '🏊', name: 'nadar' }, { emoji: '🍽️', name: 'comer' }],       forLevels: [3] },
-  { type: 'vocabulary', id: 'leer',     word: 'LEER',     correct: { emoji: '📖', name: 'leer' },     distractors: [{ emoji: '🎮', name: 'jugar' }, { emoji: '😴', name: 'dormir' }, { emoji: '🎵', name: 'cantar' }],         forLevels: [3] },
-  { type: 'vocabulary', id: 'escribir', word: 'ESCRIBIR', correct: { emoji: '✏️', name: 'escribir' }, distractors: [{ emoji: '📚', name: 'leer' }, { emoji: '🎨', name: 'pintar' }, { emoji: '🎵', name: 'cantar' }],          forLevels: [3] },
-  { type: 'vocabulary', id: 'pintar',   word: 'PINTAR',   correct: { emoji: '🎨', name: 'pintar' },   distractors: [{ emoji: '✏️', name: 'escribir' }, { emoji: '📚', name: 'leer' }, { emoji: '🎵', name: 'cantar' }],         forLevels: [3] },
-  { type: 'vocabulary', id: 'limpio',   word: 'LIMPIO',   correct: { emoji: '🧼', name: 'limpio' },   distractors: [{ emoji: '🦠', name: 'sucio' }, { emoji: '🗑️', name: 'basura' }, { emoji: '💧', name: 'húmedo' }],         forLevels: [4] },
-  { type: 'vocabulary', id: 'ordenado', word: 'ORDENADO', correct: { emoji: '📚', name: 'ordenado' }, distractors: [{ emoji: '🗃️', name: 'archivado' }, { emoji: '📦', name: 'guardado' }, { emoji: '🗄️', name: 'fichero' }],   forLevels: [4] },
-  { type: 'vocabulary', id: 'compartir',word: 'COMPARTIR',correct: { emoji: '🤝', name: 'compartir' },distractors: [{ emoji: '😠', name: 'pelear' }, { emoji: '😢', name: 'llorar' }, { emoji: '😊', name: 'sonreír' }],       forLevels: [4] },
-  { type: 'vocabulary', id: 'ayudar',   word: 'AYUDAR',   correct: { emoji: '🙌', name: 'ayudar' },   distractors: [{ emoji: '😴', name: 'ignorar' }, { emoji: '🎮', name: 'jugar' }, { emoji: '😊', name: 'reír' }],           forLevels: [4] },
-  { type: 'vocabulary', id: 'esperar',  word: 'ESPERAR',  correct: { emoji: '⏳', name: 'esperar' },  distractors: [{ emoji: '🏃', name: 'correr' }, { emoji: '😠', name: 'impacientar' }, { emoji: '🎵', name: 'cantar' }],     forLevels: [4] },
-  { type: 'vocabulary', id: 'hablar',   word: 'HABLAR',   correct: { emoji: '💬', name: 'hablar' },   distractors: [{ emoji: '😴', name: 'dormir' }, { emoji: '🏊', name: 'nadar' }, { emoji: '📚', name: 'leer' }],            forLevels: [4] },
-  { type: 'vocabulary', id: 'pedir',    word: 'PEDIR',    correct: { emoji: '🙏', name: 'pedir' },    distractors: [{ emoji: '🤝', name: 'dar' }, { emoji: '😠', name: 'exigir' }, { emoji: '😊', name: 'agradecer' }],        forLevels: [4] },
-
-  // ══ SEQUENCE exercises ════════════════════════════════════════════════════
-  { type: 'sequence', id: 'seq-01', question: 'Ordena: lavarse las manos',     steps: ['🚿', '🧼', '🤲'], labels: ['abrir grifo', 'jabón', 'secar'],     correctOrder: [0, 1, 2], forLevels: [3] },
-  { type: 'sequence', id: 'seq-02', question: 'Ordena: preparar el desayuno', steps: ['🥛', '🥣', '🥄'], labels: ['leche', 'cereales', 'comer'],         correctOrder: [0, 1, 2], forLevels: [3] },
-  { type: 'sequence', id: 'seq-03', question: 'Ordena: ir al colegio',         steps: ['⏰', '🎒', '🚶'], labels: ['despertar', 'mochila', 'salir'],       correctOrder: [0, 1, 2], forLevels: [4] },
-  { type: 'sequence', id: 'seq-04', question: 'Ordena: antes de dormir',       steps: ['🦷', '👕', '📖'], labels: ['cepillar', 'pijama', 'leer'],         correctOrder: [0, 1, 2], forLevels: [4] },
-
-  // ══ ODD ONE OUT exercises ═════════════════════════════════════════════════
-  { type: 'odd_one_out', id: 'odd-01', question: '¿Cuál no es un animal?',         options: ['🐶', '🐱', '🍎', '🐰'], labels: ['perro', 'gato', 'manzana', 'conejo'],    oddIndex: 2, forLevels: [2] },
-  { type: 'odd_one_out', id: 'odd-02', question: '¿Cuál no es comida?',             options: ['🍎', '🚗', '🍌', '🥕'], labels: ['manzana', 'coche', 'plátano', 'zanahoria'], oddIndex: 1, forLevels: [2] },
-  { type: 'odd_one_out', id: 'odd-03', question: '¿Cuál no es ropa?',               options: ['👕', '👖', '🧤', '🍕'], labels: ['camiseta', 'pantalón', 'guante', 'pizza'],  oddIndex: 3, forLevels: [3] },
-  { type: 'odd_one_out', id: 'odd-04', question: '¿Cuál no se usa para comer?',    options: ['🍴', '🥄', '✏️', '🍽️'], labels: ['tenedor', 'cuchara', 'lápiz', 'plato'],    oddIndex: 2, forLevels: [3] },
-  { type: 'odd_one_out', id: 'odd-05', question: '¿Cuál no es un sentimiento?',    options: ['😊', '😢', '😠', '🌳'], labels: ['contento', 'triste', 'enfadado', 'árbol'],  oddIndex: 3, forLevels: [4] },
-
-  // ══ FILL BLANK exercises ══════════════════════════════════════════════════
-  { type: 'fill_blank', id: 'fill-01', sentence: 'Me lavo las ___',                         options: ['manos', 'zapatos'],                    correctIndex: 0, forLevels: [2] },
-  { type: 'fill_blank', id: 'fill-02', sentence: 'El perro dice ___',                       options: ['guau', 'miau'],                        correctIndex: 0, forLevels: [2] },
-  { type: 'fill_blank', id: 'fill-03', sentence: 'Por la mañana me cepillo los ___',        options: ['dientes', 'zapatos', 'libros'],         correctIndex: 0, forLevels: [3] },
-  { type: 'fill_blank', id: 'fill-04', sentence: 'Cuando tengo sed bebo ___',               options: ['agua', 'tierra', 'papel'],             correctIndex: 0, forLevels: [3] },
-  { type: 'fill_blank', id: 'fill-05', sentence: 'Antes de comer me lavo las ___',          options: ['manos', 'orejas', 'rodillas', 'cejas'], correctIndex: 0, forLevels: [4] },
-  { type: 'fill_blank', id: 'fill-06', sentence: 'El semáforo rojo significa ___',          options: ['parar', 'correr', 'saltar', 'dormir'],  correctIndex: 0, forLevels: [4] },
-]
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Age → level mapping ──────────────────────────────────────────────────────
 
 export function ageToLevel(age: number): Level {
   if (age <= 4) return 1
@@ -211,76 +84,217 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-// ─── Runtime converters ───────────────────────────────────────────────────────
+// ─── DB row + adapters ────────────────────────────────────────────────────────
 
-function toRuntimeVocab(ex: VocabExerciseDef): RuntimeVocabulary {
-  const allOptions = [ex.correct, ...ex.distractors]
-  const shuffled = shuffle(allOptions)
+type DbExerciseType = 'identify_image' | 'odd_one_out' | 'sequence' | 'fill_blank'
+
+interface DbExerciseRow {
+  id: string
+  type: DbExerciseType
+  category: string
+  difficulty: number
+  title: string
+  prompt: string
+  audio_url: string | null
+  content: Record<string, unknown>
+}
+
+function asArray(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : []
+}
+
+function asString(v: unknown): string | null {
+  return typeof v === 'string' ? v : null
+}
+
+// Use row.prompt if present, otherwise fall back to row.title (some rows
+// in DB may have empty prompts — see backlog task "audit prompts").
+function promptOrTitle(row: DbExerciseRow): string {
+  const p = (row.prompt ?? '').trim()
+  return p.length > 0 ? p : row.title
+}
+
+// identify_image (Mecánica A) → RuntimeVocabulary
+function adaptIdentifyImage(row: DbExerciseRow): RuntimeVocabulary | null {
+  const c = row.content
+  const rawOpts = asArray(c.options) as Array<Record<string, unknown>>
+  if (rawOpts.length < 2) return null
+
+  const opts: Option[] = rawOpts.map(o => ({
+    imageUrl: String(o.image_url ?? ''),
+    label: String(o.label ?? ''),
+  }))
+  const correctSrc = rawOpts.find(o => o.is_correct === true)
+  if (!correctSrc) return null
+  const correctImg = String(correctSrc.image_url ?? '')
+
+  const shuffled = shuffle(opts)
   return {
     type: 'vocabulary',
-    id: ex.id,
-    word: ex.word,
+    id: row.id,
+    word: asString(c.word) ?? row.title,
+    prompt: promptOrTitle(row),
+    audioUrl: row.audio_url,
     options: shuffled,
-    correctIndex: shuffled.indexOf(ex.correct),
+    correctIndex: shuffled.findIndex(o => o.imageUrl === correctImg),
   }
 }
 
-function toRuntimeSequence(ex: SequenceExerciseDef): RuntimeSequence {
-  const items: RuntimeSequenceItem[] = ex.steps.map((emoji, i) => ({
-    emoji,
-    label: ex.labels[i],
+// odd_one_out (Mecánica A) → RuntimeOddOneOut
+function adaptOddOneOut(row: DbExerciseRow): RuntimeOddOneOut | null {
+  const c = row.content
+  const rawOpts = asArray(c.options) as Array<Record<string, unknown>>
+  if (rawOpts.length < 2) return null
+  if (!rawOpts.some(o => o.is_odd === true)) return null
+
+  const items: RuntimeOddOneOutItem[] = rawOpts.map(o => ({
+    imageUrl: String(o.image_url ?? ''),
+    label: String(o.label ?? ''),
+    isOdd: o.is_odd === true,
+  }))
+  return {
+    type: 'odd_one_out',
+    id: row.id,
+    question: asString(c.question) ?? row.prompt,
+    prompt: promptOrTitle(row),
+    audioUrl: row.audio_url,
+    items: shuffle(items),
+  }
+}
+
+// sequence (Mecánica A) → RuntimeSequence
+function adaptSequence(row: DbExerciseRow): RuntimeSequence | null {
+  const c = row.content
+  const rawSteps = asArray(c.steps) as Array<Record<string, unknown>>
+  const correctOrder = asArray(c.correct_order)
+    .map(n => (typeof n === 'number' ? n : Number(n)))
+    .filter(n => Number.isInteger(n))
+  if (rawSteps.length < 2 || correctOrder.length !== rawSteps.length) return null
+
+  const items: RuntimeSequenceItem[] = rawSteps.map((s, i) => ({
+    imageUrl: String(s.image_url ?? ''),
+    label: String(s.label ?? ''),
     originalIndex: i,
   }))
   return {
     type: 'sequence',
-    id: ex.id,
-    question: ex.question,
+    id: row.id,
+    question: asString(c.question) ?? row.prompt,
+    prompt: promptOrTitle(row),
+    audioUrl: row.audio_url,
     items: shuffle(items),
-    correctOrder: ex.correctOrder,
+    correctOrder,
   }
 }
 
-function toRuntimeOddOneOut(ex: OddOneOutExerciseDef): RuntimeOddOneOut {
-  const items: RuntimeOddOneOutItem[] = ex.options.map((emoji, i) => ({
-    emoji,
-    label: ex.labels[i],
-    isOdd: i === ex.oddIndex,
-  }))
-  return {
-    type: 'odd_one_out',
-    id: ex.id,
-    question: ex.question,
-    items: shuffle(items),
-  }
-}
+// fill_blank (Mecánica A) → RuntimeFillBlank
+function adaptFillBlank(row: DbExerciseRow): RuntimeFillBlank | null {
+  const c = row.content
+  const rawOpts = asArray(c.options) as Array<Record<string, unknown>>
+  const sentence = asString(c.sentence)
+  if (!sentence || rawOpts.length < 2) return null
 
-function toRuntimeFillBlank(ex: FillBlankExerciseDef): RuntimeFillBlank {
-  const correct = ex.options[ex.correctIndex]
-  const shuffled = shuffle([...ex.options])
+  const correctSrc = rawOpts.find(o => o.is_correct === true)
+  if (!correctSrc) return null
+  const correctText = String(correctSrc.text ?? '')
+
+  const texts: string[] = rawOpts.map(o => String(o.text ?? ''))
+  const shuffled = shuffle(texts)
   return {
     type: 'fill_blank',
-    id: ex.id,
-    sentence: ex.sentence,
+    id: row.id,
+    sentence,
+    prompt: promptOrTitle(row),
+    audioUrl: row.audio_url,
     options: shuffled,
-    correctIndex: shuffled.indexOf(correct),
+    correctIndex: shuffled.indexOf(correctText),
   }
 }
 
-// ─── Session builder ──────────────────────────────────────────────────────────
+function adaptRow(row: DbExerciseRow): RuntimeExercise | null {
+  switch (row.type) {
+    case 'identify_image': return adaptIdentifyImage(row)
+    case 'odd_one_out':    return adaptOddOneOut(row)
+    case 'sequence':       return adaptSequence(row)
+    case 'fill_blank':     return adaptFillBlank(row)
+    default: return null
+  }
+}
 
-export function buildSession(level: Level, targetLength = 7): RuntimeExercise[] {
-  const vocabPool = EXERCISES.filter(
-    (e): e is VocabExerciseDef => e.type === 'vocabulary' && e.forLevels.includes(level),
-  )
-  const seqPool = EXERCISES.filter(
-    (e): e is SequenceExerciseDef => e.type === 'sequence' && e.forLevels.includes(level),
-  )
-  const oddPool = EXERCISES.filter(
-    (e): e is OddOneOutExerciseDef => e.type === 'odd_one_out' && e.forLevels.includes(level),
-  )
-  const fillPool = EXERCISES.filter(
-    (e): e is FillBlankExerciseDef => e.type === 'fill_blank' && e.forLevels.includes(level),
-  )
+// ─── Difficulty range per child level (DB 1-5 ↔ frontend Level 1-4) ───────────
+
+const TARGET_DIFFICULTY: Record<Level, { min: number; max: number }> = {
+  1: { min: 1, max: 1 },
+  2: { min: 1, max: 2 },
+  3: { min: 2, max: 3 },
+  4: { min: 3, max: 5 },
+}
+
+interface PooledExercise {
+  difficulty: number
+  runtime: RuntimeExercise
+}
+
+// Picks `quota` items from `pool`, preferring those whose difficulty falls in
+// the level's target range; falls back to items outside the range, ordered by
+// distance from the range. Returns up to `quota` items (no repetition).
+function pickWithFallback(
+  pool: PooledExercise[],
+  level: Level,
+  quota: number,
+): PooledExercise[] {
+  if (quota <= 0 || pool.length === 0) return []
+  const { min, max } = TARGET_DIFFICULTY[level]
+  const inRange  = pool.filter(p => p.difficulty >= min && p.difficulty <= max)
+  const outRange = pool.filter(p => p.difficulty <  min || p.difficulty >  max)
+  const distance = (d: number) => (d < min ? min - d : d - max)
+  outRange.sort((a, b) => distance(a.difficulty) - distance(b.difficulty))
+  const ordered = [...shuffle(inRange), ...outRange]
+  return ordered.slice(0, quota)
+}
+
+// ─── Session builder (reads from Supabase) ────────────────────────────────────
+
+// Filtro opcional de pool, derivado del hotspot del mapa-mundo (S5.5).
+export type HotspotFilter =
+  | { type: 'place'; place: string }
+  | { type: 'random_all' }
+
+export async function buildSessionFromDb(
+  level: Level,
+  filter?: HotspotFilter,
+  targetLength = 7,
+): Promise<RuntimeExercise[]> {
+  let query = supabase
+    .from('exercises')
+    .select('id, type, category, difficulty, title, prompt, audio_url, content')
+    .eq('content->>mechanic', 'A')
+
+  // pool_type 'place' filtra por la columna exercises.place. 'random_all' no
+  // agrega filtro. La columna existe en la DB pero no en database.types.ts; el
+  // cliente Supabase no está tipado, así que no requiere cast.
+  // TODO: tipar cuando regeneremos database.types.ts
+  if (filter?.type === 'place') {
+    query = query.eq('place', filter.place)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    throw new Error(`No pudimos cargar los juegos: ${error.message}`)
+  }
+
+  const rows = (data ?? []) as DbExerciseRow[]
+  const pooled: PooledExercise[] = []
+  for (const row of rows) {
+    const rt = adaptRow(row)
+    if (rt) pooled.push({ difficulty: row.difficulty, runtime: rt })
+  }
+
+  const vocabPool = pooled.filter(p => p.runtime.type === 'vocabulary')
+  const seqPool   = pooled.filter(p => p.runtime.type === 'sequence')
+  const oddPool   = pooled.filter(p => p.runtime.type === 'odd_one_out')
+  const fillPool  = pooled.filter(p => p.runtime.type === 'fill_blank')
 
   const seqQuota  = level >= 4 ? 2 : level >= 3 ? 1 : 0
   const oddQuota  = level >= 2 ? 1 : 0
@@ -289,23 +303,24 @@ export function buildSession(level: Level, targetLength = 7): RuntimeExercise[] 
 
   const session: RuntimeExercise[] = []
 
-  const seqPick = shuffle([...seqPool]).slice(0, seqQuota)
-  seqPick.forEach(ex => session.push(toRuntimeSequence(ex)))
-  vocabQuota += seqQuota - seqPick.length
+  const seqPicks = pickWithFallback(seqPool, level, seqQuota)
+  seqPicks.forEach(p => session.push(p.runtime))
+  vocabQuota += seqQuota - seqPicks.length
 
-  const oddPick = shuffle([...oddPool]).slice(0, oddQuota)
-  oddPick.forEach(ex => session.push(toRuntimeOddOneOut(ex)))
-  vocabQuota += oddQuota - oddPick.length
+  const oddPicks = pickWithFallback(oddPool, level, oddQuota)
+  oddPicks.forEach(p => session.push(p.runtime))
+  vocabQuota += oddQuota - oddPicks.length
 
-  const fillPick = shuffle([...fillPool]).slice(0, fillQuota)
-  fillPick.forEach(ex => session.push(toRuntimeFillBlank(ex)))
-  vocabQuota += fillQuota - fillPick.length
+  const fillPicks = pickWithFallback(fillPool, level, fillQuota)
+  fillPicks.forEach(p => session.push(p.runtime))
+  vocabQuota += fillQuota - fillPicks.length
 
-  let vocabQueue = shuffle([...vocabPool])
-  while (vocabQueue.length < vocabQuota) {
-    vocabQueue = [...vocabQueue, ...shuffle([...vocabPool])]
+  const vocabPicks = pickWithFallback(vocabPool, level, vocabQuota)
+  vocabPicks.forEach(p => session.push(p.runtime))
+
+  if (session.length === 0) {
+    throw new Error('No hay juegos disponibles para tu nivel.')
   }
-  vocabQueue.slice(0, vocabQuota).forEach(ex => session.push(toRuntimeVocab(ex)))
 
   return shuffle(session)
 }

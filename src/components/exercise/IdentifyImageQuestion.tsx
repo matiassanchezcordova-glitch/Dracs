@@ -1,18 +1,17 @@
 import { useState } from 'react'
-import { type RuntimeFillBlank } from '../../data/exercises'
+import { type RuntimeVocabulary } from '../../data/exercises'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { optionGrid } from './optionGrid'
 import ExerciseCard, { type CardState } from './ExerciseCard'
 
 interface Props {
-  exercise: RuntimeFillBlank
+  exercise: RuntimeVocabulary
   onAttempt: (r: { success: boolean; isFinal: boolean }) => void
-  onFilled: (word: string) => void
 }
 
 const SHAKE_RESET_MS = 550
 
-export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Props) {
+export default function IdentifyImageQuestion({ exercise, onAttempt }: Props) {
   const isMobile = useIsMobile()
   const layout = optionGrid(exercise.options.length, isMobile)
 
@@ -28,7 +27,6 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Pro
     if (i === exercise.correctIndex) {
       setLocked(true)
       setStates(prev => prev.map((s, j) => j === i ? 'correct' : s))
-      onFilled(exercise.options[i])
       onAttempt({ success: true, isFinal: true })
       return
     }
@@ -43,10 +41,8 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Pro
     if (nextWrong >= 2) {
       setLocked(true)
       setTimeout(() => {
-        const word = exercise.options[exercise.correctIndex]
         setStates(prev => prev.map((s, j) => j === exercise.correctIndex ? 'revealed' : s))
-        setRevealedLabel(word)
-        onFilled(word)
+        setRevealedLabel(exercise.options[exercise.correctIndex].label)
         onAttempt({ success: false, isFinal: true })
       }, SHAKE_RESET_MS)
     } else {
@@ -59,14 +55,14 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Pro
   return (
     <div style={{ width: '100%' }}>
       <div style={{ ...layout.container, width: '100%' }}>
-        {exercise.options.map((option, i) => {
+        {exercise.options.map((opt, i) => {
           const isHandled = states[i] === 'correct' || states[i] === 'revealed'
           const dimmed = someoneWon && !isHandled
           return (
             <div key={i} style={layout.itemStyle(i)}>
               <ExerciseCard
-                text={option}
-                label={option}
+                imageUrl={opt.imageUrl}
+                label={opt.label}
                 state={states[i]}
                 dimmed={dimmed}
                 disabled={locked || states[i] !== 'idle'}
@@ -89,7 +85,7 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Pro
             marginTop: '20px',
           }}
         >
-          Era {revealedLabel}. ¡La próxima la atrapamos!
+          Era la {revealedLabel}. ¡La próxima la atrapamos!
         </p>
       )}
     </div>

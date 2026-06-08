@@ -1,130 +1,95 @@
 import { useState } from 'react'
 import { type RuntimeOddOneOut } from '../../data/exercises'
+import { useIsMobile } from '../../hooks/useIsMobile'
+import { optionGrid } from './optionGrid'
+import ExerciseCard, { type CardState } from './ExerciseCard'
 
 interface Props {
   exercise: RuntimeOddOneOut
-  onCorrect: () => void
+  onAttempt: (r: { success: boolean; isFinal: boolean }) => void
 }
 
-export default function OddOneOutQuestion({ exercise, onCorrect }: Props) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [shakingIndex, setShakingIndex]   = useState<number | null>(null)
-  const [done, setDone]                   = useState(false)
+const SHAKE_RESET_MS = 550
 
-  function handleTap(index: number) {
-    if (done || shakingIndex !== null) return
-    const item = exercise.items[index]
+export default function OddOneOutQuestion({ exercise, onAttempt }: Props) {
+  const isMobile = useIsMobile()
+  const layout = optionGrid(exercise.items.length, isMobile)
 
-    if (item.isOdd) {
-      setSelectedIndex(index)
-      setDone(true)
-      setTimeout(onCorrect, 1100)
+  const [states, setStates] = useState<CardState[]>(() => exercise.items.map(() => 'idle'))
+  const [wrongCount, setWrongCount] = useState(0)
+  const [locked, setLocked] = useState(false)
+  const [revealedLabel, setRevealedLabel] = useState<string | null>(null)
+
+  const oddIndex = exercise.items.findIndex(it => it.isOdd)
+
+  function handleTap(i: number) {
+    if (locked) return
+    if (states[i] !== 'idle') return
+
+    if (exercise.items[i].isOdd) {
+      setLocked(true)
+      setStates(prev => prev.map((s, j) => j === i ? 'correct' : s))
+      onAttempt({ success: true, isFinal: true })
+      return
+    }
+
+    const nextWrong = wrongCount + 1
+    setWrongCount(nextWrong)
+    setStates(prev => prev.map((s, j) => j === i && s === 'idle' ? 'shake' : s))
+    setTimeout(() => {
+      setStates(prev => prev.map((s, j) => j === i && s === 'shake' ? 'idle' : s))
+    }, SHAKE_RESET_MS)
+
+    if (nextWrong >= 2 && oddIndex >= 0) {
+      setLocked(true)
+      setTimeout(() => {
+        setStates(prev => prev.map((s, j) => j === oddIndex ? 'revealed' : s))
+        setRevealedLabel(exercise.items[oddIndex].label)
+        onAttempt({ success: false, isFinal: true })
+      }, SHAKE_RESET_MS)
     } else {
-      setShakingIndex(index)
-      setTimeout(() => setShakingIndex(null), 600)
+      onAttempt({ success: false, isFinal: false })
     }
   }
 
+  const someoneWon = states.some(s => s === 'correct' || s === 'revealed')
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '18px',
-        padding: '8px 0 16px',
-        flex: 1,
-      }}
-    >
-      <p
-        style={{
-          textAlign: 'center',
-          color: '#1A1A2E',
-          fontWeight: 700,
-          fontSize: '18px',
-          fontFamily: 'Nunito, sans-serif',
-          margin: 0,
-          padding: '0 16px',
-        }}
-      >
-        {exercise.question}
-      </p>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '12px',
-          width: '100%',
-          maxWidth: '360px',
-          padding: '0 8px',
-          boxSizing: 'border-box',
-        }}
-      >
-        {exercise.items.map((item, index) => {
-          const isCorrectPicked = done && item.isOdd && index === selectedIndex
-          const isGroupMember   = done && !item.isOdd
-          const isShaking       = shakingIndex === index
-
+    <div style={{ width: '100%' }}>
+      <div style={{ ...layout.container, width: '100%' }}>
+        {exercise.items.map((item, i) => {
+          const isHandled = states[i] === 'correct' || states[i] === 'revealed'
+          const dimmed = someoneWon && !isHandled
           return (
-            <button
-              key={index}
-              onClick={() => handleTap(index)}
-              className={isShaking ? 'animate-shake' : ''}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                padding: '16px 8px',
-                borderRadius: '20px',
-                border: `2.5px solid ${
-                  isCorrectPicked ? '#22C55E' : isGroupMember ? 'rgba(11,175,190,0.3)' : '#E5E7EB'
-                }`,
-                background: isCorrectPicked
-                  ? '#F0FDF4'
-                  : isGroupMember
-                    ? 'rgba(11,175,190,0.08)'
-                    : '#ffffff',
-                cursor: done ? 'default' : 'pointer',
-                minHeight: '118px',
-                position: 'relative',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <span style={{ fontSize: '40px', lineHeight: 1, userSelect: 'none' }}>
-                {item.emoji}
-              </span>
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  color: isCorrectPicked ? '#15803D' : '#0F172A',
-                  fontFamily: 'Nunito, sans-serif',
-                  textAlign: 'center',
-                  lineHeight: 1.2,
-                }}
-              >
-                {item.label}
-              </span>
-              {isCorrectPicked && (
-                <div
-                  style={{
-                    position: 'absolute', top: '6px', right: '8px',
-                    width: '20px', height: '20px', borderRadius: '50%',
-                    background: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                    <path d="M1 4.5L4 7.5L10 1" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-              )}
-            </button>
+            <div key={i} style={layout.itemStyle(i)}>
+              <ExerciseCard
+                imageUrl={item.imageUrl}
+                label={item.label}
+                state={states[i]}
+                dimmed={dimmed}
+                disabled={locked || states[i] !== 'idle'}
+                onTap={() => handleTap(i)}
+                enterDelay={i * 60}
+                maxWidth={layout.cardMaxWidth}
+              />
+            </div>
           )
         })}
       </div>
+      {revealedLabel && (
+        <p
+          style={{
+            textAlign: 'center',
+            fontFamily: 'Nunito, sans-serif',
+            color: '#047857',
+            fontWeight: 700,
+            fontSize: '15px',
+            marginTop: '20px',
+          }}
+        >
+          Era la {revealedLabel}. ¡La próxima la atrapamos!
+        </p>
+      )}
     </div>
   )
 }

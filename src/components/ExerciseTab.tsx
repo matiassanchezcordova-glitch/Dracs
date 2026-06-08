@@ -1,20 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BarChart2, Stethoscope } from 'lucide-react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
-import { buildSession, type RuntimeExercise } from '../data/exercises'
+import { buildSessionFromDb, type RuntimeExercise, type HotspotFilter } from '../data/exercises'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import LoadingSpinner from './LoadingSpinner'
 import SetupScreen from './exercise/SetupScreen'
 import WelcomeScreen from './exercise/WelcomeScreen'
 import ExerciseScreen from './exercise/ExerciseScreen'
 import SessionEndScreen from './exercise/SessionEndScreen'
 
-type Screen = 'setup' | 'welcome' | 'exercise' | 'end'
+type Screen = 'setup' | 'welcome' | 'loading' | 'exercise' | 'end'
 
 interface Props {
   onNavigateToFamilia: () => void
   onNavigateToTerapeuta: () => void
   onRequestAuth?: (mode: 'login' | 'signup') => void
+  // Mapa-mundo (S5.5): cuando se entra desde un hotspot, filtra el pool de la
+  // sesión y permite volver al mapa. Si están ausentes, el comportamiento es el
+  // de siempre (sesión sin filtro, salida a la pantalla de bienvenida).
+  hotspotFilter?: HotspotFilter
+  onBackToMap?: () => void
 }
 
 interface EndState {
@@ -104,15 +110,29 @@ function ProgressAuthPrompt({
 
 // ── Main ─────────────────────────────────────────────────────────────────
 
-export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, onRequestAuth }: Props) {
+export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, onRequestAuth, hotspotFilter, onBackToMap }: Props) {
   const { profile, createProfile, completeSession } = useChildProfile()
   const { user, child, profile: authProfile } = useAuth()
 
-  const [screen, setScreen] = useState<Screen>(profile ? 'welcome' : 'setup')
+  // En modo hotspot arrancamos en 'loading' para que nunca se vea el welcome.
+  const [screen, setScreen] = useState<Screen>(
+    profile ? (hotspotFilter ? 'loading' : 'welcome') : 'setup',
+  )
   const [session, setSession] = useState<RuntimeExercise[]>([])
   const [endState, setEndState] = useState<EndState | null>(null)
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Auto-arranque del flujo de hotspot: apenas hay perfil, saltamos la
+  // bienvenida y vamos directo a loading → exercise. Una sola vez (ref guard).
+  const autoStartedRef = useRef(false)
+  useEffect(() => {
+    if (!hotspotFilter || !profile || autoStartedRef.current) return
+    autoStartedRef.current = true
+    void handleStartSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hotspotFilter, profile])
 
   if (authProfile?.role === 'therapist') {
     return (
@@ -147,14 +167,28 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
 
   function handleProfileCreated(name: string, age: number) {
     createProfile(name, age)
-    setScreen('welcome')
+    // En hotspot vamos a 'loading' (el efecto de auto-arranque dispara la
+    // partida al actualizarse el perfil); en legacy, a la bienvenida.
+    setScreen(hotspotFilter ? 'loading' : 'welcome')
   }
 
-  function handleStartSession() {
+  async function handleStartSession() {
     if (!profile) return
-    setSession(buildSession(profile.level))
-    setSessionStartTime(new Date())
-    setScreen('exercise')
+    setLoadError(null)
+    setScreen('loading')
+    try {
+      const built = await buildSessionFromDb(profile.level, hotspotFilter)
+      if (built.length === 0) {
+        throw new Error('No hay juegos disponibles para tu nivel.')
+      }
+      setSession(built)
+      setSessionStartTime(new Date())
+      setScreen('exercise')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'No pudimos cargar los juegos.'
+      setLoadError(msg)
+      setScreen('welcome')
+    }
   }
 
   async function handleSessionComplete(correct: number, total: number) {
@@ -192,7 +226,9 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
   }
 
   function handleRepeat() {
-    setScreen('welcome')
+    // "Otra partida": en hotspot rejugamos el mismo pool directo (sin welcome).
+    if (hotspotFilter) void handleStartSession()
+    else setScreen('welcome')
   }
 
   function handleViewProgress() {
@@ -214,7 +250,11 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
   }
 
   if (screen === 'welcome') {
-    return <WelcomeScreen profile={profile} onStart={handleStartSession} />
+    return <WelcomeScreen profile={profile} onStart={handleStartSession} errorMessage={loadError} />
+  }
+
+  if (screen === 'loading') {
+    return <LoadingSpinner />
   }
 
   if (screen === 'exercise') {
@@ -222,9 +262,9 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
       <ExerciseScreen
         exercises={session}
         childName={profile.name}
-        level={profile.level}
         sessionNumber={loadHistory().length + 1}
         onComplete={handleSessionComplete}
+        onExit={() => (onBackToMap ? onBackToMap() : setScreen('welcome'))}
       />
     )
   }
