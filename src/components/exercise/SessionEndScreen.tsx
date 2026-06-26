@@ -49,6 +49,9 @@ interface Props {
   onRepeat: () => void
   onViewProgress: () => void
   hasAccount?: boolean
+  // Autoplay tipo Netflix: si se pasa, tras un countdown arranca otra partida del
+  // mismo hotspot automáticamente. Si está ausente, no hay countdown (legacy).
+  onAutoPlayNext?: () => void
 }
 
 function getMessage(pct: number): string {
@@ -90,12 +93,37 @@ function StatCard({ icon, value, label, color = '#0F172A' }: {
   )
 }
 
-export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, hasAccount = true }: Props) {
+export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, hasAccount = true, onAutoPlayNext }: Props) {
   const pct     = total > 0 ? Math.round((correct / total) * 100) : 0
   const message = getMessage(pct)
   const isPerfect = pct === 100
   const [btn1H, setBtn1H] = useState(false)
   const [btn2H, setBtn2H] = useState(false)
+  const [waitH, setWaitH] = useState(false)
+
+  // Countdown Netflix
+  const [secondsLeft, setSecondsLeft] = useState(5)
+  const [cancelled, setCancelled] = useState(false)
+
+  useEffect(() => {
+    if (!onAutoPlayNext || cancelled) return
+    if (secondsLeft <= 0) {
+      onAutoPlayNext()
+      return
+    }
+    const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [secondsLeft, cancelled, onAutoPlayNext])
+
+  // Cualquier acción manual cancela el countdown antes de su handler propio.
+  function handleRepeat() {
+    setCancelled(true)
+    onRepeat()
+  }
+  function handleViewProgress() {
+    setCancelled(true)
+    onViewProgress()
+  }
 
   return (
     <div
@@ -192,7 +220,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '320px' }}>
         <button
-          onClick={onRepeat}
+          onClick={handleRepeat}
           onMouseEnter={() => setBtn1H(true)}
           onMouseLeave={() => setBtn1H(false)}
           style={{
@@ -219,7 +247,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
           Otra partida
         </button>
         <button
-          onClick={onViewProgress}
+          onClick={handleViewProgress}
           onMouseEnter={() => setBtn2H(true)}
           onMouseLeave={() => setBtn2H(false)}
           style={{
@@ -245,6 +273,50 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
           {hasAccount ? 'Ver mi progreso' : 'Guardá tu progreso'}
         </button>
       </div>
+
+      {/* Countdown Netflix — sólo en modo hotspot (onAutoPlayNext presente) */}
+      {onAutoPlayNext && !cancelled && (
+        <div
+          style={{
+            marginTop: '4px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            fontFamily: 'Fredoka, system-ui, sans-serif',
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: '20px',
+              fontWeight: 600,
+              color: '#0BAFBE',
+            }}
+          >
+            Próxima partida en {secondsLeft}
+          </p>
+          <button
+            onClick={() => setCancelled(true)}
+            onMouseEnter={() => setWaitH(true)}
+            onMouseLeave={() => setWaitH(false)}
+            style={{
+              padding: '8px 20px',
+              borderRadius: '14px',
+              border: '1.5px solid #CBD5E1',
+              background: waitH ? '#F1F5F9' : 'transparent',
+              color: '#64748B',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            Esperar
+          </button>
+        </div>
+      )}
     </div>
   )
 }

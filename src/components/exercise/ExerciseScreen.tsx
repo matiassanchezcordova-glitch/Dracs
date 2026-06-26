@@ -207,8 +207,14 @@ export default function ExerciseScreen({
   useEffect(() => {
     setFeedbackText(null)
     setFilledWord(null)
-    // Autoplay the prompt audio when a new game appears.
-    playAudio(current?.audioUrl)
+    // Autoplay the prompt audio when a new game appears. En el primer juego
+    // demoramos ~1.8s para no pisar el intro del hotspot (que suena al montar).
+    const delay = currentIndex === 0 ? 1400 : 0
+    const timer = setTimeout(() => {
+      playAudio(current?.audioUrl)
+    }, delay)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex])
 
   function advance(success: boolean) {

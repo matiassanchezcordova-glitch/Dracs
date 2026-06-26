@@ -279,6 +279,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
           onRepeat={handleRepeat}
           onViewProgress={handleViewProgress}
           hasAccount={!!user}
+          onAutoPlayNext={hotspotFilter ? handleRepeat : undefined}
         />
         {showAuthPrompt && (
           <ProgressAuthPrompt
