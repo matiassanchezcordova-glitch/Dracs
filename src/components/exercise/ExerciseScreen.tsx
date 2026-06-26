@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Volume2, X } from 'lucide-react'
 import { type RuntimeExercise, type RuntimeFillBlank } from '../../data/exercises'
+import { useUiAudios } from '../../hooks/useUiAudios'
 import IdentifyImageQuestion from './IdentifyImageQuestion'
 import SequenceQuestion from './SequenceQuestion'
 import OddOneOutQuestion from './OddOneOutQuestion'
@@ -176,12 +177,38 @@ export default function ExerciseScreen({
   const [filledWord, setFilledWord] = useState<string | null>(null)
   const [showExit, setShowExit] = useState(false)
 
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const { playCorrect, playIncorrect } = useUiAudios()
+
   const current = exercises[currentIndex]
   const total   = exercises.length
+
+  // Single shared Audio instance for the whole screen (prompt + feedback).
+  useEffect(() => {
+    audioRef.current = new Audio()
+    return () => {
+      audioRef.current?.pause()
+      audioRef.current = null
+    }
+  }, [])
+
+  function playAudio(url: string | null | undefined) {
+    if (!url || !audioRef.current) return
+    try {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      audioRef.current.src = url
+      audioRef.current.play().catch(() => { /* autoplay policy or net error — silent */ })
+    } catch {
+      /* silent */
+    }
+  }
 
   useEffect(() => {
     setFeedbackText(null)
     setFilledWord(null)
+    // Autoplay the prompt audio when a new game appears.
+    playAudio(current?.audioUrl)
   }, [currentIndex])
 
   function advance(success: boolean) {
@@ -197,9 +224,11 @@ export default function ExerciseScreen({
 
   function handleAttempt({ success, isFinal }: { success: boolean; isFinal: boolean }) {
     if (success) {
+      playAudio(playCorrect())
       setFeedbackText(pickRandom(PRAISE_POOL))
       setTimeout(() => advance(true), 1700)
     } else if (!isFinal) {
+      playAudio(playIncorrect())
       const msg = pickRandom(ENCOURAGE_POOL)
       setFeedbackText(msg)
       setTimeout(() => setFeedbackText(curr => curr === msg ? null : curr), 1200)
@@ -222,21 +251,15 @@ export default function ExerciseScreen({
   if (current.type === 'fill_blank') {
     heading = <FillBlankSentence exercise={current} filledWord={filledWord} />
   } else if (current.type === 'odd_one_out' || current.type === 'sequence') {
-    heading = current.question || current.prompt
+    heading = current.question || current.promptOriginal || current.prompt
   } else {
-    heading = current.prompt
+    heading = current.promptOriginal || current.prompt
   }
 
   const audioAvailable = !!current.audioUrl
 
   function handlePlayAudio() {
-    if (!current.audioUrl) return
-    try {
-      const audio = new Audio(current.audioUrl)
-      audio.play().catch(() => { /* user gesture or network — silent fail */ })
-    } catch {
-      /* silent */
-    }
+    playAudio(current.audioUrl)
   }
 
   return (

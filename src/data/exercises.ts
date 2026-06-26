@@ -14,6 +14,7 @@ export interface RuntimeVocabulary {
   id: string
   word: string
   prompt: string
+  promptOriginal: string | null
   audioUrl: string | null
   options: Option[]
   correctIndex: number
@@ -30,6 +31,7 @@ export interface RuntimeSequence {
   id: string
   question: string
   prompt: string
+  promptOriginal: string | null
   audioUrl: string | null
   items: RuntimeSequenceItem[]
   correctOrder: number[]
@@ -46,6 +48,7 @@ export interface RuntimeOddOneOut {
   id: string
   question: string
   prompt: string
+  promptOriginal: string | null
   audioUrl: string | null
   items: RuntimeOddOneOutItem[]
 }
@@ -55,6 +58,7 @@ export interface RuntimeFillBlank {
   id: string
   sentence: string
   prompt: string
+  promptOriginal: string | null
   audioUrl: string | null
   options: string[]
   correctIndex: number
@@ -95,6 +99,7 @@ interface DbExerciseRow {
   difficulty: number
   title: string
   prompt: string
+  prompt_original: string | null
   audio_url: string | null
   content: Record<string, unknown>
 }
@@ -134,6 +139,7 @@ function adaptIdentifyImage(row: DbExerciseRow): RuntimeVocabulary | null {
     id: row.id,
     word: asString(c.word) ?? row.title,
     prompt: promptOrTitle(row),
+    promptOriginal: row.prompt_original ?? null,
     audioUrl: row.audio_url,
     options: shuffled,
     correctIndex: shuffled.findIndex(o => o.imageUrl === correctImg),
@@ -157,6 +163,7 @@ function adaptOddOneOut(row: DbExerciseRow): RuntimeOddOneOut | null {
     id: row.id,
     question: asString(c.question) ?? row.prompt,
     prompt: promptOrTitle(row),
+    promptOriginal: row.prompt_original ?? null,
     audioUrl: row.audio_url,
     items: shuffle(items),
   }
@@ -181,6 +188,7 @@ function adaptSequence(row: DbExerciseRow): RuntimeSequence | null {
     id: row.id,
     question: asString(c.question) ?? row.prompt,
     prompt: promptOrTitle(row),
+    promptOriginal: row.prompt_original ?? null,
     audioUrl: row.audio_url,
     items: shuffle(items),
     correctOrder,
@@ -205,6 +213,7 @@ function adaptFillBlank(row: DbExerciseRow): RuntimeFillBlank | null {
     id: row.id,
     sentence,
     prompt: promptOrTitle(row),
+    promptOriginal: row.prompt_original ?? null,
     audioUrl: row.audio_url,
     options: shuffled,
     correctIndex: shuffled.indexOf(correctText),
@@ -267,7 +276,7 @@ export async function buildSessionFromDb(
 ): Promise<RuntimeExercise[]> {
   let query = supabase
     .from('exercises')
-    .select('id, type, category, difficulty, title, prompt, audio_url, content')
+    .select('id, type, category, difficulty, title, prompt, prompt_original, audio_url, content')
     .eq('content->>mechanic', 'A')
 
   // pool_type 'place' filtra por la columna exercises.place. 'random_all' no
