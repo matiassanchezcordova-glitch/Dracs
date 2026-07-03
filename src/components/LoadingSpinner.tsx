@@ -3,7 +3,7 @@ export default function LoadingSpinner() {
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
       justifyContent: 'center', flexDirection: 'column', gap: '20px',
-      background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)',
+      background: '#FAF5E8',
     }}>
       <img
         src="/dragon.nb.png" alt="Dracs"

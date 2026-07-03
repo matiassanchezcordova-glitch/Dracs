@@ -4,7 +4,7 @@ export default function NotFoundPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)',
+      background: '#FAF5E8',
       fontFamily: 'Nunito, sans-serif',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',

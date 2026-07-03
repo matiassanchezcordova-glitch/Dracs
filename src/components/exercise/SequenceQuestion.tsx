@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { type RuntimeSequence } from '../../data/exercises'
+import { type WorldPalette } from '../../lib/worldColors'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { optionGrid } from './optionGrid'
 import ExerciseCard, { type CardState } from './ExerciseCard'
@@ -7,11 +8,12 @@ import ExerciseCard, { type CardState } from './ExerciseCard'
 interface Props {
   exercise: RuntimeSequence
   onAttempt: (r: { success: boolean; isFinal: boolean }) => void
+  palette?: WorldPalette
 }
 
 const SHAKE_RESET_MS = 700
 
-export default function SequenceQuestion({ exercise, onAttempt }: Props) {
+export default function SequenceQuestion({ exercise, onAttempt, palette }: Props) {
   const isMobile = useIsMobile()
   const layout = optionGrid(exercise.items.length, isMobile)
 
@@ -84,6 +86,7 @@ export default function SequenceQuestion({ exercise, onAttempt }: Props) {
                 onTap={() => handleTap(displayIndex)}
                 enterDelay={displayIndex * 60}
                 maxWidth={layout.cardMaxWidth}
+                palette={palette}
               />
             </div>
           )

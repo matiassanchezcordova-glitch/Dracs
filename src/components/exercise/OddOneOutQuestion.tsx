@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { type RuntimeOddOneOut } from '../../data/exercises'
+import { type WorldPalette } from '../../lib/worldColors'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { optionGrid } from './optionGrid'
 import ExerciseCard, { type CardState } from './ExerciseCard'
@@ -7,11 +8,12 @@ import ExerciseCard, { type CardState } from './ExerciseCard'
 interface Props {
   exercise: RuntimeOddOneOut
   onAttempt: (r: { success: boolean; isFinal: boolean }) => void
+  palette?: WorldPalette
 }
 
 const SHAKE_RESET_MS = 550
 
-export default function OddOneOutQuestion({ exercise, onAttempt }: Props) {
+export default function OddOneOutQuestion({ exercise, onAttempt, palette }: Props) {
   const isMobile = useIsMobile()
   const layout = optionGrid(exercise.items.length, isMobile)
 
@@ -71,6 +73,7 @@ export default function OddOneOutQuestion({ exercise, onAttempt }: Props) {
                 onTap={() => handleTap(i)}
                 enterDelay={i * 60}
                 maxWidth={layout.cardMaxWidth}
+                palette={palette}
               />
             </div>
           )

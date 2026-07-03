@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Volume2, X } from 'lucide-react'
 import { type RuntimeExercise, type RuntimeFillBlank } from '../../data/exercises'
+import { type WorldPalette, getPaletteForHotspot } from '../../lib/worldColors'
 import { useUiAudios } from '../../hooks/useUiAudios'
 import IdentifyImageQuestion from './IdentifyImageQuestion'
 import SequenceQuestion from './SequenceQuestion'
@@ -13,6 +14,7 @@ interface Props {
   sessionNumber: number
   onComplete: (correct: number, total: number) => void
   onExit: () => void
+  palette?: WorldPalette
 }
 
 // ── Feedback pools ──────────────────────────────────────────────────────────
@@ -25,45 +27,6 @@ function pickRandom<T>(pool: readonly T[]): T {
 }
 
 // ── Header pieces ───────────────────────────────────────────────────────────
-
-function ProgressBar({ value, total }: { value: number; total: number }) {
-  const pct = total > 0 ? (value / total) * 100 : 0
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-      <span
-        style={{
-          fontFamily: 'Nunito, sans-serif',
-          fontWeight: 800,
-          fontSize: '13px',
-          color: '#0BAFBE',
-          fontVariantNumeric: 'tabular-nums',
-          letterSpacing: '0.3px',
-        }}
-      >
-        {value}/{total}
-      </span>
-      <div
-        style={{
-          width: '100%',
-          height: '6px',
-          background: '#E5F4F6',
-          borderRadius: '999px',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: '#0BAFBE',
-            borderRadius: '999px',
-            transition: 'width 0.5s ease',
-          }}
-        />
-      </div>
-    </div>
-  )
-}
 
 // Sentence with fillable blank, rendered for fill_blank exercises in the header.
 function FillBlankSentence({
@@ -169,8 +132,9 @@ function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm:
 // ── Main ────────────────────────────────────────────────────────────────────
 
 export default function ExerciseScreen({
-  exercises, childName, sessionNumber, onComplete, onExit,
+  exercises, childName, sessionNumber, onComplete, onExit, palette,
 }: Props) {
+  const pal = palette ?? getPaletteForHotspot(undefined)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [feedbackText, setFeedbackText] = useState<string | null>(null)
@@ -271,14 +235,14 @@ export default function ExerciseScreen({
   return (
     <div
       style={{
-        flex: 1,
-        background: '#E0F2FE',
+        // position:fixed + zIndex alto → tapa el shell (navbar + tabs) durante
+        // la partida. El header limpio sólo reaparece al volver al mapa (X).
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
         display: 'flex',
         flexDirection: 'column',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        minHeight: '100%',
-        position: 'relative',
+        background: pal.cream,
         fontFamily: 'Nunito, sans-serif',
       }}
     >
@@ -307,116 +271,133 @@ export default function ExerciseScreen({
         }
       `}</style>
 
-      {/* Close button */}
-      <button
-        type="button"
-        aria-label="Terminar"
-        onClick={() => setShowExit(true)}
-        style={{
-          position: 'absolute',
-          top: '14px',
-          right: '14px',
-          width: '38px',
-          height: '38px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.7)',
-          border: '1px solid #E5E7EB',
-          cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#6B7280',
-          zIndex: 10,
-        }}
-      >
-        <X size={18} />
-      </button>
-
+      {/* ── ZONA SUPERIOR: color del lugar, 40% ───────────────────────────── */}
       <div
         style={{
+          flex: '0 0 40%',
+          background: pal.primary,
           display: 'flex',
           flexDirection: 'column',
-          width: '100%',
-          maxWidth: '720px',
-          margin: '0 auto',
-          padding: '24px 24px 64px',
-          gap: '20px',
-          flex: 1,
+          padding: '24px',
+          position: 'relative',
         }}
       >
-        {/* Header — progress + heading + audio */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', paddingTop: '8px' }}>
-          <ProgressBar value={currentIndex + 1} total={total} />
+        {/* X (esquina superior derecha) */}
+        <button
+          type="button"
+          aria-label="Terminar"
+          onClick={() => setShowExit(true)}
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            width: 40, height: 40, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.2)',
+            border: 'none', color: pal.text, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1,
+          }}
+        >
+          <X size={20} />
+        </button>
 
-          <div
+        {/* Enunciado gigante centrado verticalmente */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+          <h1
+            key={currentIndex}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              justifyContent: 'center',
+              margin: 0,
+              fontFamily: 'Fredoka, system-ui, sans-serif',
+              fontWeight: 700,
+              fontSize: 'clamp(28px, 5vw, 44px)',
+              color: pal.text,
+              textAlign: 'center',
+              lineHeight: 1.15,
+              maxWidth: '900px',
+              animation: 'exercise-feedback-in 0.3s ease',
             }}
           >
-            <h1
-              key={currentIndex}
+            {heading}
+          </h1>
+
+          {audioAvailable && (
+            <button
+              type="button"
+              aria-label="Escuchar consigna"
+              onClick={handlePlayAudio}
               style={{
-                margin: 0,
-                fontFamily: 'Nunito, sans-serif',
-                fontSize: 'clamp(22px, 4.4vw, 30px)',
-                fontWeight: 800,
-                color: '#1F2937',
-                textAlign: 'center',
-                lineHeight: 1.25,
-                animation: 'exercise-feedback-in 0.3s ease',
+                width: 48, height: 48, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none', color: pal.text, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              {heading}
-            </h1>
-
-            {audioAvailable && (
-              <button
-                type="button"
-                aria-label="Escuchar consigna"
-                onClick={handlePlayAudio}
-                style={{
-                  width: '40px', height: '40px',
-                  borderRadius: '50%',
-                  background: '#FFFFFF',
-                  border: '1.5px solid #E5E7EB',
-                  cursor: 'pointer',
-                  color: '#0BAFBE',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <Volume2 size={20} />
-              </button>
-            )}
-          </div>
-
-          {/* Feedback toast (random praise/encourage) */}
-          <div style={{ minHeight: '24px', display: 'flex', justifyContent: 'center' }}>
-            {feedbackText && (
-              <span
-                key={feedbackText + currentIndex}
-                style={{
-                  fontFamily: 'Nunito, sans-serif',
-                  fontWeight: 800,
-                  fontSize: '17px',
-                  color: PRAISE_POOL.includes(feedbackText) ? '#10B981' : '#F59E0B',
-                  animation: 'exercise-feedback-in 0.25s ease',
-                }}
-              >
-                {feedbackText}
-              </span>
-            )}
-          </div>
+              <Volume2 size={22} />
+            </button>
+          )}
         </div>
+      </div>
 
-        {/* Body — dispatched by type */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '8px' }}>
+      {/* ── DIVISOR = PROGRESS BAR: ancho completo, alto fijo ─────────────── */}
+      <div
+        style={{
+          height: '10px',
+          background: pal.primaryDark,
+          flexShrink: 0,
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${total > 0 ? ((currentIndex + 1) / total) * 100 : 0}%`,
+            background: pal.accent,
+            transition: 'width 0.5s ease',
+          }}
+        />
+      </div>
+
+      {/* ── ZONA INFERIOR: cream, 60%, aloja las cards + toast ────────────── */}
+      <div
+        style={{
+          flex: '1 1 60%',
+          background: pal.cream,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '32px 24px',
+          overflow: 'auto',
+          position: 'relative',
+        }}
+      >
+        {/* Toast de feedback flotante, arriba de las cards */}
+        {feedbackText && (
+          <div
+            key={feedbackText + currentIndex}
+            style={{
+              position: 'absolute',
+              top: '24px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
+              fontWeight: 700,
+              fontSize: '28px',
+              color: pal.primary,
+              animation: 'feedback-toast 0.25s ease',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+            }}
+          >
+            {feedbackText}
+          </div>
+        )}
+
+        <div style={{ width: '100%', maxWidth: '720px' }}>
           {current.type === 'vocabulary' && (
             <IdentifyImageQuestion
               key={current.id + ':' + currentIndex}
               exercise={current}
               onAttempt={handleAttempt}
+              palette={pal}
             />
           )}
           {current.type === 'sequence' && (
@@ -424,6 +405,7 @@ export default function ExerciseScreen({
               key={current.id + ':' + currentIndex}
               exercise={current}
               onAttempt={handleAttempt}
+              palette={pal}
             />
           )}
           {current.type === 'odd_one_out' && (
@@ -431,6 +413,7 @@ export default function ExerciseScreen({
               key={current.id + ':' + currentIndex}
               exercise={current}
               onAttempt={handleAttempt}
+              palette={pal}
             />
           )}
           {current.type === 'fill_blank' && (
@@ -439,6 +422,7 @@ export default function ExerciseScreen({
               exercise={current}
               onAttempt={handleAttempt}
               onFilled={handleFillBlankFilled}
+              palette={pal}
             />
           )}
         </div>

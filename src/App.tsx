@@ -1,6 +1,6 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, type CSSProperties, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Gamepad2, BarChart2, Users, LogOut, X } from 'lucide-react'
+import { Gamepad2, BarChart2, Users, LogOut, X, ChevronDown } from 'lucide-react'
 import { type Role } from './components/RoleSelector'
 import { useAuth } from './context/AuthContext'
 import { TherapistProvider } from './context/TherapistContext'
@@ -11,12 +11,6 @@ import {
 } from './lib/role'
 
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
-
-const ALL_NAV_TABS: { id: Tab; label: string; icon: ReactNode; roles: Role[]; path: string }[] = [
-  { id: 'ejercicio', label: 'Jugar',  icon: <Gamepad2  size={20} />, roles: ['child', 'family', 'therapist', 'demo'], path: '/app/nino' },
-  { id: 'terapeuta', label: 'Terapeuta',  icon: <BarChart2 size={20} />, roles: ['therapist', 'demo'],                    path: '/app/terapeuta' },
-  { id: 'familia',   label: 'Familia',    icon: <Users     size={20} />, roles: ['family', 'therapist', 'demo'],          path: '/app/familia' },
-]
 
 function pathToTab(pathname: string): Tab | null {
   if (pathname.startsWith('/app/nino')) return 'ejercicio'
@@ -30,18 +24,35 @@ function AppInner() {
   const navigate = useNavigate()
   const location = useLocation()
   const [showDemoModal, setShowDemoModal] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const localRole = getLocalRole()
   const role: Role = profile ? dbRoleToUiRole(profile.role) : (localRole ?? 'child')
   const isDemo = role === 'demo'
-  const visibleTabs = ALL_NAV_TABS.filter(t => t.roles.includes(role))
   const activeTab = pathToTab(location.pathname)
 
-  const isChildOrFamily = role === 'child' || role === 'family'
   const childName = isDemo ? null : (patient?.child_name ?? null)
   const therapistName = isDemo ? null : (profile?.full_name ?? null)
 
+  // Nombre + inicial para el avatar del menú del header.
+  const displayName = childName ?? therapistName ?? (isDemo ? 'Demo' : 'Invitado')
+  const avatarInitial = displayName.charAt(0).toUpperCase()
+
+  // 3 opciones directas del menú del avatar. La segunda depende del rol:
+  // terapeuta → "Terapeuta" (/app/terapeuta); resto → "Familia" (/app/familia).
+  const menuOptions: { label: string; icon: ReactNode; path: string }[] = [
+    { label: 'Juegos', icon: <Gamepad2 size={18} />, path: '/app/nino' },
+    role === 'therapist'
+      ? { label: 'Terapeuta', icon: <BarChart2 size={18} />, path: '/app/terapeuta' }
+      : { label: 'Familia', icon: <Users size={18} />, path: '/app/familia' },
+  ]
+
+  function closeMenu() {
+    setMenuOpen(false)
+  }
+
   async function handleLogout() {
+    closeMenu()
     if (user) await logout()
     clearAllDracsStorage()
     navigate('/', { replace: true })
@@ -58,17 +69,15 @@ function AppInner() {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100svh',
-        background: '#E0F2FE',
+        background: '#FAF5E8',
         animation: 'fadeIn 0.4s ease',
       }}
     >
       {/* ── Navbar ──────────────────────────────────────────────── */}
       <nav
         style={{
-          // Navbar fundida con el fondo: mismo sky-100 que el resto de la app,
-          // diferenciada solo por contenido, no por color.
-          backgroundColor: '#E0F2FE',
-          borderBottom: '1px solid rgba(11,175,190,0.12)',
+          // Navbar fundida con el body: misma crema, sin borde ni shadow.
+          backgroundColor: '#FAF5E8',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -86,7 +95,7 @@ function AppInner() {
             justifyContent: 'space-between',
           }}
         >
-          {/* ── Left: logo + user info ─────────────────────────── */}
+          {/* ── Left: logo ─────────────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <span
               style={{
@@ -116,68 +125,106 @@ function AppInner() {
                 DEMO
               </button>
             )}
-
-            {isChildOrFamily && childName && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{
-                  width: '32px', height: '32px', borderRadius: '50%',
-                  backgroundColor: '#FFD93D', color: '#1A1A2E',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '14px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
-                }}>
-                  {childName[0].toUpperCase()}
-                </div>
-                <span className="dracs-user-name" style={{
-                  fontFamily: 'Nunito, sans-serif', fontWeight: 600,
-                  fontSize: '14px', color: '#1A1A2E',
-                }}>
-                  {childName}
-                </span>
-                <LogoutBtn onLogout={handleLogout} />
-              </div>
-            )}
-
-            {role === 'therapist' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="dracs-user-name" style={{
-                  fontFamily: 'Nunito, sans-serif', fontWeight: 600,
-                  fontSize: '11px', color: '#6B7280', letterSpacing: '0.02em',
-                }}>
-                  {therapistName ?? 'Terapeuta'} · Terapeuta
-                </span>
-                <LogoutBtn onLogout={handleLogout} />
-              </div>
-            )}
-
-            {!childName && !therapistName && role !== 'therapist' && (
-              <LogoutBtn onLogout={handleLogout} />
-            )}
           </div>
 
-          {/* ── Tabs ──────────────────────────────────────────────── */}
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {visibleTabs.map(tab => {
-              const active = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => navigate(tab.path)}
+          {/* ── Right: avatar + nombre con menú ───────────────────── */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: menuOpen ? 'rgba(11,175,190,0.08)' : 'transparent',
+                border: 'none', borderRadius: '999px', padding: '4px 8px 4px 4px',
+                cursor: 'pointer', transition: 'background 0.2s ease',
+              }}
+            >
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '50%',
+                backgroundColor: '#FFD93D', color: '#1A1A2E',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '14px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
+              }}>
+                {avatarInitial}
+              </div>
+              <span className="dracs-user-name" style={{
+                fontFamily: 'Nunito, sans-serif', fontWeight: 600,
+                fontSize: '14px', color: '#1A1A2E',
+              }}>
+                {displayName}
+              </span>
+              <ChevronDown
+                size={16}
+                style={{
+                  color: '#6B7280', flexShrink: 0,
+                  transform: menuOpen ? 'rotate(180deg)' : 'rotate(0)',
+                  transition: 'transform 0.2s ease',
+                }}
+              />
+            </button>
+
+            {menuOpen && (
+              <>
+                {/* Backdrop para cerrar al tocar afuera */}
+                <div
+                  onClick={closeMenu}
+                  style={{ position: 'fixed', inset: 0, zIndex: 60 }}
+                />
+                <div
+                  role="menu"
                   style={{
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', gap: '2px', padding: '6px 16px',
-                    backgroundColor: 'transparent',
-                    color: active ? '#0BAFBE' : '#6B7280', border: 'none',
-                    borderBottom: active ? '2px solid #0BAFBE' : '2px solid transparent',
-                    cursor: 'pointer', fontFamily: 'Fredoka, system-ui, sans-serif',
-                    fontWeight: 600, fontSize: '12px',
-                    transition: 'all 0.2s ease', marginBottom: '-2px',
+                    position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                    minWidth: '200px', background: '#FFFFFF',
+                    borderRadius: '14px', border: '1px solid #F1F5F9',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.14)',
+                    padding: '6px', zIndex: 70,
+                    fontFamily: 'Nunito, sans-serif',
+                    animation: 'wordSlideDown 0.18s ease',
                   }}
                 >
-                  <span style={{ display: 'flex' }}>{tab.icon}</span>
-                  <span className="dracs-nav-tab-label">{tab.label}</span>
-                </button>
-              )
-            })}
+                  {/* 3 opciones directas, sin submenús */}
+                  {menuOptions.map(opt => {
+                    const active = location.pathname.startsWith(opt.path)
+                    return (
+                      <button
+                        key={opt.path}
+                        role="menuitem"
+                        onClick={() => { closeMenu(); navigate(opt.path) }}
+                        style={{
+                          ...menuItemStyle,
+                          color: active ? '#0BAFBE' : '#1A1A2E',
+                          fontWeight: active ? 800 : 600,
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ display: 'flex', color: active ? '#0BAFBE' : '#94A3B8' }}>{opt.icon}</span>
+                          {opt.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+
+                  <div style={{ height: '1px', background: '#F1F5F9', margin: '6px 4px' }} />
+
+                  {/* Cerrar sesión */}
+                  <button
+                    role="menuitem"
+                    onClick={handleLogout}
+                    style={{ ...menuItemStyle, color: '#DC2626' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <LogOut size={16} />
+                      Cerrar sesión
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -254,20 +301,12 @@ export default function App() {
   )
 }
 
-function LogoutBtn({ onLogout }: { onLogout: () => void }) {
-  return (
-    <button
-      onClick={onLogout}
-      title="Cerrar sesión"
-      style={{
-        background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
-        borderRadius: '6px', display: 'flex', alignItems: 'center',
-        color: '#94A3B8', transition: 'color 0.2s ease', flexShrink: 0,
-      }}
-      onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#DC2626')}
-      onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#94A3B8')}
-    >
-      <LogOut size={16} />
-    </button>
-  )
+// Estilo base de cada item del menú del avatar.
+const menuItemStyle: CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  width: '100%', gap: '8px', padding: '10px 12px',
+  background: 'transparent', border: 'none', borderRadius: '10px',
+  cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
+  fontSize: '14px', fontWeight: 600, color: '#1A1A2E',
+  textAlign: 'left', transition: 'background 0.15s ease',
 }

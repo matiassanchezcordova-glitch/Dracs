@@ -292,28 +292,27 @@ function FamiliaContent({
       {!showReport && (
         <div style={{ width: '100%', maxWidth: '760px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Hero card */}
+          {/* Hero — texto sobre crema, sin caja ni banda de color */}
           <div style={{
-            background: 'linear-gradient(135deg, #0BAFBE 0%, #0891A0 100%)',
-            borderRadius: '20px',
-            padding: '28px 24px',
+            padding: '8px 4px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '24px',
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, fontFamily: 'Fredoka, system-ui, sans-serif' }}>
+              <h1 style={{ margin: 0, fontSize: '32px', fontWeight: 700, color: '#0A6E78', lineHeight: 1.15, fontFamily: 'Fredoka, system-ui, sans-serif' }}>
                 Hola, familia de {childName}.
               </h1>
-              <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', fontFamily: 'Nunito, sans-serif' }}>
+              <p style={{ margin: '8px 0 0', fontSize: '15px', fontWeight: 600, color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>
                 {heroSubtitle}
               </p>
             </div>
-            <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: '24px' }}>
-              <div style={{ fontSize: '64px', fontWeight: 800, color: '#FFD93D', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ textAlign: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: '64px', fontWeight: 800, color: '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
                 {sessionCount}
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', fontFamily: 'Nunito, sans-serif', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', fontFamily: 'Nunito, sans-serif', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 SESIONES ESTA SEMANA
               </div>
             </div>

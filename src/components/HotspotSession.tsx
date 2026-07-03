@@ -98,6 +98,7 @@ export default function HotspotSession() {
   return (
     <ExerciseTab
       hotspotFilter={filter}
+      hotspotId={hotspot.id}
       onBackToMap={() => navigate('/app/nino')}
       onNavigateToFamilia={() => navigate('/app/familia')}
       onNavigateToTerapeuta={() => navigate('/app/terapeuta')}

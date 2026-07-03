@@ -43,6 +43,7 @@
   --font-body: 'Nunito', system-ui, sans-serif;
   --color-primary: #0BAFBE;
   --color-secondary: #FFD93D;
+  --color-cream: #FAF5E8;
   --color-bg: #F0FAFA;
   --color-correct: #22C55E;
   --color-incorrect: #F87171;
@@ -53,6 +54,12 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* ── Feedback toast (zona crema, sobre las cards) ─────────────────────── */
+@keyframes feedback-toast {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
 /* ── Dragon float variant (larger range, for role selector & about) ───── */
@@ -182,14 +189,14 @@ html {
 
 html, body {
   max-width: 100vw;
-  /* Color base unificado: la app entera respira sky-100, sin bandas grises/
-     blancas asomando debajo del shell en ningún breakpoint. */
-  background-color: #E0F2FE;
+  /* Color base unificado: la app entera respira crema (#FAF5E8), sin bandas
+     grises/blancas asomando debajo del shell en ningún breakpoint. */
+  background-color: #FAF5E8;
 }
 
 body, #root {
   margin: 0;
-  background-color: #E0F2FE;
+  background-color: #FAF5E8;
   min-height: 100vh;
   color: #1A1A2E;
   font-family: var(--font-body);

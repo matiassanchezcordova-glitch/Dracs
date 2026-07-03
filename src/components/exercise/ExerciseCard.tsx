@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
+import { type WorldPalette } from '../../lib/worldColors'
 
 export type CardState = 'idle' | 'shake' | 'correct' | 'revealed'
+
+// Color de acento por defecto (mar) cuando no se pasa paleta del lugar.
+const DEFAULT_ACCENT = '#1E5FAA'
 
 interface Props {
   imageUrl?: string
@@ -14,6 +18,7 @@ interface Props {
   onTap: () => void
   enterDelay?: number
   maxWidth?: number
+  palette?: WorldPalette
 }
 
 // Unified card for all 4 exercise types.
@@ -32,9 +37,11 @@ export default function ExerciseCard({
   onTap,
   enterDelay = 0,
   maxWidth,
+  palette,
 }: Props) {
   const [hovered, setHovered] = useState(false)
   const [pressed, setPressed] = useState(false)
+  const accent = palette?.accent ?? DEFAULT_ACCENT
 
   const isCorrect  = state === 'correct'
   const isRevealed = state === 'revealed'
@@ -47,9 +54,9 @@ export default function ExerciseCard({
   let bgColor     = '#FFFFFF'
   let shadow      = '0 2px 6px rgba(15,23,42,0.06)'
 
-  if (!disabled && isIdle && hovered) {
-    borderColor = '#0BAFBE'
-    shadow = '0 8px 22px rgba(11,175,190,0.18)'
+  if (!disabled && isIdle && (hovered || pressed)) {
+    borderColor = accent
+    shadow = '0 12px 24px rgba(0,0,0,0.15)'
   }
   if (isCorrect || isRevealed) {
     borderColor = '#10B981'
@@ -62,8 +69,8 @@ export default function ExerciseCard({
 
   let transform = 'scale(1)'
   if (!disabled && isIdle) {
-    if (pressed)      transform = 'scale(0.97)'
-    else if (hovered) transform = 'translateY(-3px)'
+    if (pressed)      transform = 'scale(0.96)'
+    else if (hovered) transform = 'translateY(-4px) scale(1.03)'
   }
 
   return (

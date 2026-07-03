@@ -36,8 +36,8 @@ export default function MapScreen() {
     // TODO (S5.x): mover el 56px del navbar a una CSS var global `--navbar-height`
     // en :root y usar calc(100svh - var(--navbar-height)) — hoy está hardcodeado.
     <div
-      className="min-h-0 flex flex-col bg-sky-100 p-4 gap-3"
-      style={{ height: 'calc(100svh - 56px)' }}
+      className="min-h-0 flex flex-col p-4 gap-3"
+      style={{ height: 'calc(100svh - 56px)', backgroundColor: '#FAF5E8' }}
     >
       <h1 className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold text-orange-500">
         ¿A dónde vamos hoy?

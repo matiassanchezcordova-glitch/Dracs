@@ -4,7 +4,13 @@
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
       "Bash(npm install:*)",
-      "Bash(ls *)"
+      "Bash(ls *)",
+      "PowerShell(npx tsc --noEmit; \"exit: $LASTEXITCODE\")",
+      "PowerShell(git status --short; \"---\"; git branch --show-current)",
+      "PowerShell(git add *)",
+      "PowerShell(git log -1 --format='%H'; \"---\"; git show -s --format=%B HEAD | Select-Object -First 14)",
+      "PowerShell(git commit *)",
+      "PowerShell(git push *)"
     ]
   }
 }

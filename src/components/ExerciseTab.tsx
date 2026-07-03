@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { BarChart2, Stethoscope } from 'lucide-react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
 import { buildSessionFromDb, type RuntimeExercise, type HotspotFilter } from '../data/exercises'
+import { getPaletteForHotspot } from '../lib/worldColors'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import LoadingSpinner from './LoadingSpinner'
@@ -20,6 +21,8 @@ interface Props {
   // sesión y permite volver al mapa. Si están ausentes, el comportamiento es el
   // de siempre (sesión sin filtro, salida a la pantalla de bienvenida).
   hotspotFilter?: HotspotFilter
+  // Identidad de color del lugar: elige la paleta (mar, casa, playa, sol, faro).
+  hotspotId?: string
   onBackToMap?: () => void
 }
 
@@ -110,9 +113,10 @@ function ProgressAuthPrompt({
 
 // ── Main ─────────────────────────────────────────────────────────────────
 
-export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, onRequestAuth, hotspotFilter, onBackToMap }: Props) {
+export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, onRequestAuth, hotspotFilter, hotspotId, onBackToMap }: Props) {
   const { profile, createProfile, completeSession } = useChildProfile()
   const { user, child, profile: authProfile } = useAuth()
+  const palette = getPaletteForHotspot(hotspotId)
 
   // En modo hotspot arrancamos en 'loading' para que nunca se vea el welcome.
   const [screen, setScreen] = useState<Screen>(
@@ -250,7 +254,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
   }
 
   if (screen === 'welcome') {
-    return <WelcomeScreen profile={profile} onStart={handleStartSession} errorMessage={loadError} />
+    return <WelcomeScreen profile={profile} onStart={handleStartSession} errorMessage={loadError} palette={palette} />
   }
 
   if (screen === 'loading') {
@@ -265,6 +269,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
         sessionNumber={loadHistory().length + 1}
         onComplete={handleSessionComplete}
         onExit={() => (onBackToMap ? onBackToMap() : setScreen('welcome'))}
+        palette={palette}
       />
     )
   }
@@ -280,6 +285,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
           onViewProgress={handleViewProgress}
           hasAccount={!!user}
           onAutoPlayNext={hotspotFilter ? handleRepeat : undefined}
+          palette={palette}
         />
         {showAuthPrompt && (
           <ProgressAuthPrompt

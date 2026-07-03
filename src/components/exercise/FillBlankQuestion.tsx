@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { type RuntimeFillBlank } from '../../data/exercises'
+import { type WorldPalette } from '../../lib/worldColors'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { optionGrid } from './optionGrid'
 import ExerciseCard, { type CardState } from './ExerciseCard'
@@ -8,11 +9,12 @@ interface Props {
   exercise: RuntimeFillBlank
   onAttempt: (r: { success: boolean; isFinal: boolean }) => void
   onFilled: (word: string) => void
+  palette?: WorldPalette
 }
 
 const SHAKE_RESET_MS = 550
 
-export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Props) {
+export default function FillBlankQuestion({ exercise, onAttempt, onFilled, palette }: Props) {
   const isMobile = useIsMobile()
   const layout = optionGrid(exercise.options.length, isMobile)
 
@@ -73,6 +75,7 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled }: Pro
                 onTap={() => handleTap(i)}
                 enterDelay={i * 60}
                 maxWidth={layout.cardMaxWidth}
+                palette={palette}
               />
             </div>
           )

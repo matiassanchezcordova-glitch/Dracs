@@ -726,7 +726,7 @@ export default function RoleSelector({ onSelect }: Props) {
   const [phrase] = useState(() => PHRASES[Math.floor(Math.random() * PHRASES.length)])
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #FFF8E8 0%, #F0FAF8 50%, #EBF7F5 100%)', fontFamily: 'Nunito, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF5E8', fontFamily: 'Nunito, sans-serif' }}>
 
       {/* ── SECCIÓN 1: HERO ─────────────────────────────────────────────── */}
       <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative' }}>
