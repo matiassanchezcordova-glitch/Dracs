@@ -104,7 +104,7 @@ function BigNumber({ value }: { value: string }) {
   return (
     <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#33302A', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
       {digits}
-      {unit && <span style={{ fontSize: unitSize, fontWeight: 600, letterSpacing: '-0.01em', color: '#C7A24F' }}>{unit}</span>}
+      {unit && <span style={{ fontSize: unitSize, fontWeight: 600, letterSpacing: '-0.01em' }}>{unit}</span>}
     </span>
   )
 }
@@ -327,7 +327,7 @@ function SolucionSection() {
         </h2>
       </div>
 
-      <div className="sticky-grid" style={{ background: '#EDE4D1' }}>
+      <div className="sticky-grid" style={{ background: '#FFFFFF' }}>
 
         {/* LEFT: sticky frames */}
         <div className="sticky-left">
@@ -555,7 +555,7 @@ function ConnectedAudienceGrid() {
         </div>
 
         {/* Card: Terapeuta */}
-        <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#ffffff', borderRadius: '20px', border: '1.5px solid #5B8896', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
+        <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#FAF5E8', borderRadius: '20px', border: '2px solid #5B8896', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupTerapeuta />
           <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
             Terapeutas y logopedas
@@ -617,7 +617,7 @@ function FutureRevealGrid() {
         <div key={num} className="future-card" style={{ '--card-delay': `${delay}ms` } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{num}</span>
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#C7A24F', opacity: 0.8 }} />
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5B8896', opacity: 0.5 }} />
             <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>{tag}</span>
           </div>
           <h4 style={{ margin: '0 0 8px', fontFamily: '"Fredoka", serif', fontSize: '20px', fontWeight: 700, color: '#33302A', lineHeight: 1.25 }}>{title}</h4>
@@ -632,7 +632,7 @@ function FutureRevealGrid() {
 
 function AboutSection() {
   return (
-    <section id="nosotros" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
+    <section id="nosotros" style={{ background: '#FFFFFF', padding: '120px clamp(24px, 5vw, 80px)' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
 
         {/* Header — centered */}
@@ -756,7 +756,7 @@ export default function RoleSelector({ onSelect }: Props) {
       <SolucionSection />
 
       {/* ── SECCIÓN 4: DISEÑADO PARA TODOS ─────────────────────────────── */}
-      <section id="para-quien" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
+      <section id="para-quien" style={{ background: '#FFFFFF', padding: '120px clamp(24px, 5vw, 80px)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
             <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
@@ -768,7 +768,7 @@ export default function RoleSelector({ onSelect }: Props) {
       </section>
 
       {/* ── SECCIÓN 5: EL FUTURO DE DRACS ──────────────────────────────── */}
-      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#EDE4D1' }}>
+      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#FAF5E8' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#33302A' }}>
@@ -1029,7 +1029,7 @@ export default function RoleSelector({ onSelect }: Props) {
           .solution .sticky-left { height: 38vh; }
           /* Opaque backgrounds — explicit colors (not inherit) */
           .problem .sticky-left { background: #FAF5E8; }
-          .solution .sticky-left { background: #EDE4D1; }
+          .solution .sticky-left { background: #FFFFFF; }
           /* Extend background into the grid's 20px padding on each side */
           .problem .sticky-left::before {
             content: '';
@@ -1044,7 +1044,7 @@ export default function RoleSelector({ onSelect }: Props) {
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #EDE4D1;
+            background: #FFFFFF;
             z-index: -1;
           }
           .step {
