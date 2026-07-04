@@ -102,9 +102,9 @@ function BigNumber({ value }: { value: string }) {
   // Words (e.g. "meses") get a slightly larger relative size than symbols (M, %, €)
   const unitSize = unit.length > 2 ? '0.45em' : '0.55em'
   return (
-    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 500, fontSize: 'clamp(64px, 7vw, 96px)', color: '#5B8896', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
+    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#33302A', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
       {digits}
-      {unit && <span style={{ fontSize: unitSize, fontWeight: 500, letterSpacing: '-0.01em' }}>{unit}</span>}
+      {unit && <span style={{ fontSize: unitSize, fontWeight: 600, letterSpacing: '-0.01em', color: '#C7A24F' }}>{unit}</span>}
     </span>
   )
 }
@@ -189,7 +189,7 @@ function ProblemaSection() {
   const circleSize = isMobile ? 240 : 440
 
   return (
-    <section id="problema" className="problem" style={{ background: '#ffffff' }}>
+    <section id="problema" className="problem" style={{ background: '#FAF5E8' }}>
 
       <div className="section-header">
         <h2 className="section-title">
@@ -318,7 +318,7 @@ function SolucionSection() {
   ]
 
   return (
-    <section id="solucion" className="solution" style={{ background: 'linear-gradient(180deg, #F0FAFA 0%, #E8F8FF 100%)' }}>
+    <section id="solucion" className="solution" style={{ background: '#FAF5E8' }}>
 
       <div className="section-header">
         <h2 className="section-title">
@@ -327,7 +327,7 @@ function SolucionSection() {
         </h2>
       </div>
 
-      <div className="sticky-grid">
+      <div className="sticky-grid" style={{ background: '#EDE4D1' }}>
 
         {/* LEFT: sticky frames */}
         <div className="sticky-left">
@@ -493,11 +493,11 @@ function MiniMockupTerapeuta() {
 
 function MiniMockupFamilia() {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.55)', borderRadius: '12px', padding: '14px', marginBottom: '20px' }}>
+    <div style={{ background: 'rgba(255,255,255,0.7)', borderRadius: '12px', padding: '14px', marginBottom: '20px' }}>
       <div style={{ display: 'flex', gap: '3px', marginBottom: '8px' }}>
         {[1,2,3].map(i => <Star key={i} size={14} color="#5B8896" fill="#5B8896" />)}
       </div>
-      <p style={{ margin: 0, fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '12px', color: '#B85A2D' }}>
+      <p style={{ margin: 0, fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '12px', color: '#33302A' }}>
         Esta semana: +12 palabras nuevas
       </p>
     </div>
@@ -541,12 +541,12 @@ function ConnectedAudienceGrid() {
       <div ref={containerRef} className="dracs-audience-grid" style={{ display: 'flex', gap: '20px', alignItems: 'stretch', position: 'relative', zIndex: 1 }}>
 
         {/* Card: Niño */}
-        <div className="dracs-audience-card" style={{ '--card-delay': '0ms', backgroundColor: '#33302A', borderRadius: '20px', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
+        <div className="dracs-audience-card" style={{ '--card-delay': '0ms', backgroundColor: '#5B8896', borderRadius: '20px', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupNino />
-          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#ffffff', lineHeight: 1.2 }}>
+          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#FAF5E8', lineHeight: 1.2 }}>
             Niños que necesitan apoyo
           </h3>
-          <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: 'rgba(255,255,255,0.65)', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
+          <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#FAF5E8', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
             Vocabulario, secuenciación, articulación. 480 ejercicios adaptados a cada perfil, supervisados por su logopeda.
           </p>
           <span style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '4px 12px', borderRadius: '20px', backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
@@ -569,15 +569,15 @@ function ConnectedAudienceGrid() {
         </div>
 
         {/* Card: Familia */}
-        <div className="dracs-audience-card" style={{ '--card-delay': '300ms', backgroundColor: '#FFF6E5', borderRadius: '20px', border: '1.5px solid #FDE68A', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
+        <div className="dracs-audience-card" style={{ '--card-delay': '300ms', backgroundColor: '#F1D062', borderRadius: '20px', border: '1.5px solid #C7A24F', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupFamilia />
-          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#92400E', lineHeight: 1.2 }}>
+          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
             Familias
           </h3>
-          <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#B45309', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
+          <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#33302A', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
             Seguimiento claro del progreso semanal sin conocimientos médicos.
           </p>
-          <span style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '4px 12px', borderRadius: '20px', backgroundColor: 'rgba(255,255,255,0.6)', border: '1px solid #FDE68A', color: '#92400E', fontSize: '12px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          <span style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '4px 12px', borderRadius: '20px', backgroundColor: 'rgba(255,255,255,0.6)', border: '1px solid #C7A24F', color: '#33302A', fontSize: '12px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             Vista familiar
           </span>
         </div>
@@ -616,8 +616,8 @@ function FutureRevealGrid() {
       {items.map(({ num, tag, title, desc, delay }) => (
         <div key={num} className="future-card" style={{ '--card-delay': `${delay}ms` } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', fontFamily: 'Nunito, sans-serif' }}>{num}</span>
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5B8896', opacity: 0.5 }} />
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{num}</span>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#C7A24F', opacity: 0.8 }} />
             <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>{tag}</span>
           </div>
           <h4 style={{ margin: '0 0 8px', fontFamily: '"Fredoka", serif', fontSize: '20px', fontWeight: 700, color: '#33302A', lineHeight: 1.25 }}>{title}</h4>
@@ -632,7 +632,7 @@ function FutureRevealGrid() {
 
 function AboutSection() {
   return (
-    <section id="nosotros" style={{ background: '#ffffff', padding: '120px clamp(24px, 5vw, 80px)' }}>
+    <section id="nosotros" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
 
         {/* Header — centered */}
@@ -756,7 +756,7 @@ export default function RoleSelector({ onSelect }: Props) {
       <SolucionSection />
 
       {/* ── SECCIÓN 4: DISEÑADO PARA TODOS ─────────────────────────────── */}
-      <section id="para-quien" style={{ background: '#ffffff', padding: '120px clamp(24px, 5vw, 80px)' }}>
+      <section id="para-quien" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
             <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
@@ -768,7 +768,7 @@ export default function RoleSelector({ onSelect }: Props) {
       </section>
 
       {/* ── SECCIÓN 5: EL FUTURO DE DRACS ──────────────────────────────── */}
-      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: 'linear-gradient(180deg, #F0FAFA 0%, #EBF7F5 100%)' }}>
+      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#EDE4D1' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#33302A' }}>
@@ -786,7 +786,7 @@ export default function RoleSelector({ onSelect }: Props) {
       <AboutSection />
 
       {/* ── SECCIÓN 7: FOOTER CTA ───────────────────────────────────────── */}
-      <section id="contacto" style={{ background: '#33302A', padding: '80px clamp(24px, 5vw, 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '24px' }}>
+      <section id="contacto" style={{ background: '#5B8896', padding: '80px clamp(24px, 5vw, 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '24px' }}>
         <Reveal style={{ display: 'flex', justifyContent: 'center' }}>
           <img src="/dragon.nb.png" alt="" style={{ height: '80px', width: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'brightness(1.1) drop-shadow(0 8px 20px rgba(0,0,0,0.20))' }} />
         </Reveal>
@@ -796,7 +796,7 @@ export default function RoleSelector({ onSelect }: Props) {
           </h2>
         </Reveal>
         <Reveal delay={200}>
-          <p style={{ margin: 0, fontSize: '16px', color: 'rgba(255,255,255,0.7)', fontFamily: 'Nunito, sans-serif', maxWidth: '480px', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: '16px', color: '#FAF5E8', fontFamily: 'Nunito, sans-serif', maxWidth: '480px', lineHeight: 1.6 }}>
             Si trabajás con niños con necesidades especiales, nos encantaría conocerte.
           </p>
         </Reveal>
@@ -811,9 +811,9 @@ export default function RoleSelector({ onSelect }: Props) {
         </Reveal>
         <div style={{ width: '100%', maxWidth: '400px', height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 0' }} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 700, fontSize: '18px', color: '#ffffff', letterSpacing: '0.04em' }}>DRACS</span>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Barcelona · 2026</span>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>Babson Student Challenge 2026</span>
+          <span style={{ fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 700, fontSize: '18px', color: '#F1D062', letterSpacing: '0.04em' }}>DRACS</span>
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>Barcelona · 2026</span>
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.65)' }}>Babson Student Challenge 2026</span>
         </div>
       </section>
 
@@ -1028,15 +1028,15 @@ export default function RoleSelector({ onSelect }: Props) {
           /* LA SOLUCIÓN: frames más compactos para dejar aire al texto debajo */
           .solution .sticky-left { height: 38vh; }
           /* Opaque backgrounds — explicit colors (not inherit) */
-          .problem .sticky-left { background: #ffffff; }
-          .solution .sticky-left { background: #F0FAFA; }
+          .problem .sticky-left { background: #FAF5E8; }
+          .solution .sticky-left { background: #EDE4D1; }
           /* Extend background into the grid's 20px padding on each side */
           .problem .sticky-left::before {
             content: '';
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #ffffff;
+            background: #FAF5E8;
             z-index: -1;
           }
           .solution .sticky-left::before {
@@ -1044,7 +1044,7 @@ export default function RoleSelector({ onSelect }: Props) {
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #F0FAFA;
+            background: #EDE4D1;
             z-index: -1;
           }
           .step {
