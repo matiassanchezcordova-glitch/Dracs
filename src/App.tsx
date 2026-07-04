@@ -102,7 +102,7 @@ function AppInner() {
                 fontFamily: 'Fredoka, system-ui, sans-serif',
                 fontWeight: 700,
                 fontSize: '24px',
-                color: '#0BAFBE',
+                color: '#5B8896',
                 lineHeight: 1,
                 letterSpacing: '2px',
                 cursor: 'pointer',
@@ -116,9 +116,9 @@ function AppInner() {
               <button
                 onClick={() => setShowDemoModal(true)}
                 style={{
-                  background: '#FFD93D', border: 'none', borderRadius: '6px',
+                  background: '#F7C31C', border: 'none', borderRadius: '6px',
                   padding: '3px 10px', fontSize: '11px', fontWeight: 800,
-                  color: '#1A1A2E', cursor: 'pointer', letterSpacing: '0.06em',
+                  color: '#33302A', cursor: 'pointer', letterSpacing: '0.06em',
                   fontFamily: 'Nunito, sans-serif',
                 }}
               >
@@ -135,14 +135,14 @@ function AppInner() {
               aria-expanded={menuOpen}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                background: menuOpen ? 'rgba(11,175,190,0.08)' : 'transparent',
+                background: menuOpen ? 'rgba(91,136,150,0.08)' : 'transparent',
                 border: 'none', borderRadius: '999px', padding: '4px 8px 4px 4px',
                 cursor: 'pointer', transition: 'background 0.2s ease',
               }}
             >
               <div style={{
                 width: '32px', height: '32px', borderRadius: '50%',
-                backgroundColor: '#FFD93D', color: '#1A1A2E',
+                backgroundColor: '#F7C31C', color: '#33302A',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '14px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
               }}>
@@ -150,7 +150,7 @@ function AppInner() {
               </div>
               <span className="dracs-user-name" style={{
                 fontFamily: 'Nunito, sans-serif', fontWeight: 600,
-                fontSize: '14px', color: '#1A1A2E',
+                fontSize: '14px', color: '#33302A',
               }}>
                 {displayName}
               </span>
@@ -193,14 +193,14 @@ function AppInner() {
                         onClick={() => { closeMenu(); navigate(opt.path) }}
                         style={{
                           ...menuItemStyle,
-                          color: active ? '#0BAFBE' : '#1A1A2E',
+                          color: active ? '#5B8896' : '#33302A',
                           fontWeight: active ? 800 : 600,
                         }}
                         onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ display: 'flex', color: active ? '#0BAFBE' : '#94A3B8' }}>{opt.icon}</span>
+                          <span style={{ display: 'flex', color: active ? '#5B8896' : '#94A3B8' }}>{opt.icon}</span>
                           {opt.label}
                         </span>
                       </button>
@@ -233,7 +233,7 @@ function AppInner() {
       {showDemoModal && (
         <div
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(26,26,46,0.55)',
+            position: 'fixed', inset: 0, background: 'rgba(51,48,42,0.55)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '24px', zIndex: 200,
           }}
@@ -253,22 +253,22 @@ function AppInner() {
                 <X size={16} />
               </button>
             </div>
-            <div style={{ background: '#FFD93D', borderRadius: '8px', padding: '4px 12px', fontSize: '11px', fontWeight: 800, color: '#1A1A2E', display: 'inline-block', letterSpacing: '0.06em', marginBottom: '12px' }}>
+            <div style={{ background: '#F7C31C', borderRadius: '8px', padding: '4px 12px', fontSize: '11px', fontWeight: 800, color: '#33302A', display: 'inline-block', letterSpacing: '0.06em', marginBottom: '12px' }}>
               DEMO
             </div>
-            <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#1A1A2E', fontFamily: 'Nunito, sans-serif', fontWeight: 600, lineHeight: 1.5 }}>
+            <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#33302A', fontFamily: 'Nunito, sans-serif', fontWeight: 600, lineHeight: 1.5 }}>
               Estás en modo demo. Los datos son de ejemplo.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
                 onClick={handleDemoCreateAccount}
-                style={{ width: '100%', height: '44px', borderRadius: '12px', border: 'none', background: '#0BAFBE', color: '#ffffff', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
+                style={{ width: '100%', height: '44px', borderRadius: '12px', border: 'none', background: '#F7C31C', color: '#33302A', fontSize: '15px', fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 600, cursor: 'pointer' }}
               >
                 Crear cuenta real
               </button>
               <button
                 onClick={() => setShowDemoModal(false)}
-                style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1.5px solid #E5E7EB', background: '#ffffff', color: '#1A1A2E', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
+                style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1.5px solid #E5E7EB', background: '#ffffff', color: '#33302A', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
               >
                 Seguir en demo
               </button>
@@ -307,6 +307,6 @@ const menuItemStyle: CSSProperties = {
   width: '100%', gap: '8px', padding: '10px 12px',
   background: 'transparent', border: 'none', borderRadius: '10px',
   cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
-  fontSize: '14px', fontWeight: 600, color: '#1A1A2E',
+  fontSize: '14px', fontWeight: 600, color: '#33302A',
   textAlign: 'left', transition: 'background 0.15s ease',
 }

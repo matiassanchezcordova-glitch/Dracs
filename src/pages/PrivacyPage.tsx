@@ -11,14 +11,14 @@ export default function PrivacyPage() {
     }}>
       <div style={{ width: '100%', maxWidth: '720px' }}>
         <Link to="/" style={{
-          color: '#0BAFBE', fontSize: '14px', fontWeight: 600,
+          color: '#5B8896', fontSize: '14px', fontWeight: 600,
           textDecoration: 'none', display: 'inline-block', marginBottom: '24px',
         }}>
           ← Volver
         </Link>
         <h1 style={{
-          fontFamily: '"Playfair Display", serif',
-          fontSize: '36px', fontWeight: 700, color: '#1A1A2E',
+          fontFamily: '"Fredoka", serif',
+          fontSize: '36px', fontWeight: 700, color: '#33302A',
           margin: '0 0 16px',
         }}>
           Política de privacidad

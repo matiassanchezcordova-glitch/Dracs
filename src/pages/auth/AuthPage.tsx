@@ -50,7 +50,7 @@ const INPUT_STYLE: React.CSSProperties = {
   fontSize: '16px',
   fontFamily: 'Nunito, sans-serif',
   fontWeight: 500,
-  color: '#1A1A2E',
+  color: '#33302A',
   outline: 'none',
   boxSizing: 'border-box',
   transition: 'border-color 0.18s ease',
@@ -61,11 +61,11 @@ const BTN_PRIMARY: React.CSSProperties = {
   height: '52px',
   borderRadius: '14px',
   border: 'none',
-  background: '#0BAFBE',
-  color: '#ffffff',
+  background: '#F7C31C',
+  color: '#33302A',
   fontSize: '16px',
-  fontFamily: 'Nunito, sans-serif',
-  fontWeight: 700,
+  fontFamily: 'Fredoka, system-ui, sans-serif',
+  fontWeight: 600,
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -78,7 +78,7 @@ const BTN_SECONDARY: React.CSSProperties = {
   ...BTN_PRIMARY,
   background: '#ffffff',
   border: '1.5px solid #E5E7EB',
-  color: '#1A1A2E',
+  color: '#33302A',
 }
 
 // ── Shared sub-components ──────────────────────────────────────────────────
@@ -102,7 +102,7 @@ function FocusInput({
         onBlur={() => setFocused(false)}
         style={{
           ...INPUT_STYLE,
-          borderColor: focused ? '#0BAFBE' : '#E5E7EB',
+          borderColor: focused ? '#5B8896' : '#E5E7EB',
           paddingRight: suffix ? '48px' : '16px',
         }}
       />
@@ -127,7 +127,7 @@ function StepDots({ total, current }: { total: number; current: number }) {
           width: i === current ? '20px' : '8px',
           height: '8px',
           borderRadius: '4px',
-          background: i === current ? '#0BAFBE' : '#E5E7EB',
+          background: i === current ? '#5B8896' : '#E5E7EB',
           transition: 'all 0.25s ease',
         }} />
       ))}
@@ -139,10 +139,10 @@ function CardTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 style={{
       margin: '0 0 8px',
-      fontFamily: '"Playfair Display", serif',
+      fontFamily: '"Fredoka", serif',
       fontSize: '26px',
       fontWeight: 700,
-      color: '#1A1A2E',
+      color: '#33302A',
       lineHeight: 1.2,
       textAlign: 'center',
     }}>
@@ -251,7 +251,7 @@ function AuthLayout({
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            color: '#0BAFBE',
+            color: '#5B8896',
             fontSize: '14px',
             fontFamily: 'Nunito, sans-serif',
             fontWeight: 600,
@@ -265,10 +265,10 @@ function AuthLayout({
 
       <div style={{ marginTop: '16px', marginBottom: '8px', textAlign: 'center' }}>
         <span style={{
-          fontFamily: 'Nunito, sans-serif',
-          fontWeight: 900,
+          fontFamily: 'Fredoka, system-ui, sans-serif',
+          fontWeight: 700,
           fontSize: '20px',
-          color: '#0BAFBE',
+          color: '#5B8896',
           letterSpacing: '3px',
         }}>
           DRACS
@@ -598,9 +598,9 @@ function PatientStep2({ onContinue, onBack }: {
                 onClick={() => setChildAge(age)}
                 style={{
                   height: '52px', borderRadius: '14px',
-                  border: `1.5px solid ${childAge === age ? '#0BAFBE' : '#E5E7EB'}`,
+                  border: `1.5px solid ${childAge === age ? '#5B8896' : '#E5E7EB'}`,
                   background: childAge === age ? '#F0FAFA' : '#ffffff',
-                  color: childAge === age ? '#0BAFBE' : '#6B7280',
+                  color: childAge === age ? '#5B8896' : '#6B7280',
                   fontSize: '18px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
                   cursor: 'pointer', transition: 'all 0.15s ease',
                 }}
@@ -743,15 +743,15 @@ function PatientStep3({
             value={query}
             onChange={e => { setQuery(e.target.value); setSelected(null) }}
             style={{ ...INPUT_STYLE, paddingLeft: '44px' }}
-            onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE' }}
+            onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#5B8896' }}
             onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
           />
         </div>
 
         {selected && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #0BAFBE' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #5B8896' }}>
             <div>
-              <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0BAFBE', fontFamily: 'Nunito, sans-serif' }}>{selected.profiles.full_name}</p>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{selected.profiles.full_name}</p>
               <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{selected.specialty} · {selected.center_name}</p>
             </div>
             <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
@@ -770,7 +770,7 @@ function PatientStep3({
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
               >
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>{t.profiles.full_name}</p>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>{t.profiles.full_name}</p>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{t.specialty} · {t.center_name} · {t.city}</p>
               </button>
             ))}
@@ -948,15 +948,15 @@ function TherapistStep3({
                 value={query}
                 onChange={e => { setQuery(e.target.value); setSelected(null) }}
                 style={{ ...INPUT_STYLE, paddingLeft: '44px' }}
-                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE' }}
+                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#5B8896' }}
                 onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
               />
             </div>
 
             {selected && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #0BAFBE' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #5B8896' }}>
                 <div>
-                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0BAFBE', fontFamily: 'Nunito, sans-serif' }}>{selected.name}</p>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{selected.name}</p>
                   <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{selected.city}</p>
                 </div>
                 <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
@@ -975,7 +975,7 @@ function TherapistStep3({
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                   >
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>{c.name}</p>
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>{c.name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{c.city}</p>
                   </button>
                 ))}

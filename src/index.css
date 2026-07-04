@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500;1,700&display=swap');
 @import "tailwindcss";
 
 /* ── Shake animation (answer cards) ───────────────────────────────────── */
@@ -41,8 +41,20 @@
   --font-nunito: 'Nunito', sans-serif;
   --font-display: 'Fredoka', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, sans-serif;
-  --color-primary: #0BAFBE;
-  --color-secondary: #FFD93D;
+
+  /* ── Marca (brand board 2026) ──────────────────────────────────────
+     Sólo para la web/landing y el chrome de marca. Las pantallas del
+     juego (mapa, hotspots, partidas) usan su propia paleta por lugar
+     en src/lib/worldColors.ts y no dependen de estos tokens. */
+  --color-brand-yellow: #F7C31C;      /* primario, el pop */
+  --color-brand-blue: #5B8896;        /* secundario */
+  --color-brand-mustard: #C7A24F;     /* acento */
+  --color-brand-cream: #FAF5E8;       /* fondo de toda la web */
+  --color-brand-sand: #EDE4D1;        /* crema media */
+  --color-brand-taupe: #9A8F7E;       /* neutro */
+  --color-brand-ink: #33302A;         /* texto */
+  --color-brand-yellow-mate: #F1D062; /* texto amarillo sobre fondo azul */
+
   --color-cream: #FAF5E8;
   --color-bg: #F0FAFA;
   --color-correct: #22C55E;
@@ -198,7 +210,7 @@ body, #root {
   margin: 0;
   background-color: #FAF5E8;
   min-height: 100vh;
-  color: #1A1A2E;
+  color: #33302A;
   font-family: var(--font-body);
 }
 
@@ -216,17 +228,17 @@ body, #root {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(11, 175, 190, 0.25);
+  background: rgba(91, 136, 150, 0.25);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(11, 175, 190, 0.5);
+  background: rgba(91, 136, 150, 0.5);
 }
 
 /* ── Text selection ───────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(11, 175, 190, 0.15);
-  color: #1A1A2E;
+  background: rgba(91, 136, 150, 0.15);
+  color: #33302A;
 }
 
 /* ── Session-end confetti fall ────────────────────────────────────────── */

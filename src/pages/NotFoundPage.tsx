@@ -15,8 +15,8 @@ export default function NotFoundPage() {
         style={{ width: '80px', marginBottom: '24px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))' }}
       />
       <h1 style={{
-        fontFamily: '"Playfair Display", serif',
-        fontSize: '48px', fontWeight: 700, color: '#1A1A2E',
+        fontFamily: '"Fredoka", serif',
+        fontSize: '48px', fontWeight: 700, color: '#33302A',
         margin: '0 0 8px',
       }}>
         404
@@ -28,9 +28,10 @@ export default function NotFoundPage() {
       </p>
       <Link to="/" style={{
         display: 'inline-block',
-        background: '#0BAFBE', color: '#ffffff',
+        background: '#F7C31C', color: '#33302A',
         padding: '14px 28px', borderRadius: '14px',
-        fontSize: '16px', fontWeight: 700, textDecoration: 'none',
+        fontSize: '16px', fontWeight: 600, textDecoration: 'none',
+        fontFamily: 'Fredoka, system-ui, sans-serif',
       }}>
         Volver al inicio
       </Link>
