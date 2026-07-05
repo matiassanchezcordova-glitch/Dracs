@@ -102,7 +102,7 @@ function BigNumber({ value }: { value: string }) {
   // Words (e.g. "meses") get a slightly larger relative size than symbols (M, %, €)
   const unitSize = unit.length > 2 ? '0.45em' : '0.55em'
   return (
-    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#33302A', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
+    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#F7C31C', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
       {digits}
       {unit && <span style={{ fontSize: unitSize, fontWeight: 600, letterSpacing: '-0.01em' }}>{unit}</span>}
     </span>
@@ -189,10 +189,10 @@ function ProblemaSection() {
   const circleSize = isMobile ? 240 : 440
 
   return (
-    <section id="problema" className="problem" style={{ background: '#FAF5E8' }}>
+    <section id="problema" className="problem" style={{ background: '#5B8896' }}>
 
       <div className="section-header">
-        <h2 className="section-title">
+        <h2 className="section-title section-title--on-blue">
           <em>Una década</em>{' '}
           perdida en listas de espera.
         </h2>
@@ -205,7 +205,7 @@ function ProblemaSection() {
           <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
             {/* Dashed border — subtle */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #5B8896', opacity: 0.5 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #FAF5E8', opacity: 0.32 }} />
 
             {/* 4 cardinal dots */}
             {DOT_POS.map((pos, i) => (
@@ -215,9 +215,9 @@ function ProblemaSection() {
                 width:  activeIndex === i ? '18px' : '14px',
                 height: activeIndex === i ? '18px' : '14px',
                 borderRadius: '50%',
-                background: activeIndex === i ? '#5B8896' : '#ffffff',
-                border: activeIndex === i ? 'none' : '2px solid #E5F5F5',
-                boxShadow: activeIndex === i ? '0 0 0 6px rgba(91,136,150,0.15)' : 'none',
+                background: activeIndex === i ? '#F7C31C' : 'rgba(255,255,255,0.85)',
+                border: activeIndex === i ? 'none' : '2px solid rgba(255,255,255,0.4)',
+                boxShadow: activeIndex === i ? '0 0 0 6px rgba(247,195,28,0.2)' : 'none',
                 transition: 'all 0.4s ease',
                 zIndex: 1,
               }} />
@@ -242,10 +242,10 @@ function ProblemaSection() {
                 <span className="step-dot" />
                 <span className="step-line" />
               </div>
-              <h3 style={{ margin: '0 0 18px', fontFamily: '"Fredoka", serif', fontWeight: 500, fontSize: 'clamp(28px, 3vw, 36px)', color: activeIndex === i ? '#33302A' : '#6B7280', lineHeight: 1.2, transition: 'color 0.4s ease' }}>
+              <h3 style={{ margin: '0 0 18px', fontFamily: '"Fredoka", serif', fontWeight: 500, fontSize: 'clamp(28px, 3vw, 36px)', color: activeIndex === i ? '#FAF5E8' : 'rgba(250,245,232,0.5)', lineHeight: 1.2, transition: 'color 0.4s ease' }}>
                 {data.headline}
               </h3>
-              <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.62, fontFamily: 'Nunito, sans-serif', color: '#6B7280', maxWidth: '420px' }}>
+              <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.62, fontFamily: 'Nunito, sans-serif', color: 'rgba(250,245,232,0.8)', maxWidth: '420px' }}>
                 {data.desc}
               </p>
             </div>
@@ -327,7 +327,7 @@ function SolucionSection() {
         </h2>
       </div>
 
-      <div className="sticky-grid" style={{ background: '#FFFFFF' }}>
+      <div className="sticky-grid" style={{ background: '#EAF3F5' }}>
 
         {/* LEFT: sticky frames */}
         <div className="sticky-left">
@@ -555,7 +555,7 @@ function ConnectedAudienceGrid() {
         </div>
 
         {/* Card: Terapeuta */}
-        <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#FAF5E8', borderRadius: '20px', border: '2px solid #5B8896', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
+        <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#FFFFFF', borderRadius: '20px', border: '2px solid #5B8896', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupTerapeuta />
           <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
             Terapeutas y logopedas
@@ -616,8 +616,8 @@ function FutureRevealGrid() {
       {items.map(({ num, tag, title, desc, delay }) => (
         <div key={num} className="future-card" style={{ '--card-delay': `${delay}ms` } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{num}</span>
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5B8896', opacity: 0.5 }} />
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#1A8FB5', fontFamily: 'Nunito, sans-serif' }}>{num}</span>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1A8FB5', opacity: 0.5 }} />
             <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>{tag}</span>
           </div>
           <h4 style={{ margin: '0 0 8px', fontFamily: '"Fredoka", serif', fontSize: '20px', fontWeight: 700, color: '#33302A', lineHeight: 1.25 }}>{title}</h4>
@@ -632,14 +632,14 @@ function FutureRevealGrid() {
 
 function AboutSection() {
   return (
-    <section id="nosotros" style={{ background: '#FFFFFF', padding: '120px clamp(24px, 5vw, 80px)' }}>
+    <section id="nosotros" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
 
         {/* Header — centered */}
         <Reveal style={{ textAlign: 'center', marginBottom: '80px' }}>
           <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
             Dracs nació porque mi hermano{' '}
-            <em style={{ color: '#5B8896', fontStyle: 'italic' }}>lo necesitaba.</em>
+            <em style={{ color: '#1A8FB5', fontStyle: 'italic' }}>lo necesitaba.</em>
           </h2>
         </Reveal>
 
@@ -677,7 +677,7 @@ function AboutSection() {
               </p>
             </Reveal>
             <Reveal delay={320}>
-              <blockquote style={{ margin: 0, background: '#F0FAF8', borderLeft: '3px solid #5B8896', borderRadius: '0 16px 16px 0', padding: '24px 28px' }}>
+              <blockquote style={{ margin: 0, background: '#F0FAF8', borderLeft: '3px solid #1A8FB5', borderRadius: '0 16px 16px 0', padding: '24px 28px' }}>
                 <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontWeight: 500, fontSize: '19px', color: '#33302A', lineHeight: 1.6 }}>
                   Los que más lo necesitan son los que más esperan. Los que menos tienen, los que menos reciben. El sistema funciona al revés.
                 </p>
@@ -689,7 +689,7 @@ function AboutSection() {
         {/* Closing quote */}
         <Reveal delay={80}>
           <div style={{ maxWidth: '720px', margin: '100px auto 0', textAlign: 'center', paddingTop: '60px', borderTop: '1px solid #F1F5F9' }}>
-            <p style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(20px, 2.5vw, 26px)', color: '#5B8896', lineHeight: 1.4 }}>
+            <p style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(20px, 2.5vw, 26px)', color: '#1A8FB5', lineHeight: 1.4 }}>
               "Esto lo hago por mi hermano. Y por cada niño al que el sistema todavía no llegó."
             </p>
             <p style={{ margin: 0, fontFamily: 'Nunito, sans-serif', fontSize: '14px', fontWeight: 500, color: '#6B7280', letterSpacing: '0.02em' }}>
@@ -756,7 +756,7 @@ export default function RoleSelector({ onSelect }: Props) {
       <SolucionSection />
 
       {/* ── SECCIÓN 4: DISEÑADO PARA TODOS ─────────────────────────────── */}
-      <section id="para-quien" style={{ background: '#FFFFFF', padding: '120px clamp(24px, 5vw, 80px)' }}>
+      <section id="para-quien" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)', borderTop: '1px solid rgba(51,48,42,0.07)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
             <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
@@ -768,7 +768,7 @@ export default function RoleSelector({ onSelect }: Props) {
       </section>
 
       {/* ── SECCIÓN 5: EL FUTURO DE DRACS ──────────────────────────────── */}
-      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#FAF5E8' }}>
+      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#EAF3F5' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#33302A' }}>
@@ -835,8 +835,8 @@ export default function RoleSelector({ onSelect }: Props) {
 
         /* ── Step marker (El Problema) ──────────────────────────────── */
         .step-marker { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #5B8896; flex-shrink: 0; }
-        .step-line { height: 1px; width: 32px; background: #5B8896; opacity: 0.4; }
+        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #F1D062; flex-shrink: 0; }
+        .step-line { height: 1px; width: 32px; background: #FAF5E8; opacity: 0.4; }
 
         /* ── Calendar: hide text on very small screens ───────────────── */
         @media (max-width: 420px) {
@@ -861,8 +861,11 @@ export default function RoleSelector({ onSelect }: Props) {
         }
         .section-title em {
           font-style: italic;
-          color: #5B8896;
+          color: #1A8FB5;
         }
+        /* Sobre secciones azules: título en crema, acento en amarillo mate */
+        .section-title--on-blue { color: #FAF5E8; }
+        .section-title--on-blue em { color: #F1D062; }
 
         /* ── Sticky 2-column grid — animación fija, texto scrollea ──── */
         .sticky-grid {
@@ -970,7 +973,7 @@ export default function RoleSelector({ onSelect }: Props) {
           font-style: normal;
           font-weight: 500;
           font-size: 72px;
-          color: #5B8896;
+          color: #1A8FB5;
           letter-spacing: -0.02em;
           line-height: 1;
           margin-bottom: 16px;
@@ -1028,15 +1031,15 @@ export default function RoleSelector({ onSelect }: Props) {
           /* LA SOLUCIÓN: frames más compactos para dejar aire al texto debajo */
           .solution .sticky-left { height: 38vh; }
           /* Opaque backgrounds — explicit colors (not inherit) */
-          .problem .sticky-left { background: #FAF5E8; }
-          .solution .sticky-left { background: #FFFFFF; }
+          .problem .sticky-left { background: #5B8896; }
+          .solution .sticky-left { background: #EAF3F5; }
           /* Extend background into the grid's 20px padding on each side */
           .problem .sticky-left::before {
             content: '';
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #FAF5E8;
+            background: #5B8896;
             z-index: -1;
           }
           .solution .sticky-left::before {
@@ -1044,7 +1047,7 @@ export default function RoleSelector({ onSelect }: Props) {
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #FFFFFF;
+            background: #EAF3F5;
             z-index: -1;
           }
           .step {
