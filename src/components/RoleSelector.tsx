@@ -102,7 +102,7 @@ function BigNumber({ value }: { value: string }) {
   // Words (e.g. "meses") get a slightly larger relative size than symbols (M, %, €)
   const unitSize = unit.length > 2 ? '0.45em' : '0.55em'
   return (
-    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#F7C31C', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
+    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#1A8FB5', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
       {digits}
       {unit && <span style={{ fontSize: unitSize, fontWeight: 600, letterSpacing: '-0.01em' }}>{unit}</span>}
     </span>
@@ -189,10 +189,10 @@ function ProblemaSection() {
   const circleSize = isMobile ? 240 : 440
 
   return (
-    <section id="problema" className="problem" style={{ background: '#5B8896' }}>
+    <section id="problema" className="problem" style={{ background: '#FAF5E8' }}>
 
       <div className="section-header">
-        <h2 className="section-title section-title--on-blue">
+        <h2 className="section-title">
           <em>Una década</em>{' '}
           perdida en listas de espera.
         </h2>
@@ -204,8 +204,8 @@ function ProblemaSection() {
         <div className="sticky-left">
           <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
-            {/* Dashed border — subtle */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #88D4D9', opacity: 0.5 }} />
+            {/* Dashed border — subtle (azul tenue sobre crema) */}
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #5B8896', opacity: 0.28 }} />
 
             {/* 4 cardinal dots */}
             {DOT_POS.map((pos, i) => (
@@ -215,8 +215,8 @@ function ProblemaSection() {
                 width:  activeIndex === i ? '18px' : '14px',
                 height: activeIndex === i ? '18px' : '14px',
                 borderRadius: '50%',
-                background: activeIndex === i ? '#F7C31C' : 'rgba(255,255,255,0.85)',
-                border: activeIndex === i ? 'none' : '2px solid rgba(255,255,255,0.4)',
+                background: activeIndex === i ? '#F7C31C' : 'rgba(91,136,150,0.4)',
+                border: activeIndex === i ? 'none' : '2px solid rgba(91,136,150,0.5)',
                 boxShadow: activeIndex === i ? '0 0 0 6px rgba(247,195,28,0.2)' : 'none',
                 transition: 'all 0.4s ease',
                 zIndex: 1,
@@ -242,10 +242,10 @@ function ProblemaSection() {
                 <span className="step-dot" />
                 <span className="step-line" />
               </div>
-              <h3 style={{ margin: '0 0 18px', fontFamily: '"Fredoka", serif', fontWeight: 500, fontSize: 'clamp(28px, 3vw, 36px)', color: activeIndex === i ? '#FAF5E8' : 'rgba(250,245,232,0.5)', lineHeight: 1.2, transition: 'color 0.4s ease' }}>
+              <h3 style={{ margin: '0 0 18px', fontFamily: '"Fredoka", serif', fontWeight: 500, fontSize: 'clamp(28px, 3vw, 36px)', color: activeIndex === i ? '#33302A' : 'rgba(51,48,42,0.35)', lineHeight: 1.2, transition: 'color 0.4s ease' }}>
                 {data.headline}
               </h3>
-              <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.62, fontFamily: 'Nunito, sans-serif', color: 'rgba(250,245,232,0.8)', maxWidth: '420px' }}>
+              <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.62, fontFamily: 'Nunito, sans-serif', color: 'rgba(51,48,42,0.72)', maxWidth: '420px' }}>
                 {data.desc}
               </p>
             </div>
@@ -724,17 +724,23 @@ const PHRASES = [
 
 export default function RoleSelector({ onSelect }: Props) {
   const [phrase] = useState(() => PHRASES[Math.floor(Math.random() * PHRASES.length)])
+  // Frase del hero sobre azul: cuerpo en crema, últimas palabras como acento en
+  // amarillo mate (p. ej. "…su momento."). La frase es aleatoria, así que el
+  // acento cae siempre sobre el cierre de la frase que toque.
+  const phraseWords = phrase.split(' ')
+  const phraseAccent = phraseWords.slice(-2).join(' ')
+  const phraseLead = phraseWords.slice(0, -2).join(' ')
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF5E8', fontFamily: 'Nunito, sans-serif' }}>
 
       {/* ── SECCIÓN 1: HERO ─────────────────────────────────────────────── */}
-      <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#EAF3F5' }}>
+      <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#5B8896' }}>
         <img src="/logo-dracs.png" alt="Dracs" className="dracs-hero-dragon"
           style={{ width: '180px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))', marginBottom: '32px' }}
         />
-        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#33302A', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
-          {phrase}
+        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
+          {phraseLead}{phraseLead && ' '}<span style={{ color: '#F1D062' }}>{phraseAccent}</span>
         </p>
         <div className="dracs-role-card" style={{ maxWidth: '400px', width: '100%', background: '#ffffff', borderRadius: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.08)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#C8C8C8', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
@@ -836,7 +842,7 @@ export default function RoleSelector({ onSelect }: Props) {
         /* ── Step marker (El Problema) ──────────────────────────────── */
         .step-marker { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
         .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #F1D062; flex-shrink: 0; }
-        .step-line { height: 1px; width: 32px; background: #FAF5E8; opacity: 0.4; }
+        .step-line { height: 1px; width: 32px; background: #5B8896; opacity: 0.3; }
 
         /* ── Calendar: hide text on very small screens ───────────────── */
         @media (max-width: 420px) {
@@ -1031,7 +1037,7 @@ export default function RoleSelector({ onSelect }: Props) {
           /* LA SOLUCIÓN: frames más compactos para dejar aire al texto debajo */
           .solution .sticky-left { height: 38vh; }
           /* Opaque backgrounds — explicit colors (not inherit) */
-          .problem .sticky-left { background: #5B8896; }
+          .problem .sticky-left { background: #FAF5E8; }
           .solution .sticky-left { background: #EAF3F5; }
           /* Extend background into the grid's 20px padding on each side */
           .problem .sticky-left::before {
@@ -1039,7 +1045,7 @@ export default function RoleSelector({ onSelect }: Props) {
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #5B8896;
+            background: #FAF5E8;
             z-index: -1;
           }
           .solution .sticky-left::before {
