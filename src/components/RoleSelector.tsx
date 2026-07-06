@@ -205,7 +205,7 @@ function ProblemaSection() {
           <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
             {/* Dashed border — subtle */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #FAF5E8', opacity: 0.32 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #88D4D9', opacity: 0.5 }} />
 
             {/* 4 cardinal dots */}
             {DOT_POS.map((pos, i) => (
@@ -318,7 +318,7 @@ function SolucionSection() {
   ]
 
   return (
-    <section id="solucion" className="solution" style={{ background: '#FAF5E8' }}>
+    <section id="solucion" className="solution" style={{ background: '#EAF3F5' }}>
 
       <div className="section-header">
         <h2 className="section-title">
@@ -434,8 +434,8 @@ function SolucionSection() {
               <p style={{ margin: '0 0 24px', fontSize: '18px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65, maxWidth: '480px' }}>
                 {step.desc}
               </p>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', padding: '6px 16px', borderRadius: '20px', background: '#F0FAFA', border: '1px solid #A5F3FC', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '13px', color: '#5B8896' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#5B8896', flexShrink: 0 }} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', padding: '6px 16px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #A5F3FC', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '13px', color: '#1A8FB5' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1A8FB5', flexShrink: 0 }} />
                 {step.tag}
               </span>
             </div>
@@ -466,7 +466,7 @@ function MiniMockupNino() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {steps.map(step => (
           <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '8px', padding: '6px 8px' }}>
-            <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '13px', color: '#5B8896', fontStyle: 'italic', minWidth: '14px' }}>{step.num}</span>
+            <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '13px', color: '#F1D062', fontStyle: 'italic', minWidth: '14px' }}>{step.num}</span>
             <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center' }}>{step.icon}</span>
             <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 500, fontSize: '11px', color: 'rgba(255,255,255,0.85)' }}>{step.label}</span>
           </div>
@@ -555,7 +555,7 @@ function ConnectedAudienceGrid() {
         </div>
 
         {/* Card: Terapeuta */}
-        <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#FFFFFF', borderRadius: '20px', border: '2px solid #5B8896', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
+        <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#FFFFFF', borderRadius: '20px', border: '2px solid #1A8FB5', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupTerapeuta />
           <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
             Terapeutas y logopedas
@@ -632,7 +632,7 @@ function FutureRevealGrid() {
 
 function AboutSection() {
   return (
-    <section id="nosotros" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
+    <section id="nosotros" style={{ background: '#EAF3F5', padding: '120px clamp(24px, 5vw, 80px)' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
 
         {/* Header — centered */}
@@ -646,7 +646,7 @@ function AboutSection() {
         {/* Body — 2 col */}
         <div className="dracs-about-body">
           <Reveal style={{ display: 'flex', justifyContent: 'center' }}>
-            <div className="dracs-about-photo" style={{ width: '100%', aspectRatio: '4/5', borderRadius: '24px', background: 'linear-gradient(135deg, #FFF6E5 0%, #FBE5C5 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <div className="dracs-about-photo" style={{ width: '100%', aspectRatio: '4/5', borderRadius: '24px', background: '#FFFFFF', border: '1px solid #DCE8EB', boxShadow: '0 12px 32px rgba(62,94,107,0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
               <ImagePlus size={32} color="#94A3B8" />
               <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '13px', color: '#94A3B8' }}>Foto próximamente</span>
             </div>
@@ -677,7 +677,7 @@ function AboutSection() {
               </p>
             </Reveal>
             <Reveal delay={320}>
-              <blockquote style={{ margin: 0, background: '#F0FAF8', borderLeft: '3px solid #1A8FB5', borderRadius: '0 16px 16px 0', padding: '24px 28px' }}>
+              <blockquote style={{ margin: 0, background: '#FFFFFF', borderLeft: '4px solid #1A8FB5', borderRadius: '0 16px 16px 0', padding: '24px 28px', boxShadow: '0 12px 32px rgba(62,94,107,0.06)' }}>
                 <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontWeight: 500, fontSize: '19px', color: '#33302A', lineHeight: 1.6 }}>
                   Los que más lo necesitan son los que más esperan. Los que menos tienen, los que menos reciben. El sistema funciona al revés.
                 </p>
@@ -729,11 +729,11 @@ export default function RoleSelector({ onSelect }: Props) {
     <div style={{ minHeight: '100vh', background: '#FAF5E8', fontFamily: 'Nunito, sans-serif' }}>
 
       {/* ── SECCIÓN 1: HERO ─────────────────────────────────────────────── */}
-      <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative' }}>
+      <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#5B8896' }}>
         <img src="/logo-dracs.png" alt="Dracs" className="dracs-hero-dragon"
           style={{ width: '180px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))', marginBottom: '32px' }}
         />
-        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#5B8896', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
+        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
           {phrase}
         </p>
         <div className="dracs-role-card" style={{ maxWidth: '400px', width: '100%', background: '#ffffff', borderRadius: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.08)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -746,17 +746,17 @@ export default function RoleSelector({ onSelect }: Props) {
           <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
           <DemoLink onClick={() => onSelect('demo')} />
         </div>
-        <KnowProjectButton onClick={() => scrollTo('problema')} />
+        <KnowProjectButton onClick={() => scrollTo('solucion')} />
       </section>
 
-      {/* ── SECCIÓN 2: EL PROBLEMA ──────────────────────────────────────── */}
-      <ProblemaSection />
-
-      {/* ── SECCIÓN 3: LA SOLUCIÓN ──────────────────────────────────────── */}
+      {/* ── SECCIÓN 2: LA SOLUCIÓN — el niño practica en casa (CLARA) ───── */}
       <SolucionSection />
 
+      {/* ── SECCIÓN 3: EL PROBLEMA — una década perdida (DEEP) ──────────── */}
+      <ProblemaSection />
+
       {/* ── SECCIÓN 4: DISEÑADO PARA TODOS ─────────────────────────────── */}
-      <section id="para-quien" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)', borderTop: '1px solid rgba(51,48,42,0.07)' }}>
+      <section id="para-quien" style={{ background: '#EAF3F5', padding: '120px clamp(24px, 5vw, 80px)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
             <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
@@ -768,13 +768,13 @@ export default function RoleSelector({ onSelect }: Props) {
       </section>
 
       {/* ── SECCIÓN 5: EL FUTURO DE DRACS ──────────────────────────────── */}
-      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#EAF3F5' }}>
+      <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#5B8896' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#33302A' }}>
-              El futuro de Dracs.
+            <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#FAF5E8' }}>
+              El futuro de <em style={{ fontStyle: 'italic', color: '#F1D062' }}>Dracs.</em>
             </h2>
-            <p style={{ margin: 0, fontSize: '16px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65 }}>
+            <p style={{ margin: 0, fontSize: '16px', color: 'rgba(250,245,232,0.88)', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65 }}>
               De app de ejercicios a compañero clínico. Estas son las próximas cuatro funcionalidades.
             </p>
           </Reveal>

@@ -55,6 +55,13 @@
   --color-brand-ink: #33302A;         /* texto */
   --color-brand-yellow-mate: #F1D062; /* texto amarillo sobre fondo azul */
 
+  /* ── Sistema azul-forward (landing) ────────────────────────────────
+     Dos plantillas de sección: DEEP (fondo brand-blue) y CLARA (fondo
+     brand-blue-tint). El azul es la identidad; las secciones alternan. */
+  --color-brand-blue-bright: #1A8FB5; /* datos y acentos sobre fondo claro */
+  --color-brand-blue-tint: #EAF3F5;   /* fondo de secciones "claras" */
+  --color-brand-blue-dark: #3E5E6B;   /* paneles/bordes sobre azul */
+
   --color-cream: #FAF5E8;
   --color-bg: #F0FAFA;
   --color-correct: #22C55E;
