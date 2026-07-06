@@ -729,11 +729,11 @@ export default function RoleSelector({ onSelect }: Props) {
     <div style={{ minHeight: '100vh', background: '#FAF5E8', fontFamily: 'Nunito, sans-serif' }}>
 
       {/* ── SECCIÓN 1: HERO ─────────────────────────────────────────────── */}
-      <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#5B8896' }}>
+      <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#EAF3F5' }}>
         <img src="/logo-dracs.png" alt="Dracs" className="dracs-hero-dragon"
           style={{ width: '180px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))', marginBottom: '32px' }}
         />
-        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
+        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#33302A', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
           {phrase}
         </p>
         <div className="dracs-role-card" style={{ maxWidth: '400px', width: '100%', background: '#ffffff', borderRadius: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.08)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -746,17 +746,17 @@ export default function RoleSelector({ onSelect }: Props) {
           <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
           <DemoLink onClick={() => onSelect('demo')} />
         </div>
-        <KnowProjectButton onClick={() => scrollTo('solucion')} />
+        <KnowProjectButton onClick={() => scrollTo('problema')} />
       </section>
 
-      {/* ── SECCIÓN 2: LA SOLUCIÓN — el niño practica en casa (CLARA) ───── */}
-      <SolucionSection />
-
-      {/* ── SECCIÓN 3: EL PROBLEMA — una década perdida (DEEP) ──────────── */}
+      {/* ── SECCIÓN 2: LOS DATOS — una década perdida (AZUL / DEEP) ─────── */}
       <ProblemaSection />
 
+      {/* ── SECCIÓN 3: LA SOLUCIÓN — el niño practica en casa (CLARA) ───── */}
+      <SolucionSection />
+
       {/* ── SECCIÓN 4: DISEÑADO PARA TODOS ─────────────────────────────── */}
-      <section id="para-quien" style={{ background: '#EAF3F5', padding: '120px clamp(24px, 5vw, 80px)' }}>
+      <section id="para-quien" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
             <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
