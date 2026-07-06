@@ -97,20 +97,17 @@ function AppInner() {
         >
           {/* ── Left: logo ─────────────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            <span
+            <img
+              src="/logo-dracs.png"
+              alt="Dracs"
               style={{
-                fontFamily: 'Fredoka, system-ui, sans-serif',
-                fontWeight: 700,
-                fontSize: '24px',
-                color: '#5B8896',
-                lineHeight: 1,
-                letterSpacing: '2px',
+                height: '40px',
+                width: 'auto',
+                display: 'block',
                 cursor: 'pointer',
               }}
               onClick={() => navigate('/')}
-            >
-              DRACS
-            </span>
+            />
 
             {isDemo && (
               <button
