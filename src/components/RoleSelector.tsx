@@ -134,14 +134,6 @@ const PROBLEM_DATA = [
   },
 ]
 
-// Dot absolute positions — centered on each cardinal point of the circle border
-const DOT_POS = [
-  { top:    0,    left: '50%', transform: 'translate(-50%, -50%)' }, // top
-  { top: '50%',   right: 0,   transform: 'translate(50%, -50%)'  }, // right
-  { bottom: 0,    left: '50%', transform: 'translate(-50%, 50%)'  }, // bottom
-  { top: '50%',   left:  0,   transform: 'translate(-50%, -50%)' }, // left
-] as React.CSSProperties[]
-
 function ProblemaSection() {
   const [activeIndex,    setActiveIndex]    = useState(0)
   const [displayedIndex, setDisplayedIndex] = useState(0)
@@ -189,7 +181,7 @@ function ProblemaSection() {
   const circleSize = isMobile ? 240 : 440
 
   return (
-    <section id="problema" className="problem" style={{ background: '#FAF5E8' }}>
+    <section id="problema" className="problem dracs-panel" style={{ background: '#FAF5E8' }}>
 
       <div className="section-header">
         <h2 className="section-title">
@@ -204,24 +196,7 @@ function ProblemaSection() {
         <div className="sticky-left">
           <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
-            {/* Dashed border — subtle (azul tenue sobre crema) */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #5B8896', opacity: 0.28 }} />
-
-            {/* 4 cardinal dots */}
-            {DOT_POS.map((pos, i) => (
-              <div key={i} style={{
-                position: 'absolute',
-                ...pos,
-                width:  activeIndex === i ? '18px' : '14px',
-                height: activeIndex === i ? '18px' : '14px',
-                borderRadius: '50%',
-                background: activeIndex === i ? '#F7C31C' : 'rgba(91,136,150,0.4)',
-                border: activeIndex === i ? 'none' : '2px solid rgba(91,136,150,0.5)',
-                boxShadow: activeIndex === i ? '0 0 0 6px rgba(247,195,28,0.2)' : 'none',
-                transition: 'all 0.4s ease',
-                zIndex: 1,
-              }} />
-            ))}
+            {/* Sin anillo ni puntos: sólo tinta + azul brillante (máx. 2 colores) */}
 
             {/* Center: animated number */}
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '90%', opacity: fading ? 0 : 1, transition: 'opacity 0.3s ease' }}>
@@ -318,7 +293,7 @@ function SolucionSection() {
   ]
 
   return (
-    <section id="solucion" className="solution" style={{ background: '#EAF3F5' }}>
+    <section id="solucion" className="solution dracs-panel" style={{ background: '#EAF3F5' }}>
 
       <div className="section-header">
         <h2 className="section-title">
@@ -632,7 +607,7 @@ function FutureRevealGrid() {
 
 function AboutSection() {
   return (
-    <section id="nosotros" style={{ background: '#EAF3F5', padding: '120px clamp(24px, 5vw, 80px)' }}>
+    <section id="nosotros" className="dracs-panel" style={{ background: '#EAF3F5', padding: '120px clamp(24px, 5vw, 80px)' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
 
         {/* Header — centered */}
@@ -732,7 +707,7 @@ export default function RoleSelector({ onSelect }: Props) {
   const phraseLead = phraseWords.slice(0, -2).join(' ')
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF5E8', fontFamily: 'Nunito, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>
 
       {/* ── SECCIÓN 1: HERO ─────────────────────────────────────────────── */}
       <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#5B8896' }}>
@@ -762,7 +737,7 @@ export default function RoleSelector({ onSelect }: Props) {
       <SolucionSection />
 
       {/* ── SECCIÓN 4: DISEÑADO PARA TODOS ─────────────────────────────── */}
-      <section id="para-quien" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
+      <section id="para-quien" className="dracs-panel" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
             <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
@@ -841,8 +816,8 @@ export default function RoleSelector({ onSelect }: Props) {
 
         /* ── Step marker (El Problema) ──────────────────────────────── */
         .step-marker { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #F1D062; flex-shrink: 0; }
-        .step-line { height: 1px; width: 32px; background: #5B8896; opacity: 0.3; }
+        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #1A8FB5; flex-shrink: 0; }
+        .step-line { height: 1px; width: 32px; background: #1A8FB5; opacity: 0.4; }
 
         /* ── Calendar: hide text on very small screens ───────────────── */
         @media (max-width: 420px) {
@@ -872,6 +847,26 @@ export default function RoleSelector({ onSelect }: Props) {
         /* Sobre secciones azules: título en crema, acento en amarillo mate */
         .section-title--on-blue { color: #FAF5E8; }
         .section-title--on-blue em { color: #F1D062; }
+
+        /* ── Panel inset ────────────────────────────────────────────────
+           Secciones de contenido dentro de un panel más chico, con margen
+           a los costados y arriba/abajo, para que el azul de la página
+           asome alrededor y ninguna sección se funda con la de al lado.
+           Sin overflow:hidden para no romper el sticky de las columnas. */
+        .dracs-panel {
+          position: relative;
+          border-radius: clamp(20px, 3vw, 40px);
+          margin: clamp(18px, 2.5vw, 30px) clamp(12px, 4vw, 44px);
+        }
+        @media (max-width: 900px) {
+          /* En móvil el panel va a todo el ancho (sólo separación arriba/abajo),
+             así el azul sigue asomando entre secciones sin que el fondo opaco
+             del sticky se derrame en un margen lateral. */
+          .dracs-panel {
+            margin: 14px 0;
+            border-radius: 18px;
+          }
+        }
 
         /* ── Sticky 2-column grid — animación fija, texto scrollea ──── */
         .sticky-grid {
