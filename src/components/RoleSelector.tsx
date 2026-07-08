@@ -111,6 +111,13 @@ function BigNumber({ value }: { value: string }) {
 
 // ── El Problema — orbital sticky section ──────────────────────────────────────
 
+const DOT_POS = [
+  { top:    0,    left: '50%', transform: 'translate(-50%, -50%)' }, // top
+  { top: '50%',   right: 0,   transform: 'translate(50%, -50%)'  }, // right
+  { bottom: 0,    left: '50%', transform: 'translate(-50%, 50%)'  }, // bottom
+  { top: '50%',   left:  0,   transform: 'translate(-50%, -50%)' }, // left
+] as React.CSSProperties[]
+
 const PROBLEM_DATA = [
   {
     value: '1,2M',
@@ -198,6 +205,22 @@ function ProblemaSection() {
 
             {/* Dashed border — subtle (azul tenue sobre crema) */}
             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #5B8896', opacity: 0.28 }} />
+
+            {/* 4 cardinal dots — progress indicator (activo azul brillante, resto tenue) */}
+            {DOT_POS.map((pos, i) => (
+              <div key={i} style={{
+                position: 'absolute',
+                ...pos,
+                width:  activeIndex === i ? '18px' : '14px',
+                height: activeIndex === i ? '18px' : '14px',
+                borderRadius: '50%',
+                background: activeIndex === i ? '#1A8FB5' : 'rgba(91,136,150,0.4)',
+                border: activeIndex === i ? 'none' : '2px solid rgba(91,136,150,0.5)',
+                boxShadow: activeIndex === i ? '0 0 0 6px rgba(26,143,181,0.2)' : 'none',
+                transition: 'all 0.4s ease',
+                zIndex: 1,
+              }} />
+            ))}
 
             {/* Center: animated number */}
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '90%', opacity: fading ? 0 : 1, transition: 'opacity 0.3s ease' }}>
@@ -872,8 +895,8 @@ export default function RoleSelector({ onSelect }: Props) {
         /* ── Sticky 2-column grid — animación fija, texto scrollea ──── */
         .sticky-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 80px;
+          grid-template-columns: minmax(0, 460px) 1fr;
+          gap: clamp(32px, 4vw, 56px);
           max-width: 1280px;
           margin: 0 auto;
           padding: 0 clamp(24px, 5vw, 48px) 100px;
