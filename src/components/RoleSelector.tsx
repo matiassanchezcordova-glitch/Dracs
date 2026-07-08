@@ -196,7 +196,8 @@ function ProblemaSection() {
         <div className="sticky-left">
           <div className="circle-visual" style={{ position: 'relative', width: circleSize, height: circleSize, flexShrink: 0 }}>
 
-            {/* Sin anillo ni puntos: sólo tinta + azul brillante (máx. 2 colores) */}
+            {/* Dashed border — subtle (azul tenue sobre crema) */}
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed #5B8896', opacity: 0.28 }} />
 
             {/* Center: animated number */}
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '90%', opacity: fading ? 0 : 1, transition: 'opacity 0.3s ease' }}>
@@ -293,23 +294,23 @@ function SolucionSection() {
   ]
 
   return (
-    <section id="solucion" className="solution dracs-panel" style={{ background: '#EAF3F5' }}>
+    <section id="solucion" className="solution dracs-panel" style={{ background: '#5B8896' }}>
 
       <div className="section-header">
-        <h2 className="section-title">
+        <h2 className="section-title section-title--on-blue">
           Dracs convierte la espera{' '}
           <em>en práctica diaria.</em>
         </h2>
       </div>
 
-      <div className="sticky-grid" style={{ background: '#EAF3F5' }}>
+      <div className="sticky-grid" style={{ background: '#5B8896' }}>
 
         {/* LEFT: sticky frames */}
         <div className="sticky-left">
           <div style={{ position: 'relative', width: '100%', maxWidth: '380px', aspectRatio: '1/1.1' }}>
 
             {/* Frame 1 — clinical exercise mockup */}
-            <div className="frame-1-container" style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #5B8896 0%, #088a96 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px 14px' : '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
+            <div className="frame-1-container" style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #5B8896 0%, #088a96 100%)', border: '1px solid rgba(250,245,232,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px 14px' : '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
               <div className="frame-1-tablet" style={{ background: '#ffffff', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}>
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#F0FAFA', border: '1px solid #A5F3FC', borderRadius: '100px', padding: '4px 12px' }}>
                   <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.1em', color: '#5B8896', textTransform: 'uppercase' }}>Ejercicio 3 de 8</span>
@@ -406,7 +407,7 @@ function SolucionSection() {
               <h3 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: '44px', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
                 {step.title}
               </h3>
-              <p style={{ margin: '0 0 24px', fontSize: '18px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65, maxWidth: '480px' }}>
+              <p style={{ margin: '0 0 24px', fontSize: '18px', color: '#FAF5E8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65, maxWidth: '480px' }}>
                 {step.desc}
               </p>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', padding: '6px 16px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #A5F3FC', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '13px', color: '#1A8FB5' }}>
@@ -974,7 +975,7 @@ export default function RoleSelector({ onSelect }: Props) {
           font-style: normal;
           font-weight: 500;
           font-size: 72px;
-          color: #1A8FB5;
+          color: #F1D062;
           letter-spacing: -0.02em;
           line-height: 1;
           margin-bottom: 16px;
@@ -1033,7 +1034,7 @@ export default function RoleSelector({ onSelect }: Props) {
           .solution .sticky-left { height: 38vh; }
           /* Opaque backgrounds — explicit colors (not inherit) */
           .problem .sticky-left { background: #FAF5E8; }
-          .solution .sticky-left { background: #EAF3F5; }
+          .solution .sticky-left { background: #5B8896; }
           /* Extend background into the grid's 20px padding on each side */
           .problem .sticky-left::before {
             content: '';
@@ -1048,7 +1049,7 @@ export default function RoleSelector({ onSelect }: Props) {
             position: absolute;
             top: -80px; bottom: 0;
             left: -20px; right: -20px;
-            background: #EAF3F5;
+            background: #5B8896;
             z-index: -1;
           }
           .step {
