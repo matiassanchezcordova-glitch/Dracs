@@ -11,7 +11,7 @@ export default function NotFoundPage() {
       padding: '24px', textAlign: 'center',
     }}>
       <img
-        src="/dragon.nb.png" alt="Dracs"
+        src="/logo-dracs.png" alt="Dracs"
         style={{ width: '80px', marginBottom: '24px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))' }}
       />
       <h1 style={{

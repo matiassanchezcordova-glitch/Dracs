@@ -712,7 +712,7 @@ export default function RoleSelector() {
       {/* ── SECCIÓN 7: FOOTER CTA ───────────────────────────────────────── */}
       <section id="contacto" style={{ background: '#5B8896', padding: '80px clamp(24px, 5vw, 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '24px' }}>
         <Reveal style={{ display: 'flex', justifyContent: 'center' }}>
-          <img src="/dragon.nb.png" alt="" style={{ height: '80px', width: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'brightness(1.1) drop-shadow(0 8px 20px rgba(0,0,0,0.20))' }} />
+          <img src="/logo-dracs.png" alt="" style={{ height: '80px', width: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.20))' }} />
         </Reveal>
         <Reveal delay={100}>
           <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>

@@ -64,6 +64,25 @@ export default function DemoPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>
       <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#5B8896' }}>
+        {/* Dragón nuevo arriba a la izquierda = botón que lleva a la landing (/) */}
+        <button
+          onClick={() => navigate('/')}
+          aria-label="Volver a la web de Dracs"
+          style={{
+            position: 'absolute', top: '24px', left: '24px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '10px', padding: '4px',
+          }}
+        >
+          <img
+            src="/logo-dracs.png"
+            alt="Dracs"
+            style={{ width: '34px', height: 'auto', filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.18))' }}
+          />
+          <span style={{ fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 700, fontSize: '18px', color: '#F1D062', letterSpacing: '2px' }}>
+            DRACS
+          </span>
+        </button>
         <img src="/logo-dracs.png" alt="Dracs" className="dracs-hero-dragon"
           style={{ width: '180px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))', marginBottom: '32px' }}
         />

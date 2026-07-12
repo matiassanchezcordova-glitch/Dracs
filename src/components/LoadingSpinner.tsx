@@ -6,7 +6,7 @@ export default function LoadingSpinner() {
       background: '#FAF5E8',
     }}>
       <img
-        src="/dragon.nb.png" alt="Dracs"
+        src="/logo-dracs.png" alt="Dracs"
         style={{ width: '80px', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))' }}
       />
       <div style={{

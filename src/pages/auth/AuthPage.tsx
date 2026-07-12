@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Search, Eye, EyeOff, ChevronLeft, X, Check, Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
@@ -227,6 +228,7 @@ function AuthLayout({
 }: {
   children: React.ReactNode; onBack: () => void; showBack?: boolean
 }) {
+  const navigate = useNavigate()
   return (
     <div className="dracs-auth-layout" style={{
       minHeight: '100vh',
@@ -234,58 +236,71 @@ function AuthLayout({
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      padding: '32px 24px 48px',
+      padding: '24px 24px 48px',
       fontFamily: 'Nunito, sans-serif',
       position: 'relative',
     }}>
-      {showBack && (
+      {/* ── Top bar: brand lockup (→ landing) + contextual back ────── */}
+      <div style={{
+        width: '100%',
+        maxWidth: '420px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '28px',
+      }}>
+        {/* Dragón nuevo arriba a la izquierda = botón que lleva a la landing (/) */}
         <button
-          onClick={onBack}
+          onClick={() => navigate('/')}
+          aria-label="Volver a la web de Dracs"
           style={{
-            position: 'absolute',
-            top: '24px',
-            left: '24px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            color: '#5B8896',
-            fontSize: '14px',
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 600,
-            padding: '8px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '10px', padding: '4px',
           }}
         >
-          <ChevronLeft size={16} />
-          Volver
+          <img
+            src="/logo-dracs.png"
+            alt="Dracs"
+            style={{
+              width: '38px',
+              height: 'auto',
+              animation: 'floatDragon2 3s ease-in-out infinite',
+              filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.12))',
+            }}
+          />
+          <span style={{
+            fontFamily: 'Fredoka, system-ui, sans-serif',
+            fontWeight: 700,
+            fontSize: '20px',
+            color: '#33302A',
+            letterSpacing: '2px',
+          }}>
+            DRACS
+          </span>
         </button>
-      )}
 
-      <div style={{ marginTop: '16px', marginBottom: '8px', textAlign: 'center' }}>
-        <span style={{
-          fontFamily: 'Fredoka, system-ui, sans-serif',
-          fontWeight: 700,
-          fontSize: '20px',
-          color: '#5B8896',
-          letterSpacing: '3px',
-        }}>
-          DRACS
-        </span>
+        {showBack && (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: '#5B8896',
+              fontSize: '14px',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 600,
+              padding: '8px',
+            }}
+          >
+            <ChevronLeft size={16} />
+            Volver
+          </button>
+        )}
       </div>
-
-      <img
-        src="/dragon.nb.png"
-        alt="Dracs"
-        style={{
-          width: '80px',
-          height: 'auto',
-          animation: 'floatDragon2 3s ease-in-out infinite',
-          filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))',
-          marginBottom: '24px',
-        }}
-      />
 
       <div style={{
         width: '100%',
