@@ -25,7 +25,14 @@ export default function SequenceQuestion({ exercise, onAttempt, palette }: Props
 
   function handleTap(displayIndex: number) {
     if (locked || shaking) return
-    if (selectedOrder.includes(displayIndex)) return
+
+    // Toggle: clic en una imagen ya seleccionada la deselecciona y la saca de
+    // la secuencia (así el niño corrige un misclick). Los números de orden de
+    // las que siguen se recalculan solos (badge = posición en selectedOrder).
+    if (selectedOrder.includes(displayIndex)) {
+      setSelectedOrder(prev => prev.filter(di => di !== displayIndex))
+      return
+    }
 
     const newOrder = [...selectedOrder, displayIndex]
     setSelectedOrder(newOrder)
@@ -82,7 +89,7 @@ export default function SequenceQuestion({ exercise, onAttempt, palette }: Props
                 state={cardStates[displayIndex]}
                 dimmed={false}
                 badge={isSelected ? tapPosition + 1 : (allCorrect ? displayIndex + 1 : undefined)}
-                disabled={locked || isSelected}
+                disabled={locked}
                 onTap={() => handleTap(displayIndex)}
                 enterDelay={displayIndex * 60}
                 maxWidth={layout.cardMaxWidth}

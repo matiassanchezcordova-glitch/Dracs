@@ -112,11 +112,25 @@ function asString(v: unknown): string | null {
   return typeof v === 'string' ? v : null
 }
 
+// Quita las etiquetas de emoción para el TTS (ElevenLabs) que se hayan colado
+// al principio del texto visible: "[friendly] Ordena…" → "Ordena…". Cubre uno o
+// varios tags seguidos ([friendly], [cheerful], [excited], [gentle], …). Los
+// audios ya están pregrabados, así que el tag no hace falta en el texto.
+// Se aplica en la fuente (adaptadores) para cubrir TODOS los ejercicios y todas
+// sus apariciones (incluido el faro/sorpresa que trae aleatorios) de una vez.
+function stripEmotionTag(s: string): string {
+  return s.replace(/^\s*(?:\[[^\]]*\]\s*)+/, '')
+}
+
+function stripEmotionTagNullable(s: string | null): string | null {
+  return s == null ? null : stripEmotionTag(s)
+}
+
 // Use row.prompt if present, otherwise fall back to row.title (some rows
 // in DB may have empty prompts — see backlog task "audit prompts").
 function promptOrTitle(row: DbExerciseRow): string {
   const p = (row.prompt ?? '').trim()
-  return p.length > 0 ? p : row.title
+  return stripEmotionTag(p.length > 0 ? p : row.title)
 }
 
 // identify_image (Mecánica A) → RuntimeVocabulary
@@ -139,7 +153,7 @@ function adaptIdentifyImage(row: DbExerciseRow): RuntimeVocabulary | null {
     id: row.id,
     word: asString(c.word) ?? row.title,
     prompt: promptOrTitle(row),
-    promptOriginal: row.prompt_original ?? null,
+    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
     audioUrl: row.audio_url,
     options: shuffled,
     correctIndex: shuffled.findIndex(o => o.imageUrl === correctImg),
@@ -161,9 +175,9 @@ function adaptOddOneOut(row: DbExerciseRow): RuntimeOddOneOut | null {
   return {
     type: 'odd_one_out',
     id: row.id,
-    question: asString(c.question) ?? row.prompt,
+    question: stripEmotionTag(asString(c.question) ?? row.prompt),
     prompt: promptOrTitle(row),
-    promptOriginal: row.prompt_original ?? null,
+    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
     audioUrl: row.audio_url,
     items: shuffle(items),
   }
@@ -186,9 +200,9 @@ function adaptSequence(row: DbExerciseRow): RuntimeSequence | null {
   return {
     type: 'sequence',
     id: row.id,
-    question: asString(c.question) ?? row.prompt,
+    question: stripEmotionTag(asString(c.question) ?? row.prompt),
     prompt: promptOrTitle(row),
-    promptOriginal: row.prompt_original ?? null,
+    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
     audioUrl: row.audio_url,
     items: shuffle(items),
     correctOrder,
@@ -213,7 +227,7 @@ function adaptFillBlank(row: DbExerciseRow): RuntimeFillBlank | null {
     id: row.id,
     sentence,
     prompt: promptOrTitle(row),
-    promptOriginal: row.prompt_original ?? null,
+    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
     audioUrl: row.audio_url,
     options: shuffled,
     correctIndex: shuffled.indexOf(correctText),
