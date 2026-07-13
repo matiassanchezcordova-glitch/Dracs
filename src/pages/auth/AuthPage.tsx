@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Eye, EyeOff, ChevronLeft, X, Check, Loader2 } from 'lucide-react'
+import { Search, Eye, EyeOff, X, Check, Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import type { Center, TherapistWithProfile } from '../../lib/types'
@@ -296,7 +296,6 @@ function AuthLayout({
               padding: '8px',
             }}
           >
-            <ChevronLeft size={16} />
             Volver
           </button>
         )}
@@ -565,7 +564,7 @@ function SignupStep1({ role, onContinue, onBack }: {
           }
         />
         <div style={{ height: '4px' }} />
-        <SpinnerBtn loading={loading} label="Continuar →" onClick={handleContinue} />
+        <SpinnerBtn loading={loading} label="Continuar" onClick={handleContinue} />
       </div>
     </AuthLayout>
   )
@@ -641,7 +640,7 @@ function PatientStep2({ onContinue, onBack }: {
           </select>
         </div>
 
-        <button onClick={handleContinue} style={BTN_PRIMARY}>Continuar →</button>
+        <button onClick={handleContinue} style={BTN_PRIMARY}>Continuar</button>
       </div>
     </AuthLayout>
   )
@@ -867,7 +866,7 @@ function TherapistStep2({ onContinue, onBack }: {
           <FocusInput placeholder="Ej: Barcelona" value={city} onChange={setCity} />
         </div>
 
-        <button onClick={handleContinue} style={BTN_PRIMARY}>Continuar →</button>
+        <button onClick={handleContinue} style={BTN_PRIMARY}>Continuar</button>
       </div>
     </AuthLayout>
   )
@@ -1010,7 +1009,7 @@ function TherapistStep3({
             <Label>Nombre del centro</Label>
             <FocusInput placeholder="Nombre del centro" value={newCenterName} onChange={setNewCenterName} autoFocus />
             <button onClick={() => setShowNewCenter(false)} style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-              ← Buscar en la lista
+              Buscar en la lista
             </button>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Star, Flame, TrendingUp, ArrowRight, ArrowLeft, Check, FileText, ClipboardList, BookOpen } from 'lucide-react'
+import { Star, Flame, TrendingUp, Check, FileText, ClipboardList, BookOpen } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
@@ -290,7 +290,7 @@ function FamiliaContent({
       )}
 
       {!showReport && (
-        <div style={{ width: '100%', maxWidth: '760px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ width: '100%', maxWidth: '960px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Hero — texto sobre crema, sin caja ni banda de color */}
           <div style={{
@@ -350,7 +350,6 @@ function FamiliaContent({
             <span style={{ flex: 1, fontSize: '20px', fontWeight: 700, color: '#1A1A2E', textAlign: 'left', fontFamily: 'Nunito, sans-serif' }}>
               Ver informe semanal
             </span>
-            <ArrowRight size={16} color="#0BAFBE" style={{ flexShrink: 0 }} />
           </button>
 
           {/* Esta semana */}
@@ -593,7 +592,7 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
       {isTherapist && selectedPatientId && (
         <div style={{
           width: '100%',
-          maxWidth: '760px',
+          maxWidth: '960px',
           marginBottom: '16px',
           background: '#F0FAFA',
           borderRadius: '12px',
@@ -613,7 +612,6 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
               fontFamily: 'Nunito, sans-serif', padding: 0, flexShrink: 0,
             }}
           >
-            <ArrowLeft size={14} />
             Volver al dashboard
           </button>
           <div style={{ width: '1px', height: '14px', background: '#E2E8F0', flexShrink: 0 }} />

@@ -43,12 +43,13 @@ export function optionGrid(count: number, isMobile: boolean): OptionGrid {
 
   if (count === 4) {
     // 2×2. Cards más chicas y juntas para que las 4 entren en pantalla sin
-    // scroll (dos filas deben caber en la zona inferior, que es ~60% del alto).
+    // scroll (dos filas deben caber en la zona inferior, que es ~60% del alto)
+    // y con poco espacio entre ellas para que se lean como un grupo.
     return {
       container: {
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: isMobile ? '10px' : '14px',
+        gap: isMobile ? '6px' : '8px',
       },
       itemStyle: NOOP,
       cardMaxWidth: isMobile ? 120 : 160,

@@ -89,7 +89,7 @@ function AppInner() {
             maxWidth: '1200px',
             margin: '0 auto',
             padding: '0 24px',
-            height: '56px',
+            height: '64px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -101,7 +101,7 @@ function AppInner() {
               src="/logo-dracs.png"
               alt="Dracs"
               style={{
-                height: '40px',
+                height: '52px',
                 width: 'auto',
                 display: 'block',
                 cursor: 'pointer',
@@ -138,21 +138,21 @@ function AppInner() {
               }}
             >
               <div style={{
-                width: '32px', height: '32px', borderRadius: '50%',
+                width: '40px', height: '40px', borderRadius: '50%',
                 backgroundColor: '#F7C31C', color: '#33302A',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '14px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
+                fontSize: '17px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
               }}>
                 {avatarInitial}
               </div>
               <span className="dracs-user-name" style={{
                 fontFamily: 'Nunito, sans-serif', fontWeight: 600,
-                fontSize: '14px', color: '#33302A',
+                fontSize: '15px', color: '#33302A',
               }}>
                 {displayName}
               </span>
               <ChevronDown
-                size={16}
+                size={18}
                 style={{
                   color: '#6B7280', flexShrink: 0,
                   transform: menuOpen ? 'rotate(180deg)' : 'rotate(0)',

@@ -29,17 +29,20 @@ export default function MapScreen() {
   }
 
   return (
-    // Alto DEFINIDO = viewport menos el navbar (56px). El shell usa
+    // Alto DEFINIDO = viewport menos el navbar (64px). El shell usa
     // `min-height:100svh`, que deja la cadena de alto indefinida: sin un alto
     // definido acá, `max-height`/`cqh` evalúan a 0/none y el mapa se corta o
     // colapsa. Columna: título arriba (shrink-0) + área del mapa abajo.
-    // TODO (S5.x): mover el 56px del navbar a una CSS var global `--navbar-height`
+    // TODO (S5.x): mover el 64px del navbar a una CSS var global `--navbar-height`
     // en :root y usar calc(100svh - var(--navbar-height)) — hoy está hardcodeado.
     <div
       className="min-h-0 flex flex-col p-4 gap-3"
-      style={{ height: 'calc(100svh - 56px)', backgroundColor: '#FAF5E8' }}
+      style={{ height: 'calc(100svh - 64px)', backgroundColor: '#FAF5E8' }}
     >
-      <h1 className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold text-orange-500">
+      <h1
+        className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold"
+        style={{ color: '#33302A' }}
+      >
         ¿A dónde vamos hoy?
       </h1>
 

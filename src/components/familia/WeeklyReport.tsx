@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
-  ArrowLeft, Calendar, CheckCircle2, Clock, FileText,
+  Calendar, CheckCircle2, Clock, FileText,
   MessageCircle, Share2, Stethoscope, Target, TrendingDown, TrendingUp,
 } from 'lucide-react'
 import type { DbSession } from '../../lib/types'
@@ -152,7 +152,6 @@ function BackButton({ onClick }: { onClick: () => void }) {
         marginBottom: '4px',
       }}
     >
-      <ArrowLeft size={18} color="#0BAFBE" />
       Volver
     </button>
   )

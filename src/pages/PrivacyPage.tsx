@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           color: '#5B8896', fontSize: '14px', fontWeight: 600,
           textDecoration: 'none', display: 'inline-block', marginBottom: '24px',
         }}>
-          ← Volver
+          Volver
         </Link>
         <h1 style={{
           fontFamily: '"Fredoka", serif',
