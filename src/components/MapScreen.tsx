@@ -41,7 +41,7 @@ export default function MapScreen() {
     >
       <h1
         className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold"
-        style={{ color: '#33302A' }}
+        style={{ color: '#5B8896' }}
       >
         ¿A dónde vamos hoy?
       </h1>
@@ -56,10 +56,13 @@ export default function MapScreen() {
             ratio", entrando completa por ambos ejes; `aspectRatio` fija su forma
             y la imagen la llena, así los hotspots (en %) quedan alineados. */}
         <div
-          className="relative"
+          className="relative overflow-hidden"
           style={{
             aspectRatio: '1446 / 1088',
             width: 'min(100cqw, calc(100cqh * 1446 / 1088))',
+            border: '2px solid #E4DAC4',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
           }}
         >
           <img
