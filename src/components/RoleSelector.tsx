@@ -583,18 +583,25 @@ function FutureRevealGrid() {
 
 function LaurelWreath({ color }: { color: string }) {
   return (
-    <svg viewBox="0 0 120 100" width="70" aria-hidden="true">
-      <g fill="none" stroke={color} strokeWidth="3" strokeLinecap="round">
-        <path d="M60 92 C40 88 28 70 28 46" />
-        <path d="M60 92 C80 88 92 70 92 46" />
-      </g>
+    <svg viewBox="0 0 120 110" width="72" aria-hidden="true">
       <g fill={color}>
-        <ellipse cx="30" cy="48" rx="7" ry="3.4" transform="rotate(-35 30 48)" />
-        <ellipse cx="31" cy="62" rx="7" ry="3.4" transform="rotate(-18 31 62)" />
-        <ellipse cx="36" cy="76" rx="7" ry="3.4" transform="rotate(-4 36 76)" />
-        <ellipse cx="90" cy="48" rx="7" ry="3.4" transform="rotate(35 90 48)" />
-        <ellipse cx="89" cy="62" rx="7" ry="3.4" transform="rotate(18 89 62)" />
-        <ellipse cx="84" cy="76" rx="7" ry="3.4" transform="rotate(4 84 76)" />
+        {/* Ramas curvas abiertas */}
+        <path d="M60 102 C42 97 30 78 27 46" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        <path d="M60 102 C78 97 90 78 93 46" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        {/* Hojas tipo gota, inclinadas a lo largo de la rama — lado izquierdo */}
+        <ellipse cx="46" cy="93" rx="7"   ry="2.8" transform="rotate(-8 46 93)" />
+        <ellipse cx="37" cy="84" rx="7.5" ry="2.9" transform="rotate(-16 37 84)" />
+        <ellipse cx="31" cy="71" rx="8"   ry="3"   transform="rotate(-30 31 71)" />
+        <ellipse cx="30" cy="58" rx="8"   ry="3"   transform="rotate(-48 30 58)" />
+        <ellipse cx="26" cy="46" rx="7"   ry="2.7" transform="rotate(-68 26 46)" />
+        <ellipse cx="28" cy="37" rx="5.5" ry="2.3" transform="rotate(-84 28 37)" />
+        {/* Lado derecho (espejo) */}
+        <ellipse cx="74" cy="93" rx="7"   ry="2.8" transform="rotate(8 74 93)" />
+        <ellipse cx="83" cy="84" rx="7.5" ry="2.9" transform="rotate(16 83 84)" />
+        <ellipse cx="89" cy="71" rx="8"   ry="3"   transform="rotate(30 89 71)" />
+        <ellipse cx="90" cy="58" rx="8"   ry="3"   transform="rotate(48 90 58)" />
+        <ellipse cx="94" cy="46" rx="7"   ry="2.7" transform="rotate(68 94 46)" />
+        <ellipse cx="92" cy="37" rx="5.5" ry="2.3" transform="rotate(84 92 37)" />
       </g>
     </svg>
   )
@@ -623,48 +630,6 @@ function RecognitionCard({
         </p>
       ))}
     </div>
-  )
-}
-
-function RecognitionSection() {
-  return (
-    <section id="reconocimiento" className="dracs-panel" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-
-        {/* Header — centered */}
-        <Reveal style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <span style={{ display: 'block', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '14px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#C7A24F', marginBottom: '14px' }}>
-            Reconocimiento
-          </span>
-          <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
-            Vamos <em style={{ fontStyle: 'italic', color: '#C7A24F' }}>en serio.</em>
-          </h2>
-        </Reveal>
-
-        {/* Cards — centered, medium width */}
-        <div className="dracs-recognition-grid">
-          <Reveal style={{ display: 'flex' }}>
-            <RecognitionCard
-              laurelColor="#C9A227"
-              label="Primer puesto"
-              title="First Place"
-              lead="Babson Student Challenge"
-              meta={['Clasificatoria local · EAE Business School', 'Barcelona · 2026']}
-            />
-          </Reveal>
-          <Reveal delay={120} style={{ display: 'flex' }}>
-            <RecognitionCard
-              laurelColor="#A6A29B"
-              label="Semifinalista global"
-              title="Top Global Semifinalist"
-              lead="Babson Student Challenge"
-              meta={['Babson College · Boston · 2026']}
-            />
-          </Reveal>
-        </div>
-
-      </div>
-    </section>
   )
 }
 
@@ -726,15 +691,28 @@ function AboutSection() {
           </div>
         </div>
 
-        {/* Closing quote */}
+        {/* Reconocimiento — kicker + cards (movido desde su sección propia) */}
         <Reveal delay={80}>
-          <div style={{ maxWidth: '720px', margin: '100px auto 0', textAlign: 'center', paddingTop: '60px', borderTop: '1px solid #F1F5F9' }}>
-            <p style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(20px, 2.5vw, 26px)', color: '#1A8FB5', lineHeight: 1.4 }}>
-              "Esto lo hago por mi hermano. Y por cada niño al que el sistema todavía no llegó."
-            </p>
-            <p style={{ margin: 0, fontFamily: 'Nunito, sans-serif', fontSize: '14px', fontWeight: 500, color: '#6B7280', letterSpacing: '0.02em' }}>
-              — Matías, fundador de Dracs
-            </p>
+          <div style={{ margin: '100px auto 0', paddingTop: '60px', borderTop: '1px solid rgba(51,48,42,0.10)' }}>
+            <span style={{ display: 'block', textAlign: 'center', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '14px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#C7A24F', marginBottom: '40px' }}>
+              Reconocimiento
+            </span>
+            <div className="dracs-recognition-grid">
+              <RecognitionCard
+                laurelColor="#C9A227"
+                label="Primer puesto"
+                title="First Place"
+                lead="Babson Student Challenge"
+                meta={['Clasificatoria local · EAE Business School', 'Barcelona · 2026']}
+              />
+              <RecognitionCard
+                laurelColor="#A6A29B"
+                label="Semifinalista global"
+                title="Top Global Semifinalist"
+                lead="Babson Student Challenge"
+                meta={['Babson College · Boston · 2026']}
+              />
+            </div>
           </div>
         </Reveal>
 
@@ -795,10 +773,7 @@ export default function RoleSelector() {
         </div>
       </section>
 
-      {/* ── SECCIÓN 5.5: RECONOCIMIENTOS (CREMA, separa del azul de arriba) ── */}
-      <RecognitionSection />
-
-      {/* ── SECCIÓN 6: SOBRE NOSOTROS ───────────────────────────────────── */}
+      {/* ── SECCIÓN 6: SOBRE NOSOTROS (incluye reconocimientos al final) ── */}
       <AboutSection />
 
       {/* ── SECCIÓN 7: FOOTER CTA ───────────────────────────────────────── */}
@@ -1023,6 +998,12 @@ export default function RoleSelector() {
         .dracs-recognition-card:hover {
           transform: translateY(-6px);
           box-shadow: 0 20px 48px rgba(0,0,0,0.12);
+        }
+        /* Móvil: cards apiladas en vertical, sin scroll horizontal
+           (orden DOM: kicker → First Place → Top Global Semifinalist) */
+        @media (max-width: 640px) {
+          .dracs-recognition-grid { flex-direction: column; align-items: center; }
+          .dracs-recognition-grid > div { flex: 1 1 auto; width: 100%; max-width: 400px; }
         }
 
         /* ── Step numbers — La Solución ─────────────────────────────────── */
