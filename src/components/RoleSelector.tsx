@@ -579,6 +579,95 @@ function FutureRevealGrid() {
   )
 }
 
+// ── Reconocimientos ───────────────────────────────────────────────────────────
+
+function LaurelWreath({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 120 100" width="70" aria-hidden="true">
+      <g fill="none" stroke={color} strokeWidth="3" strokeLinecap="round">
+        <path d="M60 92 C40 88 28 70 28 46" />
+        <path d="M60 92 C80 88 92 70 92 46" />
+      </g>
+      <g fill={color}>
+        <ellipse cx="30" cy="48" rx="7" ry="3.4" transform="rotate(-35 30 48)" />
+        <ellipse cx="31" cy="62" rx="7" ry="3.4" transform="rotate(-18 31 62)" />
+        <ellipse cx="36" cy="76" rx="7" ry="3.4" transform="rotate(-4 36 76)" />
+        <ellipse cx="90" cy="48" rx="7" ry="3.4" transform="rotate(35 90 48)" />
+        <ellipse cx="89" cy="62" rx="7" ry="3.4" transform="rotate(18 89 62)" />
+        <ellipse cx="84" cy="76" rx="7" ry="3.4" transform="rotate(4 84 76)" />
+      </g>
+    </svg>
+  )
+}
+
+function RecognitionCard({
+  laurelColor, label, title, lead, meta,
+}: { laurelColor: string; label: string; title: string; lead: string; meta: string[] }) {
+  return (
+    <div className="dracs-recognition-card">
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
+        <LaurelWreath color={laurelColor} />
+      </div>
+      <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8A8578' }}>
+        {label}
+      </span>
+      <h3 style={{ margin: '10px 0 14px', fontFamily: '"Fredoka", serif', fontWeight: 700, fontSize: 'clamp(24px, 2.6vw, 30px)', color: '#33302A', lineHeight: 1.15 }}>
+        {title}
+      </h3>
+      <p style={{ margin: '0 0 6px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '15px', color: '#33302A' }}>
+        {lead}
+      </p>
+      {meta.map((line, i) => (
+        <p key={i} style={{ margin: 0, fontFamily: 'Nunito, sans-serif', fontWeight: 500, fontSize: '14px', color: '#6B7280', lineHeight: 1.55 }}>
+          {line}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+function RecognitionSection() {
+  return (
+    <section id="reconocimiento" className="dracs-panel" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
+      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+
+        {/* Header — centered */}
+        <Reveal style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <span style={{ display: 'block', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '14px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#C7A24F', marginBottom: '14px' }}>
+            Reconocimiento
+          </span>
+          <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
+            Vamos <em style={{ fontStyle: 'italic', color: '#C7A24F' }}>en serio.</em>
+          </h2>
+        </Reveal>
+
+        {/* Cards — centered, medium width */}
+        <div className="dracs-recognition-grid">
+          <Reveal style={{ display: 'flex' }}>
+            <RecognitionCard
+              laurelColor="#C9A227"
+              label="Primer puesto"
+              title="First Place"
+              lead="Babson Student Challenge"
+              meta={['Clasificatoria local · EAE Business School', 'Barcelona · 2026']}
+            />
+          </Reveal>
+          <Reveal delay={120} style={{ display: 'flex' }}>
+            <RecognitionCard
+              laurelColor="#A6A29B"
+              label="Semifinalista global"
+              title="Top Global Semifinalist"
+              lead="Babson Student Challenge"
+              meta={['Babson College · Boston · 2026']}
+            />
+          </Reveal>
+        </div>
+
+      </div>
+    </section>
+  )
+}
+
 // ── Sobre nosotros ────────────────────────────────────────────────────────────
 
 function AboutSection() {
@@ -705,6 +794,9 @@ export default function RoleSelector() {
           <FutureRevealGrid />
         </div>
       </section>
+
+      {/* ── SECCIÓN 5.5: RECONOCIMIENTOS (CREMA, separa del azul de arriba) ── */}
+      <RecognitionSection />
 
       {/* ── SECCIÓN 6: SOBRE NOSOTROS ───────────────────────────────────── */}
       <AboutSection />
@@ -909,6 +1001,28 @@ export default function RoleSelector() {
           transform: translateY(-6px) !important;
           border-color: #5B8896 !important;
           box-shadow: 0 20px 40px -20px rgba(91,136,150,0.3) !important;
+        }
+
+        /* ── Reconocimientos ────────────────────────────────────────────── */
+        .dracs-recognition-grid {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: clamp(20px, 3vw, 32px);
+        }
+        .dracs-recognition-grid > div { flex: 1 1 300px; max-width: 360px; }
+        .dracs-recognition-card {
+          flex: 1;
+          background: #FFFFFF;
+          border-radius: 20px;
+          padding: 36px 32px 32px;
+          text-align: center;
+          box-shadow: 0 8px 28px rgba(91,136,150,0.10);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .dracs-recognition-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 48px rgba(0,0,0,0.12);
         }
 
         /* ── Step numbers — La Solución ─────────────────────────────────── */
