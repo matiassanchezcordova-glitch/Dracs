@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Brain,
   Smile, Mail, ImagePlus,
-  Fish, Cat, Turtle, Star, Check,
+  Fish, Cat, Turtle, Check,
   Shirt, BookOpen,
 } from 'lucide-react'
 
@@ -443,14 +443,24 @@ function MiniMockupTerapeuta() {
 }
 
 function MiniMockupFamilia() {
+  // Mini resumen semanal: 7 días con 5 practicados + barra de progreso corta.
+  const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+  const done = [true, true, true, false, true, true, false] // 5 de 7
   return (
     <div style={{ background: 'rgba(255,255,255,0.7)', borderRadius: '12px', padding: '14px', marginBottom: '20px' }}>
-      <div style={{ display: 'flex', gap: '3px', marginBottom: '8px' }}>
-        {[1,2,3].map(i => <Star key={i} size={14} color="#5B8896" fill="#5B8896" />)}
+      {/* Fila de 7 días — puntito relleno = practicó */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px', marginBottom: '12px' }}>
+        {days.map((d, i) => (
+          <div key={d} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flex: 1 }}>
+            <span style={{ width: '11px', height: '11px', borderRadius: '50%', background: done[i] ? '#5B8896' : 'rgba(51,48,42,0.15)' }} />
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '9px', color: 'rgba(51,48,42,0.55)' }}>{d}</span>
+          </div>
+        ))}
       </div>
-      <p style={{ margin: 0, fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '12px', color: '#33302A' }}>
-        Esta semana: +12 palabras nuevas
-      </p>
+      {/* Barra de progreso corta (5/7 de la semana) */}
+      <div style={{ height: '6px', borderRadius: '100px', background: 'rgba(51,48,42,0.12)', overflow: 'hidden' }}>
+        <div style={{ width: '71%', height: '100%', borderRadius: '100px', background: '#5B8896' }} />
+      </div>
     </div>
   )
 }
@@ -800,12 +810,6 @@ export default function RoleSelector() {
             <Mail size={16} />Escribinos
           </a>
         </Reveal>
-        <div style={{ width: '100%', maxWidth: '400px', height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 0' }} />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 700, fontSize: '18px', color: '#F1D062', letterSpacing: '0.04em' }}>DRACS</span>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>Barcelona · 2026</span>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.65)' }}>Babson Student Challenge 2026</span>
-        </div>
       </section>
 
       {/* ── Global CSS ──────────────────────────────────────────────────── */}
@@ -977,6 +981,9 @@ export default function RoleSelector() {
           border-color: #5B8896 !important;
           box-shadow: 0 20px 40px -20px rgba(91,136,150,0.3) !important;
         }
+        /* Título con alto fijo de 2 líneas para que el texto gris arranque a la
+           misma altura en las 4 cards (fontSize 20px · lineHeight 1.25). */
+        .future-card h4 { min-height: 2.5em; }
 
         /* ── Reconocimientos ────────────────────────────────────────────── */
         .dracs-recognition-grid {
