@@ -20,7 +20,6 @@ export default function OddOneOutQuestion({ exercise, onAttempt, palette }: Prop
   const [states, setStates] = useState<CardState[]>(() => exercise.items.map(() => 'idle'))
   const [wrongCount, setWrongCount] = useState(0)
   const [locked, setLocked] = useState(false)
-  const [revealedLabel, setRevealedLabel] = useState<string | null>(null)
 
   const oddIndex = exercise.items.findIndex(it => it.isOdd)
 
@@ -46,7 +45,6 @@ export default function OddOneOutQuestion({ exercise, onAttempt, palette }: Prop
       setLocked(true)
       setTimeout(() => {
         setStates(prev => prev.map((s, j) => j === oddIndex ? 'revealed' : s))
-        setRevealedLabel(exercise.items[oddIndex].label)
         onAttempt({ success: false, isFinal: true })
       }, SHAKE_RESET_MS)
     } else {
@@ -79,20 +77,6 @@ export default function OddOneOutQuestion({ exercise, onAttempt, palette }: Prop
           )
         })}
       </div>
-      {revealedLabel && (
-        <p
-          style={{
-            textAlign: 'center',
-            fontFamily: 'Nunito, sans-serif',
-            color: '#047857',
-            fontWeight: 700,
-            fontSize: '15px',
-            marginTop: '20px',
-          }}
-        >
-          Era la {revealedLabel}. ¡La próxima la atrapamos!
-        </p>
-      )}
     </div>
   )
 }

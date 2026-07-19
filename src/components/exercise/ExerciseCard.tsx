@@ -53,7 +53,6 @@ export default function ExerciseCard({
   const isRevealed = state === 'revealed'
   const isShaking  = state === 'shake'
   const isIdle     = state === 'idle'
-  const showLabel  = isCorrect || isRevealed
 
   let borderColor = '#E5E7EB'
   let borderWidth = '2px'
@@ -95,6 +94,9 @@ export default function ExerciseCard({
     >
       <button
         type="button"
+        // La descripción (label) NO se muestra en pantalla — se conserva como
+        // aria-label para accesibilidad/lectores de pantalla y para el audio.
+        aria-label={label}
         onClick={disabled ? undefined : onTap}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => { setHovered(false); setPressed(false) }}
@@ -205,23 +207,6 @@ export default function ExerciseCard({
           </div>
         )}
       </button>
-
-      <span
-        aria-hidden={!showLabel}
-        style={{
-          fontFamily: 'Nunito, sans-serif',
-          fontWeight: 700,
-          fontSize: '15px',
-          color: '#047857',
-          textAlign: 'center',
-          lineHeight: 1.25,
-          opacity: showLabel ? 1 : 0,
-          transition: 'opacity 0.18s ease',
-          minHeight: '20px',
-        }}
-      >
-        {label}
-      </span>
     </div>
   )
 }

@@ -21,7 +21,6 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled, palet
   const [states, setStates] = useState<CardState[]>(() => exercise.options.map(() => 'idle'))
   const [wrongCount, setWrongCount] = useState(0)
   const [locked, setLocked] = useState(false)
-  const [revealedLabel, setRevealedLabel] = useState<string | null>(null)
 
   function handleTap(i: number) {
     if (locked) return
@@ -47,7 +46,6 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled, palet
       setTimeout(() => {
         const word = exercise.options[exercise.correctIndex]
         setStates(prev => prev.map((s, j) => j === exercise.correctIndex ? 'revealed' : s))
-        setRevealedLabel(word)
         onFilled(word)
         onAttempt({ success: false, isFinal: true })
       }, SHAKE_RESET_MS)
@@ -81,20 +79,6 @@ export default function FillBlankQuestion({ exercise, onAttempt, onFilled, palet
           )
         })}
       </div>
-      {revealedLabel && (
-        <p
-          style={{
-            textAlign: 'center',
-            fontFamily: 'Nunito, sans-serif',
-            color: '#047857',
-            fontWeight: 700,
-            fontSize: '15px',
-            marginTop: '20px',
-          }}
-        >
-          Era {revealedLabel}. ¡La próxima la atrapamos!
-        </p>
-      )}
     </div>
   )
 }

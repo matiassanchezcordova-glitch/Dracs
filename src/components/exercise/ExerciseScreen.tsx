@@ -21,6 +21,9 @@ interface Props {
 
 const PRAISE_POOL = ['¡Bien!', '¡Lo lograste!', '¡Genial!', '¡Crack!', '¡Eso es!', '¡Increíble!']
 const ENCOURAGE_POOL = ['Mirá bien', 'Casi', 'Probá otra vez', 'Estás cerca']
+// Fallo definitivo: mensaje de ánimo para pasar de partida (sin describir la
+// imagen ni revelar la respuesta con texto).
+const MOVE_ON_POOL = ['¡Seguimos!', '¡La próxima!', '¡Vamos que se puede!']
 
 function pickRandom<T>(pool: readonly T[]): T {
   return pool[Math.floor(Math.random() * pool.length)]
@@ -203,9 +206,10 @@ export default function ExerciseScreen({
       setFeedbackText(msg)
       setTimeout(() => setFeedbackText(curr => curr === msg ? null : curr), 1200)
     } else {
-      // Sequence final fail (no reveal). For other types, the sub-component
-      // shows its own "Era la {label}" line and we just advance.
-      setFeedbackText(null)
+      // Fallo definitivo (para todos los tipos): ya no se muestran descripciones
+      // de la imagen ni "Era la ...". Sólo un mensaje de ánimo, que se alcanza a
+      // leer antes de avanzar a la próxima partida.
+      setFeedbackText(pickRandom(MOVE_ON_POOL))
       setTimeout(() => advance(false), 1500)
     }
   }
@@ -356,74 +360,95 @@ export default function ExerciseScreen({
         />
       </div>
 
-      {/* ── ZONA INFERIOR: cream, 60%, aloja las cards + toast ────────────── */}
+      {/* ── ZONA INFERIOR: cream, 60%. Cards centradas + franja de ánimo ──── */}
       <div
         style={{
           flex: '1 1 60%',
           background: pal.cream,
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '32px 24px',
-          overflow: 'auto',
+          flexDirection: 'column',
+          padding: '20px 24px',
+          overflow: 'hidden',
           position: 'relative',
         }}
       >
-        {/* Toast de feedback flotante, arriba de las cards */}
-        {feedbackText && (
-          <div
-            key={feedbackText + currentIndex}
-            style={{
-              position: 'absolute',
-              top: '24px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              fontFamily: 'Fredoka, system-ui, sans-serif',
-              fontWeight: 700,
-              fontSize: '28px',
-              color: pal.primary,
-              animation: 'feedback-toast 0.25s ease',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-            }}
-          >
-            {feedbackText}
+        {/* Cards centradas en el espacio disponible */}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'auto',
+          }}
+        >
+          <div style={{ width: '100%', maxWidth: '720px' }}>
+            {current.type === 'vocabulary' && (
+              <IdentifyImageQuestion
+                key={current.id + ':' + currentIndex}
+                exercise={current}
+                onAttempt={handleAttempt}
+                palette={pal}
+              />
+            )}
+            {current.type === 'sequence' && (
+              <SequenceQuestion
+                key={current.id + ':' + currentIndex}
+                exercise={current}
+                onAttempt={handleAttempt}
+                palette={pal}
+              />
+            )}
+            {current.type === 'odd_one_out' && (
+              <OddOneOutQuestion
+                key={current.id + ':' + currentIndex}
+                exercise={current}
+                onAttempt={handleAttempt}
+                palette={pal}
+              />
+            )}
+            {current.type === 'fill_blank' && (
+              <FillBlankQuestion
+                key={current.id + ':' + currentIndex}
+                exercise={current}
+                onAttempt={handleAttempt}
+                onFilled={handleFillBlankFilled}
+                palette={pal}
+              />
+            )}
           </div>
-        )}
+        </div>
 
-        <div style={{ width: '100%', maxWidth: '720px' }}>
-          {current.type === 'vocabulary' && (
-            <IdentifyImageQuestion
-              key={current.id + ':' + currentIndex}
-              exercise={current}
-              onAttempt={handleAttempt}
-              palette={pal}
-            />
-          )}
-          {current.type === 'sequence' && (
-            <SequenceQuestion
-              key={current.id + ':' + currentIndex}
-              exercise={current}
-              onAttempt={handleAttempt}
-              palette={pal}
-            />
-          )}
-          {current.type === 'odd_one_out' && (
-            <OddOneOutQuestion
-              key={current.id + ':' + currentIndex}
-              exercise={current}
-              onAttempt={handleAttempt}
-              palette={pal}
-            />
-          )}
-          {current.type === 'fill_blank' && (
-            <FillBlankQuestion
-              key={current.id + ':' + currentIndex}
-              exercise={current}
-              onAttempt={handleAttempt}
-              onFilled={handleFillBlankFilled}
-              palette={pal}
-            />
+        {/* Franja inferior despejada, SÓLO para el mensaje de ánimo: debajo de las
+            cards, centrado y siempre visible (nunca se solapa con las cards ni el
+            enunciado). Reserva su alto aunque no haya mensaje, para que las cards
+            no salten al aparecer/desaparecer. */}
+        <div
+          style={{
+            flexShrink: 0,
+            minHeight: '60px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingTop: '12px',
+          }}
+        >
+          {feedbackText && (
+            <div
+              key={feedbackText + currentIndex}
+              style={{
+                fontFamily: 'Fredoka, system-ui, sans-serif',
+                fontWeight: 700,
+                fontSize: 'clamp(22px, 5vw, 28px)',
+                color: pal.primary,
+                textAlign: 'center',
+                lineHeight: 1.1,
+                animation: 'exercise-feedback-in 0.25s ease',
+              }}
+            >
+              {feedbackText}
+            </div>
           )}
         </div>
       </div>
