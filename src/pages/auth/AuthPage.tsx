@@ -745,7 +745,7 @@ function PatientStep3({
     <AuthLayout onBack={onBack}>
       <StepDots total={3} current={2} />
       <CardTitle>¿Tiene terapeuta?</CardTitle>
-      <CardSubtitle>Búscalo para conectar el progreso. Puedes hacerlo después.</CardSubtitle>
+      <CardSubtitle>Si tienes terapeuta, conéctalo para que reciba el progreso. Si no, puedes empezar igual.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <ErrorMsg msg={error} />
@@ -794,21 +794,23 @@ function PatientStep3({
         {searching && <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>Buscando...</p>}
         {!searching && query.length >= 2 && results.length === 0 && !selected && (
           <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
-            No se encontraron terapeutas. Puedes vincularte más tarde.
+            No se encontraron terapeutas.
           </p>
         )}
 
         <SpinnerBtn
           loading={saving}
-          label={selected ? 'Enviar solicitud y empezar' : 'Empezar sin terapeuta'}
+          label={selected ? `Conectar con ${selected.profiles.full_name}` : 'Empezar sin terapeuta'}
           onClick={() => handleFinish(selected)}
         />
-        <button
-          onClick={() => handleFinish(null)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center', padding: '4px' }}
-        >
-          Saltar por ahora
-        </button>
+        {selected && (
+          <button
+            onClick={() => handleFinish(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center', padding: '4px' }}
+          >
+            Prefiero empezar sin terapeuta
+          </button>
+        )}
       </div>
     </AuthLayout>
   )

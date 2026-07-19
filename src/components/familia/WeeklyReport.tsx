@@ -1,14 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Calendar, CheckCircle2, Clock, FileText,
-  MessageCircle, Share2, Stethoscope, Target, TrendingDown, TrendingUp,
+  Calendar, CheckCircle2, Clock, FileText, Loader2,
+  MessageCircle, Search, Share2, Stethoscope, Target, TrendingDown, TrendingUp, UserPlus, X,
 } from 'lucide-react'
-import type { DbSession } from '../../lib/types'
+import { supabase } from '../../lib/supabase'
+import type { DbSession, TherapistWithProfile } from '../../lib/types'
 
 interface Props {
   onBack: () => void
   childName?: string
   sbSessions?: DbSession[]
+  hasTherapist?: boolean
+  connectPatientId?: string | null
+  onTherapistConnected?: () => void
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -198,7 +202,10 @@ function getTherapistComment(childName: string): TherapistComment | null {
   } catch { return null }
 }
 
-export default function WeeklyReport({ onBack, childName: childNameProp, sbSessions }: Props) {
+export default function WeeklyReport({
+  onBack, childName: childNameProp, sbSessions,
+  hasTherapist = true, connectPatientId = null, onTherapistConnected,
+}: Props) {
   const localChildName = useMemo(getChildName, [])
   const childName = childNameProp ?? localChildName
   const history   = useMemo(
@@ -257,6 +264,7 @@ export default function WeeklyReport({ onBack, childName: childNameProp, sbSessi
   const therapistComment = useMemo(() => getTherapistComment(childName), [childName])
 
   const [toast, setToast] = useState<string | null>(null)
+  const [showConnect, setShowConnect] = useState(false)
 
   function handleShare() {
     const text =
@@ -432,8 +440,8 @@ export default function WeeklyReport({ onBack, childName: childNameProp, sbSessi
             </p>
           </div>
 
-          {/* ── Therapist comment ───────────────────────────────────── */}
-          {therapistComment && (
+          {/* ── Therapist comment — solo si hay terapeuta conectado ──── */}
+          {hasTherapist && therapistComment && (
             <div
               style={{
                 background: '#FFFBF0',
@@ -459,9 +467,9 @@ export default function WeeklyReport({ onBack, childName: childNameProp, sbSessi
             </div>
           )}
 
-          {/* ── Share button ────────────────────────────────────────── */}
+          {/* ── Botón inferior — se adapta al estado del terapeuta ───── */}
           <button
-            onClick={handleShare}
+            onClick={hasTherapist ? handleShare : () => setShowConnect(true)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -479,10 +487,176 @@ export default function WeeklyReport({ onBack, childName: childNameProp, sbSessi
               fontFamily: 'Nunito, sans-serif',
             }}
           >
-            <Share2 size={20} />
-            Compartir con el terapeuta
+            {hasTherapist
+              ? <><Share2 size={20} />Compartir con el terapeuta</>
+              : <><UserPlus size={20} />Conectar un terapeuta</>}
           </button>
 
+        </div>
+      </div>
+
+      {showConnect && (
+        <ConnectTherapistModal
+          patientId={connectPatientId}
+          onClose={() => setShowConnect(false)}
+          onConnected={() => { setShowConnect(false); onTherapistConnected?.() }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Connect-therapist modal (vista propia del dashboard) ──────────────────────
+
+function ConnectTherapistModal({
+  patientId, onClose, onConnected,
+}: {
+  patientId: string | null
+  onClose: () => void
+  onConnected: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<TherapistWithProfile[]>([])
+  const [selected, setSelected] = useState<TherapistWithProfile | null>(null)
+  const [searching, setSearching] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (query.length < 2) { setResults([]); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      const { data } = await supabase
+        .from('therapists')
+        .select('*, profiles(full_name)')
+        .eq('verified', true)
+        .or(`center_name.ilike.%${query}%,city.ilike.%${query}%`)
+        .limit(8)
+      setResults((data ?? []) as TherapistWithProfile[])
+      setSearching(false)
+    }, 350)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query])
+
+  async function handleConnect() {
+    if (!selected || !patientId) return
+    setSaving(true)
+    setError('')
+    const { error: linkErr } = await supabase.from('link_requests').insert({
+      patient_id: patientId,
+      therapist_id: selected.profile_id,
+    })
+    setSaving(false)
+    if (linkErr) { setError('No se pudo conectar. Inténtalo de nuevo.'); return }
+    onConnected()
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', height: '52px', borderRadius: '14px', border: '1.5px solid #E5E7EB',
+    background: '#ffffff', padding: '0 16px 0 44px', fontSize: '15px', color: '#0F172A',
+    fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box',
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,0.45)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: '440px', maxHeight: '90vh', overflowY: 'auto',
+          background: '#ffffff', borderRadius: '20px', padding: '24px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.25)', fontFamily: 'Nunito, sans-serif',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '6px' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0F172A', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
+            Conectar un terapeuta
+          </h2>
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px', flexShrink: 0 }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <p style={{ margin: '0 0 18px', fontSize: '14px', color: '#6B7280', lineHeight: 1.55 }}>
+          Búscalo por centro o ciudad y conéctalo para que reciba el progreso.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {error && (
+            <p style={{ margin: 0, fontSize: '13px', color: '#DC2626', fontWeight: 600 }}>{error}</p>
+          )}
+
+          <div style={{ position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
+            <input
+              placeholder="Buscar por nombre, centro o ciudad..."
+              value={query}
+              onChange={e => { setQuery(e.target.value); setSelected(null) }}
+              style={inputStyle}
+              onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE' }}
+              onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
+            />
+          </div>
+
+          {selected && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #0BAFBE' }}>
+              <div>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0A6E78' }}>{selected.profiles.full_name}</p>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280' }}>{selected.specialty} · {selected.center_name}</p>
+              </div>
+              <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
+          {!selected && results.length > 0 && (
+            <div style={{ borderRadius: '14px', border: '1px solid #E5E7EB', overflow: 'hidden', background: '#ffffff' }}>
+              {results.map((t, i) => (
+                <button
+                  key={t.id}
+                  onClick={() => { setSelected(t); setQuery(t.profiles.full_name) }}
+                  style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid #F1F5F9' : 'none', cursor: 'pointer', textAlign: 'left' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                >
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#33302A' }}>{t.profiles.full_name}</p>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280' }}>{t.specialty} · {t.center_name} · {t.city}</p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {searching && <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', textAlign: 'center' }}>Buscando...</p>}
+          {!searching && query.length >= 2 && results.length === 0 && !selected && (
+            <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', textAlign: 'center' }}>No se encontraron terapeutas.</p>
+          )}
+
+          <button
+            onClick={handleConnect}
+            disabled={!selected || saving}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              width: '100%', height: '52px', borderRadius: '14px', border: 'none',
+              background: selected ? '#F7C31C' : '#E5E7EB', color: '#33302A',
+              fontSize: '16px', fontWeight: 800, fontFamily: 'Nunito, sans-serif',
+              cursor: selected && !saving ? 'pointer' : 'default',
+            }}
+          >
+            {saving
+              ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} />Conectando...</>
+              : selected ? `Conectar con ${selected.profiles.full_name}` : 'Selecciona un terapeuta'}
+          </button>
         </div>
       </div>
     </div>

@@ -189,11 +189,15 @@ interface FamiliaContentProps {
   localStats: WeekStats
   localComment: LocalComment | null
   onNavigateToEjercicio: () => void
+  hasTherapist: boolean
+  connectPatientId: string | null
+  onTherapistConnected: () => void
 }
 
 function FamiliaContent({
   activePatient, sbSessions, sbComment, sbLevel, sbLoaded, isSupabaseMode,
   localChildName, localStats, localComment, onNavigateToEjercicio,
+  hasTherapist, connectPatientId, onTherapistConnected,
 }: FamiliaContentProps) {
   const [showReport, setShowReport] = useState(false)
 
@@ -286,6 +290,9 @@ function FamiliaContent({
           onBack={() => setShowReport(false)}
           childName={childName}
           sbSessions={isSupabaseMode && sbLoaded ? sbSessions : undefined}
+          hasTherapist={hasTherapist}
+          connectPatientId={connectPatientId}
+          onTherapistConnected={onTherapistConnected}
         />
       )}
 
@@ -437,7 +444,8 @@ function FamiliaContent({
             </Card>
           )}
 
-          {/* Nota del terapeuta */}
+          {/* Nota del terapeuta — solo si la cuenta tiene terapeuta conectado */}
+          {hasTherapist && (
           <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', borderTop: '3px solid #0BAFBE' }}>
             {displayedComment ? (
               <>
@@ -460,6 +468,7 @@ function FamiliaContent({
               </div>
             )}
           </div>
+          )}
 
         </div>
       )}
@@ -476,6 +485,17 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
   const isTherapist = profile?.role === 'therapist'
   const patientId = isTherapist ? selectedPatientId : patient?.id ?? null
   const isSupabaseMode = !!(user && patientId)
+
+  // ── Estado único: la cuenta TIENE terapeuta conectado o NO ────────────────
+  // Family: linked once a therapist accepts (patients.therapist_id set), or
+  // optimistically right after connecting from the dashboard modal.
+  // Therapist view and demo/showcase always render the connected variant.
+  const [connectedOverride, setConnectedOverride] = useState(false)
+  const hasTherapist = isTherapist
+    ? true
+    : isSupabaseMode
+      ? (!!patient?.therapist_id || connectedOverride)
+      : true
 
   // Supabase state
   const [sbSessions, setSbSessions] = useState<DbSession[]>([])
@@ -640,6 +660,9 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
         localStats={localStats}
         localComment={localComment}
         onNavigateToEjercicio={onNavigateToEjercicio}
+        hasTherapist={hasTherapist}
+        connectPatientId={isTherapist ? null : patientId}
+        onTherapistConnected={() => setConnectedOverride(true)}
       />
     </div>
   )
