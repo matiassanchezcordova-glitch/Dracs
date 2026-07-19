@@ -567,9 +567,9 @@ function FutureRevealGrid() {
 
   const items = [
     { num: '01', tag: 'voz',      title: 'Reconocimiento de habla',  desc: 'La app escucha y evalúa la pronunciación en tiempo real.',            delay: 0   },
-    { num: '02', tag: 'atención', title: 'Lectura de fatiga',         desc: 'Detecta cuando el niño pierde concentración y adapta la sesión.',      delay: 100 },
+    { num: '02', tag: 'atención', title: <>Lectura de<br />fatiga</>,  desc: 'Detecta cuando el niño pierde concentración y adapta la sesión.',      delay: 100 },
     { num: '03', tag: 'cohorte',  title: 'Comparativa anónima',       desc: 'Benchmarks clínicos contra cohorte de edad y diagnóstico.',            delay: 200 },
-    { num: '04', tag: 'familia',  title: 'Mensajes de voz',           desc: 'El niño graba mensajes de voz para la familia al acabar.',             delay: 300 },
+    { num: '04', tag: 'familia',  title: <>Mensajes de<br />voz</>,    desc: 'El niño graba mensajes de voz para la familia al acabar.',             delay: 300 },
   ]
 
   return (
