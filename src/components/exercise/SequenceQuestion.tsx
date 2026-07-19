@@ -94,6 +94,7 @@ export default function SequenceQuestion({ exercise, onAttempt, palette }: Props
                 enterDelay={displayIndex * 60}
                 maxWidth={layout.cardMaxWidth}
                 palette={palette}
+                imageFit="contain"
               />
             </div>
           )

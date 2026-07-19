@@ -36,44 +36,55 @@ export default function MapScreen() {
     // TODO (S5.x): mover el 64px del navbar a una CSS var global `--navbar-height`
     // en :root y usar calc(100svh - var(--navbar-height)) — hoy está hardcodeado.
     <div
-      className="min-h-0 flex flex-col p-4 gap-3"
+      className="min-h-0 flex flex-col p-4"
       style={{ height: 'calc(100svh - 64px)', backgroundColor: '#FAF5E8' }}
     >
-      <h1
-        className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold"
-        style={{ color: '#5B8896' }}
-      >
-        ¿A dónde vamos hoy?
-      </h1>
-
-      {/* Área del mapa: ocupa el alto sobrante (definido vía la raíz) y centra la
-          caja. `containerType:size` hace que cqw/cqh del hijo midan ESTA área. */}
+      {/* Panel azul clarito (como los de la landing): separa el título y el mapa
+          del fondo crema para que el título no quede flotando. */}
       <div
-        className="flex-1 min-h-0 flex items-center justify-center"
-        style={{ containerType: 'size' }}
+        className="flex-1 min-h-0 flex flex-col gap-3"
+        style={{
+          background: '#EAF3F5',
+          borderRadius: '24px',
+          padding: 'clamp(16px, 3vw, 28px)',
+        }}
       >
-        {/* La caja se queda con el menor entre "ancho completo" y "alto completo *
-            ratio", entrando completa por ambos ejes; `aspectRatio` fija su forma
-            y la imagen la llena, así los hotspots (en %) quedan alineados. */}
-        <div
-          className="relative overflow-hidden"
-          style={{
-            aspectRatio: '1446 / 1088',
-            width: 'min(100cqw, calc(100cqh * 1446 / 1088))',
-            border: '2px solid #E4DAC4',
-            borderRadius: '16px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-          }}
+        <h1
+          className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold"
+          style={{ color: '#5B8896' }}
         >
-          <img
-            src={MAP_URL}
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
-            draggable={false}
-          />
-          {hotspots.map((h) => (
-            <HotspotButton key={h.id} hotspot={h} onTap={() => navigate(`/app/nino/jugar/${h.id}`)} />
-          ))}
+          ¿A dónde vamos hoy?
+        </h1>
+
+        {/* Área del mapa: ocupa el alto sobrante (definido vía la raíz) y centra la
+            caja. `containerType:size` hace que cqw/cqh del hijo midan ESTA área. */}
+        <div
+          className="flex-1 min-h-0 flex items-center justify-center"
+          style={{ containerType: 'size' }}
+        >
+          {/* La caja se queda con el menor entre "ancho completo" y "alto completo *
+              ratio", entrando completa por ambos ejes; `aspectRatio` fija su forma
+              y la imagen la llena, así los hotspots (en %) quedan alineados. */}
+          <div
+            className="relative overflow-hidden"
+            style={{
+              aspectRatio: '1446 / 1088',
+              width: 'min(100cqw, calc(100cqh * 1446 / 1088))',
+              border: '4px solid #F7C31C',
+              borderRadius: '16px',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+            }}
+          >
+            <img
+              src={MAP_URL}
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
+              draggable={false}
+            />
+            {hotspots.map((h) => (
+              <HotspotButton key={h.id} hotspot={h} onTap={() => navigate(`/app/nino/jugar/${h.id}`)} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

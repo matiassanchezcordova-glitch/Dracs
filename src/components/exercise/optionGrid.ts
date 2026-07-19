@@ -42,17 +42,21 @@ export function optionGrid(count: number, isMobile: boolean): OptionGrid {
   }
 
   if (count === 4) {
-    // 2×2. Cards más chicas y juntas para que las 4 entren en pantalla sin
-    // scroll (dos filas deben caber en la zona inferior, que es ~60% del alto)
-    // y con poco espacio entre ellas para que se lean como un grupo.
+    // 2×2 compacto. El contenedor se limita al ancho de las dos cards + gap y
+    // se centra, así las cuatro quedan juntas (sin 1fr repartiendo el ancho de
+    // la zona y dejándolas separadas) y las dos filas caben en la zona inferior
+    // (~60% del alto) sin scroll, en desktop y móvil.
     return {
       container: {
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: isMobile ? '6px' : '8px',
+        gap: isMobile ? '8px' : '12px',
+        maxWidth: isMobile ? '248px' : '336px',
+        margin: '0 auto',
+        justifyItems: 'center',
       },
       itemStyle: NOOP,
-      cardMaxWidth: isMobile ? 120 : 160,
+      cardMaxWidth: isMobile ? 112 : 152,
     }
   }
 

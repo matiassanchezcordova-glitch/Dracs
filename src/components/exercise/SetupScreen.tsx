@@ -7,6 +7,28 @@ interface Props {
 
 const AGES = [3, 4, 5, 6, 7, 8, 9, 10]
 
+// Marca nueva: dragón nuevo (logo-dracs.png), Fredoka en títulos, Nunito en
+// el resto, fondo crema (#FAF5E8) y botón amarillo (#F7C31C).
+const TITLE_FONT = 'Fredoka, system-ui, sans-serif'
+const BODY_FONT = 'Nunito, sans-serif'
+
+const CTA_STYLE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  padding: '16px 36px',
+  borderRadius: '28px',
+  border: 'none',
+  background: '#F7C31C',
+  color: '#33302A',
+  fontSize: '20px',
+  fontWeight: 700,
+  cursor: 'pointer',
+  fontFamily: TITLE_FONT,
+  animation: 'btnFadeIn 0.25s ease',
+  boxShadow: '0 8px 22px rgba(247,195,28,0.40)',
+}
+
 export default function SetupScreen({ onComplete }: Props) {
   const [step, setStep]   = useState<1 | 2>(1)
   const [name, setName]   = useState('')
@@ -32,6 +54,7 @@ export default function SetupScreen({ onComplete }: Props) {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
+        background: '#FAF5E8',
       }}
     >
       <style>{`
@@ -62,6 +85,7 @@ export default function SetupScreen({ onComplete }: Props) {
             width: '100%',
             maxWidth: '360px',
             padding: '24px',
+            boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -70,9 +94,9 @@ export default function SetupScreen({ onComplete }: Props) {
           }}
         >
           <img
-            src="/dragon.nb.png"
+            src="/logo-dracs.png"
             alt=""
-            style={{ width: '100px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite' }}
+            style={{ width: '108px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.10))' }}
           />
 
           <div style={{ textAlign: 'center' }}>
@@ -80,9 +104,9 @@ export default function SetupScreen({ onComplete }: Props) {
               style={{
                 margin: 0,
                 fontSize: '32px',
-                fontWeight: 700,
-                color: '#1A1A2E',
-                fontFamily: '"Playfair Display", serif',
+                fontWeight: 600,
+                color: '#33302A',
+                fontFamily: TITLE_FONT,
               }}
             >
               ¡Hola! Soy Dracs
@@ -93,7 +117,7 @@ export default function SetupScreen({ onComplete }: Props) {
                 fontSize: '18px',
                 fontWeight: 600,
                 color: '#6B7280',
-                fontFamily: 'Nunito, sans-serif',
+                fontFamily: BODY_FONT,
               }}
             >
               ¿Cómo te llamas?
@@ -115,36 +139,20 @@ export default function SetupScreen({ onComplete }: Props) {
               borderRadius: '16px',
               border: '1.5px solid #E5E7EB',
               background: '#ffffff',
-              color: '#1A1A2E',
+              color: '#33302A',
               fontSize: '24px',
               fontWeight: 700,
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: BODY_FONT,
               textAlign: 'center',
               outline: 'none',
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             }}
+            onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#5B8896' }}
+            onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
           />
 
           {name.trim() && (
-            <button
-              onClick={goToStep2}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '16px 36px',
-                borderRadius: '20px',
-                border: 'none',
-                backgroundColor: '#FFD93D',
-                color: '#0F172A',
-                fontSize: '20px',
-                fontWeight: 900,
-                cursor: 'pointer',
-                fontFamily: 'Nunito, sans-serif',
-                animation: 'btnFadeIn 0.25s ease',
-                boxShadow: '0 4px 24px rgba(255,217,61,0.45)',
-              }}
-            >
+            <button onClick={goToStep2} style={CTA_STYLE}>
               ¡Seguir! <ArrowRight size={22} />
             </button>
           )}
@@ -156,37 +164,30 @@ export default function SetupScreen({ onComplete }: Props) {
         <div
           style={{
             width: '100%',
-            maxWidth: '420px',
+            maxWidth: '380px',
             padding: '24px',
+            boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '24px',
+            gap: '28px',
             animation: 'stepFadeIn 0.35s ease',
-            position: 'relative',
           }}
         >
           <img
-            src="/dragon.nb.png"
+            src="/logo-dracs.png"
             alt=""
-            style={{
-              position: 'absolute',
-              top: 0,
-              right: '24px',
-              width: '80px',
-              height: 'auto',
-              animation: 'floatDracs 3s ease-in-out infinite',
-            }}
+            style={{ width: '96px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.10))' }}
           />
 
-          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+          <div style={{ textAlign: 'center' }}>
             <h1
               style={{
                 margin: 0,
-                fontSize: '28px',
-                fontWeight: 800,
-                color: '#1A1A2E',
-                fontFamily: 'Nunito, sans-serif',
+                fontSize: '30px',
+                fontWeight: 600,
+                color: '#33302A',
+                fontFamily: TITLE_FONT,
               }}
             >
               ¡Hola, {name}!
@@ -197,15 +198,15 @@ export default function SetupScreen({ onComplete }: Props) {
                 fontSize: '18px',
                 fontWeight: 600,
                 color: '#6B7280',
-                fontFamily: 'Nunito, sans-serif',
+                fontFamily: BODY_FONT,
               }}
             >
               ¿Cuántos años tienes?
             </p>
           </div>
 
-          {/* 2 × 4 age grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 80px)', gap: '12px' }}>
+          {/* 4 × 2 age grid — flexible para móvil */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', width: '100%' }}>
             {AGES.map(a => {
               const selected = age === a
               return (
@@ -213,19 +214,19 @@ export default function SetupScreen({ onComplete }: Props) {
                   key={a}
                   onClick={() => setAge(a)}
                   style={{
-                    width: '80px',
-                    height: '80px',
+                    width: '100%',
+                    aspectRatio: '1 / 1',
                     borderRadius: '50%',
-                    border: selected ? '2px solid #FFD93D' : '2px solid #E5E7EB',
-                    background: selected ? '#FFD93D' : '#ffffff',
-                    color: selected ? '#0F172A' : '#1A1A2E',
-                    fontSize: '28px',
+                    border: selected ? '2px solid #F7C31C' : '2px solid #E5E7EB',
+                    background: selected ? '#F7C31C' : '#ffffff',
+                    color: '#33302A',
+                    fontSize: '26px',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    fontFamily: 'Nunito, sans-serif',
+                    fontFamily: BODY_FONT,
                     transform: selected ? 'scale(1.1)' : 'scale(1)',
                     transition: 'background 0.18s ease, transform 0.18s ease',
-                    boxShadow: selected ? '0 4px 20px rgba(255,217,61,0.5)' : '0 1px 4px rgba(0,0,0,0.06)',
+                    boxShadow: selected ? '0 6px 18px rgba(247,195,28,0.45)' : '0 1px 4px rgba(0,0,0,0.06)',
                     animation: selected ? 'ageBounce 0.3s ease forwards' : 'none',
                   }}
                 >
@@ -236,25 +237,7 @@ export default function SetupScreen({ onComplete }: Props) {
           </div>
 
           {age && (
-            <button
-              onClick={handleStart}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '16px 36px',
-                borderRadius: '20px',
-                border: 'none',
-                backgroundColor: '#FFD93D',
-                color: '#0F172A',
-                fontSize: '20px',
-                fontWeight: 900,
-                cursor: 'pointer',
-                fontFamily: 'Nunito, sans-serif',
-                animation: 'btnFadeIn 0.25s ease',
-                boxShadow: '0 4px 24px rgba(255,217,61,0.45)',
-              }}
-            >
+            <button onClick={handleStart} style={CTA_STYLE}>
               ¡Empezar! <Rocket size={22} />
             </button>
           )}

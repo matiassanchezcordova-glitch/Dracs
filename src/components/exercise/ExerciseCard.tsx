@@ -19,6 +19,11 @@ interface Props {
   enterDelay?: number
   maxWidth?: number
   palette?: WorldPalette
+  // 'cover' (por defecto) → la imagen llena la card a sangre.
+  // 'contain' → la ilustración se encaja dentro de la card blanca con un
+  //   pequeño margen, para que las cards queden uniformes (mismo rectángulo
+  //   redondeado blanco) sin importar si la ilustración es cuadrada o circular.
+  imageFit?: 'cover' | 'contain'
 }
 
 // Unified card for all 4 exercise types.
@@ -38,6 +43,7 @@ export default function ExerciseCard({
   enterDelay = 0,
   maxWidth,
   palette,
+  imageFit = 'cover',
 }: Props) {
   const [hovered, setHovered] = useState(false)
   const [pressed, setPressed] = useState(false)
@@ -122,7 +128,9 @@ export default function ExerciseCard({
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: imageFit,
+              padding: imageFit === 'contain' ? '10%' : 0,
+              boxSizing: 'border-box',
               display: 'block',
               pointerEvents: 'none',
               userSelect: 'none',
