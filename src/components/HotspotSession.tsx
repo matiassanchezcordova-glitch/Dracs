@@ -52,8 +52,14 @@ export default function HotspotSession() {
         .eq('id', hotspotId)
         .single()
       if (cancelled) return
-      if (error) setError(error.message)
-      else setHotspot(data as MapHotspot)
+      if (error) {
+        // El mensaje crudo de Supabase (inglés/técnico) nunca se muestra al
+        // niño: queda solo en consola. En pantalla, un texto amable en español.
+        console.error('[Dracs] Error al cargar el hotspot:', error.message)
+        setError('Ups, algo no cargó bien. Prueba de nuevo.')
+      } else {
+        setHotspot(data as MapHotspot)
+      }
       setLoading(false)
     })()
 

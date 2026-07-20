@@ -319,7 +319,7 @@ export default function WeeklyReport({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
             <FileText size={22} color="#0BAFBE" />
-            <span style={{ fontSize: '20px', fontWeight: 800, color: '#1A1A2E', fontFamily: 'Playfair Display, serif' }}>
+            <span style={{ fontSize: '20px', fontWeight: 800, color: '#33302A', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
               Informe semanal
             </span>
           </div>

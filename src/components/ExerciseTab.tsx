@@ -60,16 +60,16 @@ function ProgressAuthPrompt({
         </div>
         <h2 style={{
           margin: '0 0 8px',
-          fontFamily: '"Playfair Display", serif',
-          fontSize: '22px', fontWeight: 700, color: '#1A1A2E',
+          fontFamily: 'Fredoka, system-ui, sans-serif',
+          fontSize: '22px', fontWeight: 700, color: '#33302A',
         }}>
-          ¡Guardá tu progreso!
+          ¡Guarda tu progreso!
         </h2>
         <p style={{
           margin: '0 0 24px', fontSize: '14px', color: '#6B7280',
           fontFamily: 'Nunito, sans-serif', lineHeight: 1.55,
         }}>
-          Para guardar y ver tu progreso necesitás una cuenta.
+          Para guardar y ver tu progreso necesitas una cuenta.
           Es gratis y toma 30 segundos.
         </p>
 

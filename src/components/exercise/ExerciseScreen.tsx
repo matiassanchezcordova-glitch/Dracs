@@ -20,7 +20,7 @@ interface Props {
 // ── Feedback pools ──────────────────────────────────────────────────────────
 
 const PRAISE_POOL = ['¡Bien!', '¡Lo lograste!', '¡Genial!', '¡Crack!', '¡Eso es!', '¡Increíble!']
-const ENCOURAGE_POOL = ['Mirá bien', 'Casi', 'Probá otra vez', 'Estás cerca']
+const ENCOURAGE_POOL = ['Mira bien', 'Casi', 'Prueba otra vez', 'Estás cerca']
 // Fallo definitivo: mensaje de ánimo para pasar de partida (sin describir la
 // imagen ni revelar la respuesta con texto).
 const MOVE_ON_POOL = ['¡Seguimos!', '¡La próxima!', '¡Vamos que se puede!']
@@ -98,7 +98,7 @@ function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm:
         }}
       >
         <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#1F2937' }}>
-          ¿Querés terminar el juego?
+          ¿Quieres terminar el juego?
         </h3>
         <p style={{ margin: '0 0 22px', fontSize: '14px', color: '#6B7280', lineHeight: 1.5 }}>
           Perderás el progreso de esta partida.

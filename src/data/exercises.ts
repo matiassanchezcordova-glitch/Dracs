@@ -100,6 +100,9 @@ interface DbExerciseRow {
   title: string
   prompt: string
   prompt_original: string | null
+  // Texto neutro/tuteo SIN tag de emoción (normalizado por la migración 008).
+  // Es lo que se muestra en pantalla; `prompt_original` es el backup en voseo.
+  prompt_display: string | null
   audio_url: string | null
   content: Record<string, unknown>
 }
@@ -153,7 +156,7 @@ function adaptIdentifyImage(row: DbExerciseRow): RuntimeVocabulary | null {
     id: row.id,
     word: asString(c.word) ?? row.title,
     prompt: promptOrTitle(row),
-    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
+    promptOriginal: stripEmotionTagNullable(row.prompt_display ?? row.prompt_original ?? null),
     audioUrl: row.audio_url,
     options: shuffled,
     correctIndex: shuffled.findIndex(o => o.imageUrl === correctImg),
@@ -177,7 +180,7 @@ function adaptOddOneOut(row: DbExerciseRow): RuntimeOddOneOut | null {
     id: row.id,
     question: stripEmotionTag(asString(c.question) ?? row.prompt),
     prompt: promptOrTitle(row),
-    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
+    promptOriginal: stripEmotionTagNullable(row.prompt_display ?? row.prompt_original ?? null),
     audioUrl: row.audio_url,
     items: shuffle(items),
   }
@@ -202,7 +205,7 @@ function adaptSequence(row: DbExerciseRow): RuntimeSequence | null {
     id: row.id,
     question: stripEmotionTag(asString(c.question) ?? row.prompt),
     prompt: promptOrTitle(row),
-    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
+    promptOriginal: stripEmotionTagNullable(row.prompt_display ?? row.prompt_original ?? null),
     audioUrl: row.audio_url,
     items: shuffle(items),
     correctOrder,
@@ -227,7 +230,7 @@ function adaptFillBlank(row: DbExerciseRow): RuntimeFillBlank | null {
     id: row.id,
     sentence,
     prompt: promptOrTitle(row),
-    promptOriginal: stripEmotionTagNullable(row.prompt_original ?? null),
+    promptOriginal: stripEmotionTagNullable(row.prompt_display ?? row.prompt_original ?? null),
     audioUrl: row.audio_url,
     options: shuffled,
     correctIndex: shuffled.indexOf(correctText),
@@ -290,7 +293,7 @@ export async function buildSessionFromDb(
 ): Promise<RuntimeExercise[]> {
   let query = supabase
     .from('exercises')
-    .select('id, type, category, difficulty, title, prompt, prompt_original, audio_url, content')
+    .select('id, type, category, difficulty, title, prompt, prompt_original, prompt_display, audio_url, content')
     .eq('content->>mechanic', 'A')
 
   // pool_type 'place' filtra por la columna exercises.place. 'random_all' no

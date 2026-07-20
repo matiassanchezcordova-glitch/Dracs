@@ -84,12 +84,12 @@ const PROBLEM_DATA = [
   {
     value: '70%',
     headline: 'De los logopedas, en 5 ciudades',
-    desc: 'Si vivís fuera de Barcelona, Madrid, Valencia, Sevilla o Bilbao, encontrar logopeda público es casi imposible.',
+    desc: 'Si vives fuera de Barcelona, Madrid, Valencia, Sevilla o Bilbao, encontrar logopeda público es casi imposible.',
   },
   {
-    value: '600€',
-    headline: 'Al mes en logopedia privada',
-    desc: 'El coste medio de una intervención semanal privada. Acceso desigual por defecto.',
+    value: '45€',
+    headline: 'Por sesión individual',
+    desc: 'Con un logopeda particular.',
   },
 ]
 
@@ -412,7 +412,7 @@ function MiniMockupNino() {
         <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.05em', color: '#88D4D9', textTransform: 'uppercase' }}>EJERCICIO 5/8</span>
       </div>
       <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '13px', color: '#ffffff', lineHeight: 1.25 }}>
-        Ordená la rutina antes de dormir
+        Ordena la rutina antes de dormir
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {steps.map(step => (
@@ -522,7 +522,7 @@ function ConnectedAudienceGrid() {
             Terapeutas y logopedas
           </h3>
           <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#6B7280', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
-            Un logopeda en la pública atiende 25 niños como máximo. Con Dracs, llega a 80 sin perder calidad clínica.
+            Un logopeda en la pública atiende hasta 25 niños. Con Dracs, llega a 80.
           </p>
           <span style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '4px 12px', borderRadius: '20px', backgroundColor: '#F0FAFA', border: '1px solid #A5F3FC', color: '#5B8896', fontSize: '12px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             Panel profesional
@@ -568,7 +568,7 @@ function FutureRevealGrid() {
   const items = [
     { num: '01', tag: 'voz',      title: 'Reconocimiento de habla',  desc: 'La app escucha y evalúa la pronunciación en tiempo real.',            delay: 0   },
     { num: '02', tag: 'atención', title: <>Lectura de<br />fatiga</>,  desc: 'Detecta cuando el niño pierde concentración y adapta la sesión.',      delay: 100 },
-    { num: '03', tag: 'cohorte',  title: 'Comparativa anónima',       desc: 'Benchmarks clínicos contra cohorte de edad y diagnóstico.',            delay: 200 },
+    { num: '03', tag: 'cohorte',  title: 'Comparativa anónima',       desc: 'Comparación anónima por edad y perfil.',                             delay: 200 },
     { num: '04', tag: 'familia',  title: <>Mensajes de<br />voz</>,    desc: 'El niño graba mensajes de voz para la familia al acabar.',             delay: 300 },
   ]
 
@@ -798,7 +798,7 @@ export default function RoleSelector() {
         </Reveal>
         <Reveal delay={200}>
           <p style={{ margin: 0, fontSize: '16px', color: '#FAF5E8', fontFamily: 'Nunito, sans-serif', maxWidth: '480px', lineHeight: 1.6 }}>
-            Si trabajás con niños con necesidades especiales, nos encantaría conocerte.
+            Si trabajas con niños con necesidades especiales, nos encantaría conocerte.
           </p>
         </Reveal>
         <Reveal delay={300} style={{ display: 'flex', justifyContent: 'center' }}>

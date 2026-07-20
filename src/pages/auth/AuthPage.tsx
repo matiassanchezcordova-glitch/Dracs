@@ -337,7 +337,7 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
   const isTherapist = role === 'therapist'
   return (
     <AuthLayout onBack={onBack}>
-      <CardTitle>{isTherapist ? 'Acceso logopeda' : '¿Ya usás Dracs?'}</CardTitle>
+      <CardTitle>{isTherapist ? 'Acceso logopeda' : '¿Ya usas Dracs?'}</CardTitle>
       <CardSubtitle>
         {isTherapist
           ? 'Inicia sesión o crea tu cuenta profesional.'
@@ -368,7 +368,7 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
             margin: '4px 0 0', fontSize: '12px', color: '#94A3B8',
             fontFamily: 'Nunito, sans-serif', textAlign: 'center', lineHeight: 1.4,
           }}>
-            Para ver el progreso necesitás una cuenta.
+            Para ver el progreso necesitas una cuenta.
           </p>
         )}
       </div>
@@ -396,7 +396,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
     const timeout = setTimeout(() => {
       timedOut = true
       setLoading(false)
-      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
     }, 5000)
 
     try {
@@ -415,7 +415,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
             : authError.message
         )
       }
-      if (!authUser) throw new Error('No se pudo autenticar. Intentá de nuevo.')
+      if (!authUser) throw new Error('No se pudo autenticar. Intenta de nuevo.')
 
       // Verify the role matches the section the user is entering
       const { data: prof, error: profError } = await supabase
@@ -443,7 +443,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
     } finally {
       if (!timedOut) setLoading(false)
     }
@@ -507,7 +507,7 @@ function SignupStep1({ role, onContinue, onBack }: {
     const timeout = setTimeout(() => {
       timedOut = true
       setLoading(false)
-      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
     }, 5000)
 
     try {
@@ -520,7 +520,7 @@ function SignupStep1({ role, onContinue, onBack }: {
       if (err) {
         const lower = err.toLowerCase()
         if (lower.includes('already registered') || lower.includes('already been registered')) {
-          throw new Error('Ya existe una cuenta con este email. Iniciá sesión.')
+          throw new Error('Ya existe una cuenta con este email. Inicia sesión.')
         }
         throw new Error(err)
       }
@@ -534,7 +534,7 @@ function SignupStep1({ role, onContinue, onBack }: {
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
     } finally {
       if (!timedOut) setLoading(false)
     }
@@ -689,7 +689,7 @@ function PatientStep3({
     const timeout = setTimeout(() => {
       timedOut = true
       setSaving(false)
-      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
     }, 5000)
 
     try {
@@ -719,7 +719,7 @@ function PatientStep3({
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
     } finally {
       if (!timedOut) setSaving(false)
     }
@@ -916,7 +916,7 @@ function TherapistStep3({
     const timeout = setTimeout(() => {
       timedOut = true
       setSaving(false)
-      setError('La conexión tardó demasiado. Verificá tu internet e intentá de nuevo.')
+      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
     }, 5000)
 
     try {
@@ -940,7 +940,7 @@ function TherapistStep3({
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
     } finally {
       if (!timedOut) setSaving(false)
     }

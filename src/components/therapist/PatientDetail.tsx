@@ -99,13 +99,13 @@ const CHART_DATA: Record<string, { name: string; value: number }[]> = {
     { name: 'Sem 3', value: 55 },
     { name: 'Sem 4', value: 55 },
   ],
-  'sofia-lopez': [
+  'valentina-ortiz': [
     { name: 'Sem 1', value: 40 },
     { name: 'Sem 2', value: 45 },
     { name: 'Sem 3', value: 50 },
     { name: 'Sem 4', value: 42 },
   ],
-  'carlos-moreno': [
+  'hugo-navarro': [
     { name: 'Sem 1', value: 58 },
     { name: 'Sem 2', value: 63 },
     { name: 'Sem 3', value: 70 },
@@ -375,8 +375,8 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               margin: '0 0 8px',
               fontSize: '24px',
               fontWeight: 700,
-              color: '#1A1A2E',
-              fontFamily: '"Playfair Display", serif',
+              color: '#33302A',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -552,7 +552,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             fontFamily: 'Nunito, sans-serif',
             lineHeight: 1.5,
           }}>
-            🔒 Solo visible para vos. La familia NO ve estas notas.
+            🔒 Solo visible para ti. La familia NO ve estas notas.
           </p>
           <textarea
             value={clinicalNotes}

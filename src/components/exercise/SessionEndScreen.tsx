@@ -298,7 +298,7 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
             }}
           >
             {hasAccount ? <TrendingUp size={20} /> : <Lock size={14} />}
-            {hasAccount ? 'Ver mi progreso' : 'Guardá tu progreso'}
+            {hasAccount ? 'Ver mi progreso' : 'Guarda tu progreso'}
           </button>
         </div>
 

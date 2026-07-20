@@ -47,7 +47,7 @@ export default function RoleCard({ onSelect }: { onSelect: (role: Role) => void 
       <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#C8C8C8', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
         ¿Quién está aquí hoy?
       </p>
-      <RoleRowBtn icon={<Gamepad2 size={18} />}    iconBg="#FFF8E8" iconBorder="#FDE68A" iconColor="#D97706" title="Juegos"     subtitle="Sesión adaptada"  onClick={() => onSelect('child')} />
+      <RoleRowBtn icon={<Gamepad2 size={18} />}    iconBg="#FFF8E8" iconBorder="#FDE68A" iconColor="#D97706" title="Juegos"     subtitle="Partida adaptada"  onClick={() => onSelect('child')} />
       <RoleRowBtn icon={<Heart size={18} />}       iconBg="#F0FDF4" iconBorder="#BBF7D0" iconColor="#059669" title="Progreso"   subtitle="Informe semanal"  onClick={() => onSelect('family')} />
       <RoleRowBtn icon={<Stethoscope size={18} />} iconBg="#F0FAFA" iconBorder="#A5F3FC" iconColor="#5B8896" title="Logopedia"  subtitle="Panel clínico"    onClick={() => onSelect('therapist')} />
       <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />

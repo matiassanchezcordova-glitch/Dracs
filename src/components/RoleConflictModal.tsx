@@ -64,7 +64,7 @@ export default function RoleConflictModal({
           margin: '0 0 28px', fontSize: '14px', color: '#6B7280',
           lineHeight: 1.55,
         }}>
-          Para acceder a <strong>{sectionName(targetRole)}</strong> necesitás
+          Para acceder a <strong>{sectionName(targetRole)}</strong> necesitas
           cerrar la sesión actual primero.
         </p>
 
