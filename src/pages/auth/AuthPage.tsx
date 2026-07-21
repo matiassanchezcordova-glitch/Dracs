@@ -140,7 +140,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 style={{
       margin: '0 0 8px',
-      fontFamily: '"Fredoka", serif',
+      fontFamily: '"Fredoka", system-ui, sans-serif',
       fontSize: '26px',
       fontWeight: 700,
       color: '#33302A',

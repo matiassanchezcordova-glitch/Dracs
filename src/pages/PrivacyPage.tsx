@@ -17,7 +17,7 @@ export default function PrivacyPage() {
           Volver
         </Link>
         <h1 style={{
-          fontFamily: '"Fredoka", serif',
+          fontFamily: '"Fredoka", system-ui, sans-serif',
           fontSize: '36px', fontWeight: 700, color: '#33302A',
           margin: '0 0 16px',
         }}>

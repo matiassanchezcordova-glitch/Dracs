@@ -54,7 +54,7 @@ function BigNumber({ value }: { value: string }) {
   // Words (e.g. "meses") get a slightly larger relative size than symbols (M, %, €)
   const unitSize = unit.length > 2 ? '0.45em' : '0.55em'
   return (
-    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#1A8FB5', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
+    <span style={{ fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 600, fontSize: 'clamp(64px, 7vw, 96px)', color: '#1A8FB5', lineHeight: 1, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: '0.04em' }}>
       {digits}
       {unit && <span style={{ fontSize: unitSize, fontWeight: 600, letterSpacing: '-0.01em' }}>{unit}</span>}
     </span>
@@ -193,7 +193,7 @@ function ProblemaSection() {
                 <span className="step-dot" />
                 <span className="step-line" />
               </div>
-              <h3 style={{ margin: '0 0 18px', fontFamily: '"Fredoka", serif', fontWeight: 500, fontSize: 'clamp(28px, 3vw, 36px)', color: activeIndex === i ? '#33302A' : 'rgba(51,48,42,0.35)', lineHeight: 1.2, transition: 'color 0.4s ease' }}>
+              <h3 style={{ margin: '0 0 18px', fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 500, fontSize: 'clamp(28px, 3vw, 36px)', color: activeIndex === i ? '#33302A' : 'rgba(51,48,42,0.35)', lineHeight: 1.2, transition: 'color 0.4s ease' }}>
                 {data.headline}
               </h3>
               <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.62, fontFamily: 'Nunito, sans-serif', color: 'rgba(51,48,42,0.72)', maxWidth: '420px' }}>
@@ -290,7 +290,7 @@ function SolucionSection() {
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#EAF3F5', border: '1px solid #EAF3F5', borderRadius: '100px', padding: '4px 12px' }}>
                   <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.1em', color: '#5B8896', textTransform: 'uppercase' }}>Ejercicio 3 de 8</span>
                 </div>
-                <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '15px', color: '#33302A', lineHeight: 1.25, textAlign: 'center' }}>
+                <p style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 600, fontSize: '15px', color: '#33302A', lineHeight: 1.25, textAlign: 'center' }}>
                   Encuentra los animales que viven en el agua
                 </p>
                 <div className="frame-1-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -331,7 +331,7 @@ function SolucionSection() {
                 { label: 'L', sessions: [{ n: 'Marc', h: '10h' }, { n: 'Pol', h: '16h' }] },
                 { label: 'M', sessions: [{ n: 'Júlia', h: '11h' }] },
                 { label: 'X', sessions: [{ n: 'Marc', h: '9h' }, { n: 'Aina', h: '14h' }, { n: 'Pol', h: '17h' }] },
-                { label: 'J', sessions: [{ n: 'Júlia', h: '10h' }, { n: 'Marc', h: '15h' }] },
+                { label: 'J', sessions: [{ n: 'Júlia', h: '10h' }, { n: 'Laia', h: '15h' }] },
                 { label: 'V', sessions: [{ n: 'Aina', h: '11h' }, { n: 'Pol', h: '16h' }] },
                 { label: 'S', sessions: [] },
                 { label: 'D', sessions: [{ n: 'Júlia', h: '', muted: true }, { n: 'Marc', h: '', muted: true }] },
@@ -340,7 +340,7 @@ function SolucionSection() {
                 <div style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: '#ffffff', border: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', padding: '24px 20px', opacity: activeStep === 2 ? 1 : 0, transform: activeStep === 2 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
                   {/* Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', paddingBottom: '14px', borderBottom: '1px solid #F1F5F9' }}>
-                    <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '18px', color: '#33302A' }}>Esta semana</span>
+                    <span style={{ fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 600, fontSize: '18px', color: '#33302A' }}>Esta semana</span>
                     <span style={{ background: '#5B8896', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '12px' }}>12 sesiones</span>
                   </div>
                   {/* Day labels */}
@@ -379,7 +379,7 @@ function SolucionSection() {
               <div className="solucion-step-num">
                 {step.num}
               </div>
-              <h3 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: '44px', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
+              <h3 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: '44px', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
                 {step.title}
               </h3>
               <p style={{ margin: '0 0 24px', fontSize: '18px', color: '#FAF5E8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65, maxWidth: '480px' }}>
@@ -411,13 +411,13 @@ function MiniMockupNino() {
       <div style={{ display: 'inline-flex', background: 'rgba(91,136,150,0.2)', border: '1px solid rgba(91,136,150,0.3)', borderRadius: '100px', padding: '3px 8px', width: 'fit-content' }}>
         <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.05em', color: '#1A8FB5', textTransform: 'uppercase' }}>EJERCICIO 5/8</span>
       </div>
-      <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '13px', color: '#ffffff', lineHeight: 1.25 }}>
+      <p style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 600, fontSize: '13px', color: '#ffffff', lineHeight: 1.25 }}>
         Ordena la rutina antes de dormir
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {steps.map(step => (
           <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '8px', padding: '6px 8px' }}>
-            <span style={{ fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '13px', color: '#F1D062', fontStyle: 'italic', minWidth: '14px' }}>{step.num}</span>
+            <span style={{ fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 600, fontSize: '13px', color: '#F1D062', fontStyle: 'italic', minWidth: '14px' }}>{step.num}</span>
             <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center' }}>{step.icon}</span>
             <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 500, fontSize: '11px', color: 'rgba(255,255,255,0.85)' }}>{step.label}</span>
           </div>
@@ -504,7 +504,7 @@ function ConnectedAudienceGrid() {
         {/* Card: Niño */}
         <div className="dracs-audience-card" style={{ '--card-delay': '0ms', backgroundColor: '#5B8896', borderRadius: '20px', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupNino />
-          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#FAF5E8', lineHeight: 1.2 }}>
+          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: '22px', fontWeight: 600, color: '#FAF5E8', lineHeight: 1.2 }}>
             Niños que necesitan apoyo
           </h3>
           <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#FAF5E8', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
@@ -518,7 +518,7 @@ function ConnectedAudienceGrid() {
         {/* Card: Terapeuta */}
         <div className="dracs-audience-card" style={{ '--card-delay': '150ms', backgroundColor: '#FFFFFF', borderRadius: '20px', border: '2px solid #1A8FB5', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupTerapeuta />
-          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
+          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
             Terapeutas y logopedas
           </h3>
           <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#6B7280', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
@@ -532,7 +532,7 @@ function ConnectedAudienceGrid() {
         {/* Card: Familia */}
         <div className="dracs-audience-card" style={{ '--card-delay': '300ms', backgroundColor: '#F1D062', borderRadius: '20px', border: '1.5px solid #C7A24F', padding: '28px 24px', display: 'flex', flexDirection: 'column', flex: 1 } as React.CSSProperties}>
           <MiniMockupFamilia />
-          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
+          <h3 style={{ margin: '0 0 10px', fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: '22px', fontWeight: 600, color: '#33302A', lineHeight: 1.2 }}>
             Familias
           </h3>
           <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#33302A', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
@@ -581,7 +581,7 @@ function FutureRevealGrid() {
             <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1A8FB5', opacity: 0.5 }} />
             <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 500 }}>{tag}</span>
           </div>
-          <h4 style={{ margin: '0 0 8px', fontFamily: '"Fredoka", serif', fontSize: '20px', fontWeight: 700, color: '#33302A', lineHeight: 1.25 }}>{title}</h4>
+          <h4 style={{ margin: '0 0 8px', fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: '20px', fontWeight: 700, color: '#33302A', lineHeight: 1.25 }}>{title}</h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.55 }}>{desc}</p>
         </div>
       ))}
@@ -628,7 +628,7 @@ function RecognitionCard({
       <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8A8578' }}>
         {label}
       </span>
-      <h3 style={{ margin: '10px 0 14px', fontFamily: '"Fredoka", serif', fontWeight: 700, fontSize: 'clamp(24px, 2.6vw, 30px)', color: '#33302A', lineHeight: 1.15 }}>
+      <h3 style={{ margin: '10px 0 14px', fontFamily: '"Fredoka", system-ui, sans-serif', fontWeight: 700, fontSize: 'clamp(24px, 2.6vw, 30px)', color: '#33302A', lineHeight: 1.15 }}>
         {title}
       </h3>
       <p style={{ margin: '0 0 6px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '15px', color: '#33302A' }}>
@@ -652,7 +652,7 @@ function AboutSection() {
 
         {/* Header — centered */}
         <Reveal style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
+          <h2 style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 500, color: '#33302A', lineHeight: 1.1 }}>
             Dracs nació porque mi hermano{' '}
             <em style={{ color: '#1A8FB5', fontStyle: 'italic' }}>lo necesitaba.</em>
           </h2>
@@ -670,7 +670,7 @@ function AboutSection() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <Reveal>
               <p style={{ margin: 0, fontSize: '17px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65 }}>
-                Me llamo Matías. Mi hermano tiene síndrome de Down. Nació hace 10 años.
+                Me llamo Matías Sánchez Cordova. Mi hermano tiene síndrome de Down. Nació hace 10 años.
               </p>
             </Reveal>
             <Reveal delay={80}>
@@ -693,7 +693,7 @@ function AboutSection() {
             </Reveal>
             <Reveal delay={320}>
               <blockquote style={{ margin: 0, background: '#FFFFFF', borderLeft: '4px solid #1A8FB5', borderRadius: '0 16px 16px 0', padding: '24px 28px', boxShadow: '0 12px 32px rgba(62,94,107,0.06)' }}>
-                <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontWeight: 500, fontSize: '19px', color: '#33302A', lineHeight: 1.6 }}>
+                <p style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontStyle: 'italic', fontWeight: 500, fontSize: '19px', color: '#33302A', lineHeight: 1.6 }}>
                   Los que más lo necesitan son los que más esperan. Los que menos tienen, los que menos reciben. El sistema funciona al revés.
                 </p>
               </blockquote>
@@ -744,7 +744,7 @@ export default function RoleSelector() {
         <img src="/logo-dracs.png" alt="Dracs" className="dracs-hero-dragon"
           style={{ width: '180px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))', marginBottom: '32px' }}
         />
-        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
+        <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", system-ui, sans-serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
           Practicar en casa, por fin,{' '}<span style={{ color: '#F1D062' }}>se siente como jugar.</span>
         </p>
         <DiscoverDemoButton onClick={() => navigate('/demo')} />
@@ -760,7 +760,7 @@ export default function RoleSelector() {
       <section id="para-quien" className="dracs-panel" style={{ background: '#FAF5E8', padding: '120px clamp(24px, 5vw, 80px)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
+            <h2 style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: '#33302A', lineHeight: 1.1 }}>
               Diseñado para todos.
             </h2>
           </Reveal>
@@ -772,7 +772,7 @@ export default function RoleSelector() {
       <section id="futuro" style={{ padding: '120px clamp(24px, 5vw, 80px)', background: '#5B8896' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#FAF5E8' }}>
+            <h2 style={{ margin: '0 0 16px', fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 700, color: '#FAF5E8' }}>
               El futuro de <em style={{ fontStyle: 'italic', color: '#F1D062' }}>Dracs.</em>
             </h2>
             <p style={{ margin: 0, fontSize: '16px', color: 'rgba(250,245,232,0.88)', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65 }}>
@@ -792,7 +792,7 @@ export default function RoleSelector() {
           <img src="/logo-dracs.png" alt="" style={{ height: '80px', width: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.20))' }} />
         </Reveal>
         <Reveal delay={100}>
-          <h2 style={{ margin: 0, fontFamily: '"Fredoka", serif', fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>
+          <h2 style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>
             Dracs está en desarrollo.
           </h2>
         </Reveal>
@@ -846,7 +846,7 @@ export default function RoleSelector() {
           margin: 0 auto;
         }
         .section-title {
-          font-family: 'Fredoka', serif;
+          font-family: 'Fredoka', system-ui, sans-serif;
           font-weight: 500;
           font-size: clamp(40px, 5.5vw, 72px);
           line-height: 1.05;
@@ -1015,7 +1015,7 @@ export default function RoleSelector() {
 
         /* ── Step numbers — La Solución ─────────────────────────────────── */
         .solucion-step-num {
-          font-family: 'Fredoka', serif;
+          font-family: 'Fredoka', system-ui, sans-serif;
           font-style: normal;
           font-weight: 500;
           font-size: 72px;

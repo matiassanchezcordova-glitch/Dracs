@@ -15,7 +15,7 @@ export default function NotFoundPage() {
         style={{ width: '80px', marginBottom: '24px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))' }}
       />
       <h1 style={{
-        fontFamily: '"Fredoka", serif',
+        fontFamily: '"Fredoka", system-ui, sans-serif',
         fontSize: '48px', fontWeight: 700, color: '#33302A',
         margin: '0 0 8px',
       }}>
