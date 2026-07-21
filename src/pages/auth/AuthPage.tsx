@@ -613,7 +613,7 @@ function PatientStep2({ onContinue, onBack }: {
                 style={{
                   height: '52px', borderRadius: '14px',
                   border: `1.5px solid ${childAge === age ? '#5B8896' : '#E5E7EB'}`,
-                  background: childAge === age ? '#F0FAFA' : '#ffffff',
+                  background: childAge === age ? '#EAF3F5' : '#ffffff',
                   color: childAge === age ? '#5B8896' : '#6B7280',
                   fontSize: '18px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
                   cursor: 'pointer', transition: 'all 0.15s ease',
@@ -763,7 +763,7 @@ function PatientStep3({
         </div>
 
         {selected && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #5B8896' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #5B8896' }}>
             <div>
               <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{selected.profiles.full_name}</p>
               <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{selected.specialty} · {selected.center_name}</p>
@@ -970,7 +970,7 @@ function TherapistStep3({
             </div>
 
             {selected && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #5B8896' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #5B8896' }}>
                 <div>
                   <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{selected.name}</p>
                   <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{selected.city}</p>

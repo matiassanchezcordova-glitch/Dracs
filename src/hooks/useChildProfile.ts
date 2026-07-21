@@ -49,6 +49,50 @@ function getToday(): string {
   return new Date().toISOString().split('T')[0]
 }
 
+// Fecha local (no UTC) en formato YYYY-MM-DD.
+function localIso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Siembra la cuenta demo/invitado con partidas de ejemplo de ESTA semana, para
+// que el dashboard y el informe muestren datos reales y coincidan entre sí.
+// No pisa un historial ya existente (si el niño demo ya jugó, se respeta).
+export function seedDemoHistory(): void {
+  try {
+    if (localStorage.getItem(HISTORY_KEY)) return
+    const today = new Date()
+    const dow = today.getDay()
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1))
+    // Días transcurridos de ESTA semana (lunes → hoy).
+    const dates: string[] = []
+    for (let i = 0; ; i++) {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
+      if (d > today) break
+      dates.push(localIso(d))
+    }
+    if (dates.length === 0) return
+    // 5 partidas realistas repartidas por los días disponibles (round-robin, así
+    // aunque la semana recién empiece la cuenta se ve con actividad).
+    const plan = [
+      { total: 7, correct: 6 },
+      { total: 6, correct: 4 },
+      { total: 7, correct: 6 },
+      { total: 5, correct: 5 },
+      { total: 7, correct: 5 },
+    ]
+    const sessions: SessionResult[] = plan.map((p, i) => ({
+      date: dates[i % dates.length],
+      total: p.total,
+      correct: p.correct,
+      level: 2,
+    }))
+    sessions.sort((a, b) => (a.date < b.date ? -1 : 1))
+    saveHistory(sessions)
+  } catch { /* ignore */ }
+}
+
 function isYesterday(dateStr: string): boolean {
   const d = new Date()
   d.setDate(d.getDate() - 1)

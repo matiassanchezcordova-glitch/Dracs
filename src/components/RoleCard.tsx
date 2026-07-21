@@ -13,7 +13,7 @@ function RoleRowBtn({ icon, iconBg, iconBorder, iconColor, title, subtitle, onCl
   return (
     <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       className="dracs-role-btn"
-      style={{ height: '64px', borderRadius: '14px', padding: '0 20px', display: 'flex', alignItems: 'center', gap: '14px', border: `1.5px solid ${hovered ? '#5B8896' : '#F1F5F9'}`, background: hovered ? '#F0FAFA' : '#ffffff', cursor: 'pointer', width: '100%', transform: hovered ? 'translateX(4px)' : 'translateX(0)', transition: 'all 200ms ease' }}
+      style={{ height: '64px', borderRadius: '14px', padding: '0 20px', display: 'flex', alignItems: 'center', gap: '14px', border: `1.5px solid ${hovered ? '#5B8896' : '#F1F5F9'}`, background: hovered ? '#EAF3F5' : '#ffffff', cursor: 'pointer', width: '100%', transform: hovered ? 'translateX(4px)' : 'translateX(0)', transition: 'all 200ms ease' }}
     >
       <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: iconBg, border: `1px solid ${iconBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, flexShrink: 0 }}>{icon}</div>
       <div style={{ flex: 1, textAlign: 'left' }}>
@@ -47,9 +47,9 @@ export default function RoleCard({ onSelect }: { onSelect: (role: Role) => void 
       <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#C8C8C8', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
         ¿Quién está aquí hoy?
       </p>
-      <RoleRowBtn icon={<Gamepad2 size={18} />}    iconBg="#FFF8E8" iconBorder="#FDE68A" iconColor="#D97706" title="Juegos"     subtitle="Partida adaptada"  onClick={() => onSelect('child')} />
+      <RoleRowBtn icon={<Gamepad2 size={18} />}    iconBg="#FFF8E8" iconBorder="#F1D062" iconColor="#D97706" title="Juegos"     subtitle="Partida adaptada"  onClick={() => onSelect('child')} />
       <RoleRowBtn icon={<Heart size={18} />}       iconBg="#F0FDF4" iconBorder="#BBF7D0" iconColor="#059669" title="Progreso"   subtitle="Informe semanal"  onClick={() => onSelect('family')} />
-      <RoleRowBtn icon={<Stethoscope size={18} />} iconBg="#F0FAFA" iconBorder="#A5F3FC" iconColor="#5B8896" title="Logopedia"  subtitle="Panel clínico"    onClick={() => onSelect('therapist')} />
+      <RoleRowBtn icon={<Stethoscope size={18} />} iconBg="#EAF3F5" iconBorder="#EAF3F5" iconColor="#5B8896" title="Logopedia"  subtitle="Panel clínico"    onClick={() => onSelect('therapist')} />
       <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
       <DemoLink onClick={() => onSelect('demo')} />
     </div>

@@ -90,7 +90,7 @@ export default function HotspotSession() {
       >
         <p className="text-red-700">{error ?? 'No encontramos ese lugar del mapa.'}</p>
         <button onClick={() => navigate('/app/nino')} className="underline">
-          ← Volver al mapa
+          Volver al mapa
         </button>
       </div>
     )

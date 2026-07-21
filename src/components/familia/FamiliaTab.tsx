@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { getWeekCode } from '../../lib/utils'
 import type { DbSession, TherapistComment, DbChild } from '../../lib/types'
 import { getAccuracyPercent, getDurationMinutes, getStreakDays, getCurrentLevel } from '../../lib/derived'
+import { loadHistory, type SessionResult } from '../../hooks/useChildProfile'
 import WeeklyReport from './WeeklyReport'
 
 interface Props {
@@ -47,40 +48,59 @@ interface WeekStats {
   lastWeekAccuracy: number
 }
 
+const EMPTY_STATS: WeekStats = { streak: 0, sessionsThisWeek: 0, lastWeekSessions: 0, accuracyThisWeek: 0, lastWeekAccuracy: 0 }
+
+function localIso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Lunes de la semana de `d` (semana lunes→domingo, igual que el informe y que
+// la vista Supabase).
+function mondayOf(d: Date): Date {
+  const dow = d.getDay()
+  const m = new Date(d)
+  m.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1))
+  m.setHours(0, 0, 0, 0)
+  return m
+}
+
+// Racha = días consecutivos con al menos una partida, terminando hoy (o ayer si
+// hoy todavía no jugó).
+function localStreak(history: SessionResult[]): number {
+  if (history.length === 0) return 0
+  const days = new Set(history.map(s => s.date))
+  const d = new Date()
+  if (!days.has(localIso(d))) d.setDate(d.getDate() - 1)
+  let streak = 0
+  while (days.has(localIso(d))) { streak++; d.setDate(d.getDate() - 1) }
+  return streak
+}
+
+// Estadísticas de la semana desde el historial local REAL. Sin datos inventados:
+// una cuenta sin partidas devuelve ceros (y la UI muestra un empty state).
 function getLocalWeekStats(): WeekStats {
-  const defaults: WeekStats = { streak: 5, sessionsThisWeek: 5, lastWeekSessions: 2, accuracyThisWeek: 85, lastWeekAccuracy: 67 }
   try {
-    const rawProfile = localStorage.getItem('dracs_child_profile')
-    const rawHistory = localStorage.getItem('dracs_session_history')
-    if (!rawProfile) return defaults
-    const profile = JSON.parse(rawProfile) as { streak?: number }
-    const history = rawHistory
-      ? (JSON.parse(rawHistory) as { date: string; total: number; correct: number }[])
-      : []
-    const today = new Date()
-    const weekStart = new Date(today)
-    weekStart.setDate(today.getDate() - today.getDay())
-    weekStart.setHours(0, 0, 0, 0)
+    const history = loadHistory()
+    if (history.length === 0) return EMPTY_STATS
+    const weekStart = mondayOf(new Date())
     const lastWeekStart = new Date(weekStart)
     lastWeekStart.setDate(weekStart.getDate() - 7)
-    const thisWeek = history.filter(s => new Date(s.date + 'T00:00:00') >= weekStart)
-    const lastWeek = history.filter(s => {
-      const d = new Date(s.date + 'T00:00:00')
-      return d >= lastWeekStart && d < weekStart
-    })
-    const calc = (arr: typeof history) => {
+    const at = (s: SessionResult) => new Date(s.date + 'T00:00:00')
+    const thisWeek = history.filter(s => at(s) >= weekStart)
+    const lastWeek = history.filter(s => { const d = at(s); return d >= lastWeekStart && d < weekStart })
+    const acc = (arr: SessionResult[]) => {
       const correct = arr.reduce((a, s) => a + s.correct, 0)
       const total = arr.reduce((a, s) => a + s.total, 0)
       return total > 0 ? Math.round((correct / total) * 100) : 0
     }
     return {
-      streak: profile.streak ?? defaults.streak,
-      sessionsThisWeek: thisWeek.length > 0 ? thisWeek.length : defaults.sessionsThisWeek,
-      lastWeekSessions: lastWeek.length > 0 ? lastWeek.length : defaults.lastWeekSessions,
-      accuracyThisWeek: thisWeek.length > 0 ? calc(thisWeek) : defaults.accuracyThisWeek,
-      lastWeekAccuracy: lastWeek.length > 0 ? calc(lastWeek) : defaults.lastWeekAccuracy,
+      streak: localStreak(history),
+      sessionsThisWeek: thisWeek.length,
+      lastWeekSessions: lastWeek.length,
+      accuracyThisWeek: acc(thisWeek),
+      lastWeekAccuracy: acc(lastWeek),
     }
-  } catch { return defaults }
+  } catch { return EMPTY_STATS }
 }
 
 // ── Supabase stats from sessions ──────────────────────────────────────────
@@ -172,8 +192,32 @@ const CARD_TITLE: React.CSSProperties = {
   margin: '0 0 16px',
   fontSize: '15px',
   fontWeight: 700,
-  color: '#0F172A',
+  color: '#33302A',
   fontFamily: 'Nunito, sans-serif',
+}
+
+// ── Empty state — cuando no hay actividad esta semana ─────────────────────
+
+function FamiliaEmptyState({ childName, onPlay }: { childName: string; onPlay: () => void }) {
+  return (
+    <div style={{ background: '#ffffff', borderRadius: '16px', padding: '40px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+      <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#EAF3F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <FileText size={26} color="#1A8FB5" />
+      </div>
+      <p style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#33302A', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
+        Todavía no hay partidas esta semana
+      </p>
+      <p style={{ margin: 0, fontSize: '14px', color: '#6B7280', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6, maxWidth: '360px' }}>
+        Cuando {childName} juegue, verás su progreso aquí.
+      </p>
+      <button
+        onClick={onPlay}
+        style={{ marginTop: '4px', height: '44px', padding: '0 22px', borderRadius: '12px', border: 'none', background: '#F7C31C', color: '#33302A', fontSize: '15px', fontWeight: 700, fontFamily: 'Fredoka, system-ui, sans-serif', cursor: 'pointer' }}
+      >
+        Empezar a jugar
+      </button>
+    </div>
+  )
 }
 
 // ── FamiliaContent — shared between family and therapist views ────────────
@@ -201,35 +245,42 @@ function FamiliaContent({
 }: FamiliaContentProps) {
   const [showReport, setShowReport] = useState(false)
 
+  // Historial local REAL (modo demo/invitado, sin cuenta). Es el MISMO dato que
+  // lee el informe semanal, así el dashboard y el informe coinciden.
+  const localHistory = useMemo<SessionResult[]>(() => (isSupabaseMode ? [] : loadHistory()), [isSupabaseMode])
+
   const childName = isSupabaseMode ? (activePatient?.full_name ?? 'Paciente') : localChildName
   const stats = isSupabaseMode && sbLoaded
     ? computeStatsFromSessions(sbSessions)
     : localStats
 
-  const noSessionsYet = isSupabaseMode && sbLoaded && stats.sessionsThisWeek === 0
+  // En Supabase esperamos a sbLoaded; en local el dato ya está listo.
+  const dataReady = isSupabaseMode ? sbLoaded : true
+  const noSessionsYet = dataReady && stats.sessionsThisWeek === 0
 
   const sessionCount = useCountUp(stats.sessionsThisWeek)
   const accuracyVal = useCountUp(noSessionsYet ? 0 : stats.accuracyThisWeek)
   const improvingVsLast = stats.accuracyThisWeek > stats.lastWeekAccuracy
 
   const thisWeekDone = (() => {
-    if (!isSupabaseMode || !sbLoaded) {
-      return [true, true, true, true, true, false, false]
-    }
     const now = new Date()
-    const dow = now.getDay()
     const weekStart = new Date(now)
-    weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+    weekStart.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1))
     weekStart.setHours(0, 0, 0, 0)
     return DAYS_SHORT.map((_, i) => {
       const day = new Date(weekStart)
       day.setDate(weekStart.getDate() + i)
-      const dayEnd = new Date(day)
-      dayEnd.setHours(23, 59, 59, 999)
-      return sbSessions.some(s => {
-        const d = new Date(s.ended_at ?? s.started_at)
-        return d >= day && d <= dayEnd
-      })
+      if (isSupabaseMode) {
+        if (!sbLoaded) return false
+        const dayEnd = new Date(day)
+        dayEnd.setHours(23, 59, 59, 999)
+        return sbSessions.some(s => {
+          const d = new Date(s.ended_at ?? s.started_at)
+          return d >= day && d <= dayEnd
+        })
+      }
+      const iso = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
+      return localHistory.some(s => s.date === iso)
     })
   })()
 
@@ -240,11 +291,12 @@ function FamiliaContent({
         exercises: s.total_exercises,
         accuracy: getAccuracyPercent(s),
       }))
-    : [
-        { date: 'Lun 13 abr', duration: 28, exercises: 7, accuracy: 85 },
-        { date: 'Vie 11 abr', duration: 31, exercises: 7, accuracy: 78 },
-        { date: 'Jue 10 abr', duration: 25, exercises: 7, accuracy: 72 },
-      ]
+    : localHistory.slice().reverse().slice(0, 3).map(s => ({
+        date: formatSessionDate(s.date + 'T12:00:00'),
+        duration: Math.max(10, s.total * 3),
+        exercises: s.total,
+        accuracy: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
+      }))
 
   const displayedComment = isSupabaseMode && sbLoaded
     ? sbComment
@@ -253,7 +305,7 @@ function FamiliaContent({
     : localComment
 
   const heroSubtitle = noSessionsYet
-    ? 'Esta semana todavía no hay sesiones. ¡Empieza hoy!'
+    ? 'Esta semana todavía no hay partidas. ¡Empieza hoy!'
     : stats.sessionsThisWeek >= 5
       ? 'Esta semana ha sido excelente'
       : stats.sessionsThisWeek >= 3
@@ -266,12 +318,12 @@ function FamiliaContent({
     chips.push({
       icon: <BookOpen size={14} />,
       label: `Nivel ${sbLevel.min}-${sbLevel.max}`,
-      bg: '#E0F2FE', color: '#0BAFBE',
+      bg: '#E0F2FE', color: '#1A8FB5',
     })
   }
   if (!noSessionsYet) {
     if (stats.sessionsThisWeek >= 5)
-      chips.push({ icon: <Star size={14} />, label: 'Semana perfecta', bg: '#FFD93D', color: '#1A1A2E' })
+      chips.push({ icon: <Star size={14} />, label: 'Semana perfecta', bg: '#F7C31C', color: '#33302A' })
     if (improvingVsLast)
       chips.push({ icon: <TrendingUp size={14} />, label: 'Mejor que nunca', bg: '#D1FAE5', color: '#059669' })
     if (stats.streak > 3 && chips.length < 2)
@@ -316,7 +368,7 @@ function FamiliaContent({
               </p>
             </div>
             <div style={{ textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: '64px', fontWeight: 800, color: '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ fontSize: '64px', fontWeight: 800, color: '#1A8FB5', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
                 {sessionCount}
               </div>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', fontFamily: 'Nunito, sans-serif', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -347,18 +399,22 @@ function FamiliaContent({
             style={{
               display: 'flex', alignItems: 'center', gap: '14px', width: '100%',
               padding: '18px 20px', borderRadius: '16px', border: '1px solid #E5E7EB',
-              borderLeft: '4px solid #FFD93D', background: '#ffffff', cursor: 'pointer',
+              borderLeft: '4px solid #F7C31C', background: '#ffffff', cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'box-shadow 0.18s ease, transform 0.18s ease',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.10)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
           >
-            <FileText size={20} color="#0BAFBE" style={{ flexShrink: 0 }} />
-            <span style={{ flex: 1, fontSize: '20px', fontWeight: 700, color: '#1A1A2E', textAlign: 'left', fontFamily: 'Nunito, sans-serif' }}>
+            <FileText size={20} color="#1A8FB5" style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: '20px', fontWeight: 700, color: '#33302A', textAlign: 'left', fontFamily: 'Nunito, sans-serif' }}>
               Ver informe semanal
             </span>
           </button>
 
+          {noSessionsYet ? (
+            <FamiliaEmptyState childName={childName} onPlay={onNavigateToEjercicio} />
+          ) : (
+          <>
           {/* Esta semana */}
           <Card>
             <p style={CARD_TITLE}>Esta semana</p>
@@ -369,8 +425,8 @@ function FamiliaContent({
                 return (
                   <div key={d} className="dracs-week-circle" style={{
                     width: '40px', height: '40px', borderRadius: '50%',
-                    backgroundColor: done ? '#0BAFBE' : '#F8FAFC',
-                    border: isToday ? '2px solid #FFD93D' : 'none',
+                    backgroundColor: done ? '#1A8FB5' : '#F8FAFC',
+                    border: isToday ? '2px solid #F7C31C' : 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     animation: done ? `circleIn 0.4s ease ${i * 80}ms both` : 'none',
                   }}>
@@ -391,7 +447,7 @@ function FamiliaContent({
           <Card>
             <p style={CARD_TITLE}>Progreso de vocabulario</p>
             <div style={{ height: '10px', backgroundColor: '#E0F2FE', borderRadius: '5px', overflow: 'hidden', marginBottom: '10px' }}>
-              <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #0BAFBE, #059669)', borderRadius: '5px', transition: 'width 0.8s ease' }} />
+              <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #1A8FB5, #059669)', borderRadius: '5px', transition: 'width 0.8s ease' }} />
             </div>
             <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif' }}>
               {progressLabel}
@@ -415,7 +471,7 @@ function FamiliaContent({
                     const acColor = s.accuracy >= 80 ? '#059669' : s.accuracy >= 60 ? '#D97706' : '#DC2626'
                     return (
                       <tr key={i} style={{ backgroundColor: i % 2 === 1 ? '#F8FAFC' : 'transparent' }}>
-                        <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>{s.date}</td>
+                        <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>{s.date}</td>
                         <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>{s.duration} min</td>
                         <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>{s.exercises}</td>
                         <td style={{ padding: '11px 8px', textAlign: 'center' }}>
@@ -435,7 +491,7 @@ function FamiliaContent({
                   Todavía no hay sesiones registradas.{' '}
                   <button
                     onClick={onNavigateToEjercicio}
-                    style={{ background: 'none', border: 'none', color: '#0BAFBE', cursor: 'pointer', fontSize: '14px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, padding: 0 }}
+                    style={{ background: 'none', border: 'none', color: '#1A8FB5', cursor: 'pointer', fontSize: '14px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, padding: 0 }}
                   >
                     Completa tu primera sesión en Ejercicios.
                   </button>
@@ -443,10 +499,12 @@ function FamiliaContent({
               </div>
             </Card>
           )}
+          </>
+          )}
 
           {/* Nota del terapeuta — solo si la cuenta tiene terapeuta conectado */}
           {hasTherapist && (
-          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', borderTop: '3px solid #0BAFBE' }}>
+          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', borderTop: '3px solid #1A8FB5' }}>
             {displayedComment ? (
               <>
                 <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>
@@ -456,7 +514,7 @@ function FamiliaContent({
                   {displayedComment.terapeuta} · {displayedComment.fecha}
                 </p>
                 <div style={{ height: '1px', backgroundColor: '#F1F5F9', marginBottom: '14px' }} />
-                <p style={{ margin: 0, fontSize: '15px', color: '#0F172A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+                <p style={{ margin: 0, fontSize: '15px', color: '#33302A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
                   {displayedComment.texto}
                 </p>
               </>
@@ -568,9 +626,9 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
         gap: '16px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <ClipboardList size={48} color="#0BAFBE" />
+          <ClipboardList size={48} color="#1A8FB5" />
         </div>
-        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1A1A2E' }}>
+        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#33302A' }}>
           Selecciona un paciente
         </h2>
         <p style={{ margin: 0, fontSize: '14px', color: '#6B7280', maxWidth: '360px', lineHeight: 1.6 }}>
@@ -583,7 +641,7 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
             padding: '12px 24px',
             borderRadius: '12px',
             border: 'none',
-            background: '#0BAFBE',
+            background: '#1A8FB5',
             color: '#ffffff',
             fontSize: '15px',
             fontWeight: 700,
@@ -614,7 +672,7 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
           width: '100%',
           maxWidth: '960px',
           marginBottom: '16px',
-          background: '#F0FAFA',
+          background: '#EAF3F5',
           borderRadius: '12px',
           padding: '12px 16px',
           display: 'flex',
@@ -635,12 +693,12 @@ export default function FamiliaTab({ onNavigateToEjercicio, onNavigateToTerapeut
             Volver al dashboard
           </button>
           <div style={{ width: '1px', height: '14px', background: '#E2E8F0', flexShrink: 0 }} />
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
             Viendo como: <strong>{activePatient?.full_name ?? 'Paciente'}</strong>
           </span>
           <span style={{
             marginLeft: 'auto',
-            background: '#0BAFBE', color: '#ffffff',
+            background: '#1A8FB5', color: '#ffffff',
             fontSize: '11px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
             padding: '3px 10px', borderRadius: '20px', flexShrink: 0,
           }}>

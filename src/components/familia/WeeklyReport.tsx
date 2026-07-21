@@ -98,7 +98,7 @@ function MetricCard({
   icon,
   value,
   label,
-  valueColor = '#0BAFBE',
+  valueColor = '#1A8FB5',
 }: {
   icon: React.ReactNode
   value: string
@@ -118,7 +118,7 @@ function MetricCard({
         boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
       }}
     >
-      <span style={{ color: '#0BAFBE' }}>{icon}</span>
+      <span style={{ color: '#1A8FB5' }}>{icon}</span>
       <span style={{ fontSize: '28px', fontWeight: 800, color: valueColor, fontFamily: 'Nunito, sans-serif', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </span>
@@ -144,7 +144,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
         gap: '8px',
         background: 'transparent',
         border: 'none',
-        color: '#0BAFBE',
+        color: '#1A8FB5',
         fontSize: '15px',
         fontWeight: 600,
         cursor: 'pointer',
@@ -169,7 +169,7 @@ function Toast({ message }: { message: string }) {
         bottom: '24px',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: '#0F172A',
+        background: '#33302A',
         color: '#ffffff',
         padding: '14px 24px',
         borderRadius: '999px',
@@ -318,7 +318,7 @@ export default function WeeklyReport({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <FileText size={22} color="#0BAFBE" />
+            <FileText size={22} color="#1A8FB5" />
             <span style={{ fontSize: '20px', fontWeight: 800, color: '#33302A', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
               Informe semanal
             </span>
@@ -326,7 +326,7 @@ export default function WeeklyReport({
           <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600, color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>
             Semana del {dateStr(weekStart)} al {dateStr(weekEnd)}
           </p>
-          <p style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#0BAFBE', fontFamily: 'Nunito, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#1A8FB5', fontFamily: 'Nunito, sans-serif' }}>
             {childName}
           </p>
           {dataNote && (
@@ -356,7 +356,7 @@ export default function WeeklyReport({
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}
           >
-            <p style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+            <p style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
               ¿Cómo fue la semana?
             </p>
 
@@ -373,7 +373,7 @@ export default function WeeklyReport({
                 style={{
                   height: '100%',
                   width: `${accuracy}%`,
-                  background: 'linear-gradient(90deg, #0BAFBE, #FFD93D)',
+                  background: 'linear-gradient(90deg, #1A8FB5, #F7C31C)',
                   borderRadius: '99px',
                   display: 'flex',
                   alignItems: 'center',
@@ -414,15 +414,15 @@ export default function WeeklyReport({
             style={{
               background: '#ffffff',
               border: '1px solid #F1F5F9',
-              borderLeft: '4px solid #0BAFBE',
+              borderLeft: '4px solid #1A8FB5',
               borderRadius: '16px',
               padding: '20px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <MessageCircle size={20} color="#0BAFBE" />
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
+              <MessageCircle size={20} color="#1A8FB5" />
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
                 Resumen de la semana
               </span>
             </div>
@@ -445,7 +445,7 @@ export default function WeeklyReport({
             <div
               style={{
                 background: '#FFFBF0',
-                border: '1px solid #FDE68A',
+                border: '1px solid #F1D062',
                 borderLeft: '4px solid #F59E0B',
                 borderRadius: '16px',
                 padding: '20px',
@@ -454,7 +454,7 @@ export default function WeeklyReport({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <Stethoscope size={20} color="#D97706" />
-                <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
                   Nota del terapeuta
                 </span>
               </div>
@@ -478,9 +478,9 @@ export default function WeeklyReport({
               width: '100%',
               padding: '16px',
               borderRadius: '18px',
-              border: '2px solid #0BAFBE',
+              border: '2px solid #1A8FB5',
               background: 'transparent',
-              color: '#0BAFBE',
+              color: '#1A8FB5',
               fontSize: '16px',
               fontWeight: 800,
               cursor: 'pointer',
@@ -555,7 +555,7 @@ function ConnectTherapistModal({
 
   const inputStyle: React.CSSProperties = {
     width: '100%', height: '52px', borderRadius: '14px', border: '1.5px solid #E5E7EB',
-    background: '#ffffff', padding: '0 16px 0 44px', fontSize: '15px', color: '#0F172A',
+    background: '#ffffff', padding: '0 16px 0 44px', fontSize: '15px', color: '#33302A',
     fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box',
   }
 
@@ -576,7 +576,7 @@ function ConnectTherapistModal({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '6px' }}>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0F172A', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#33302A', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
             Conectar un terapeuta
           </h2>
           <button
@@ -603,13 +603,13 @@ function ConnectTherapistModal({
               value={query}
               onChange={e => { setQuery(e.target.value); setSelected(null) }}
               style={inputStyle}
-              onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#0BAFBE' }}
+              onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#1A8FB5' }}
               onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
             />
           </div>
 
           {selected && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#F0FAFA', border: '1.5px solid #0BAFBE' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #1A8FB5' }}>
               <div>
                 <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0A6E78' }}>{selected.profiles.full_name}</p>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280' }}>{selected.specialty} · {selected.center_name}</p>

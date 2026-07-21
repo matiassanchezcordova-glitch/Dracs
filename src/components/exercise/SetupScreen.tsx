@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Rocket } from 'lucide-react'
+import { Rocket } from 'lucide-react'
 
 interface Props {
   onComplete: (name: string, age: number) => void
@@ -153,7 +153,7 @@ export default function SetupScreen({ onComplete }: Props) {
 
           {name.trim() && (
             <button onClick={goToStep2} style={CTA_STYLE}>
-              ¡Seguir! <ArrowRight size={22} />
+              ¡Seguir!
             </button>
           )}
         </div>

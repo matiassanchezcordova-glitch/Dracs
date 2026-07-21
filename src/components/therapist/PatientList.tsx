@@ -33,7 +33,7 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
       {/* Header */}
       <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #F1F5F9' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
             Pacientes
           </h2>
           <span style={{ fontSize: '11px', color: '#6B7280', fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
@@ -66,7 +66,7 @@ export default function PatientList({ patients, selectedId, onSelect }: Props) {
               fontSize: '12px',
               fontFamily: 'Nunito, sans-serif',
               fontWeight: 500,
-              color: '#1A1A2E',
+              color: '#33302A',
               outline: 'none',
             }}
           />
@@ -132,9 +132,9 @@ function PatientRow({
         padding: '10px 14px',
         textAlign: 'left',
         border: 'none',
-        borderLeft: `3px solid ${isSelected ? '#0BAFBE' : 'transparent'}`,
+        borderLeft: `3px solid ${isSelected ? '#1A8FB5' : 'transparent'}`,
         backgroundColor: isSelected
-          ? '#F0FAFA'
+          ? '#EAF3F5'
           : hovered
             ? '#F8FAFC'
             : 'transparent',
@@ -147,7 +147,7 @@ function PatientRow({
         width: '36px',
         height: '36px',
         borderRadius: '50%',
-        backgroundColor: '#0BAFBE',
+        backgroundColor: '#1A8FB5',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -167,7 +167,7 @@ function PatientRow({
           margin: 0,
           fontSize: '14px',
           fontWeight: 600,
-          color: isSelected ? '#0BAFBE' : '#1A1A2E',
+          color: isSelected ? '#1A8FB5' : '#33302A',
           fontFamily: 'Nunito, sans-serif',
           whiteSpace: 'nowrap',
           overflow: 'hidden',

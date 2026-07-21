@@ -62,7 +62,7 @@ function ChartTooltip(props: Record<string, unknown>) {
       boxShadow: '0 4px 16px rgba(11,175,190,0.12)',
     }}>
       <p style={{ margin: 0, fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>{label}</p>
-      <p style={{ margin: '2px 0 0', fontSize: '16px', color: '#0BAFBE', fontWeight: 800, fontFamily: 'Nunito, sans-serif' }}>
+      <p style={{ margin: '2px 0 0', fontSize: '16px', color: '#1A8FB5', fontWeight: 800, fontFamily: 'Nunito, sans-serif' }}>
         {payload[0].value}%
       </p>
     </div>
@@ -72,7 +72,7 @@ function ChartTooltip(props: Record<string, unknown>) {
 function CustomDot(props: unknown) {
   const p = props as { cx?: number; cy?: number }
   if (p.cx == null || p.cy == null) return null
-  return <circle cx={p.cx} cy={p.cy} r={4} fill="#ffffff" stroke="#0BAFBE" strokeWidth={2} />
+  return <circle cx={p.cx} cy={p.cy} r={4} fill="#ffffff" stroke="#1A8FB5" strokeWidth={2} />
 }
 
 function slugify(name: string): string {
@@ -357,7 +357,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             width: '52px',
             height: '52px',
             borderRadius: '50%',
-            backgroundColor: '#0BAFBE',
+            backgroundColor: '#1A8FB5',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -387,8 +387,8 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               <span style={{
                 padding: '3px 10px',
                 borderRadius: '999px',
-                backgroundColor: '#F0FAFA',
-                color: '#0BAFBE',
+                backgroundColor: '#EAF3F5',
+                color: '#1A8FB5',
                 fontSize: '12px',
                 fontWeight: 600,
                 fontFamily: 'Nunito, sans-serif',
@@ -396,8 +396,8 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               <span style={{
                 padding: '3px 10px',
                 borderRadius: '999px',
-                backgroundColor: '#F0FAFA',
-                color: '#0BAFBE',
+                backgroundColor: '#EAF3F5',
+                color: '#1A8FB5',
                 fontSize: '12px',
                 fontWeight: 600,
                 fontFamily: 'Nunito, sans-serif',
@@ -406,8 +406,8 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
                 <span style={{
                   padding: '3px 10px',
                   borderRadius: '999px',
-                  backgroundColor: '#F0FAFA',
-                  color: '#0BAFBE',
+                  backgroundColor: '#EAF3F5',
+                  color: '#1A8FB5',
                   fontSize: '12px',
                   fontWeight: 600,
                   fontFamily: 'Nunito, sans-serif',
@@ -421,7 +421,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
 
         <div style={{ display: 'flex', flexShrink: 0 }}>
           <div style={{ textAlign: 'center', padding: '0 20px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: kpi1 === 0 ? '#94A3B8' : '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: kpi1 === 0 ? '#94A3B8' : '#1A8FB5', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
               {kpi1}<span style={{ fontSize: '16px', fontWeight: 600 }}>/{p.metrics.sessionsTarget}</span>
             </div>
             <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '5px', fontFamily: 'Nunito, sans-serif' }}>
@@ -430,7 +430,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
           </div>
           <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.08)', alignSelf: 'stretch' }} />
           <div style={{ textAlign: 'center', padding: '0 20px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: kpi2 === 0 ? '#94A3B8' : '#0BAFBE', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: kpi2 === 0 ? '#94A3B8' : '#1A8FB5', lineHeight: 1, fontFamily: 'Nunito, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
               {kpi2 === 0 ? '—' : <>{kpi2}<span style={{ fontSize: '14px', fontWeight: 500 }}> min</span></>}
             </div>
             <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '5px', fontFamily: 'Nunito, sans-serif' }}>
@@ -460,8 +460,8 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
           <AreaChart data={CHART_DATA[slugify(p.name)] ?? p.weeklyProgress.map(d => ({ name: d.week, value: d.score }))} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
             <defs>
               <linearGradient id="scoreGradNew" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#0BAFBE" stopOpacity={0.12} />
-                <stop offset="95%" stopColor="#0BAFBE" stopOpacity={0} />
+                <stop offset="5%"  stopColor="#1A8FB5" stopOpacity={0.12} />
+                <stop offset="95%" stopColor="#1A8FB5" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="0" stroke="#F1F5F9" vertical={false} />
@@ -484,11 +484,11 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#0BAFBE"
+              stroke="#1A8FB5"
               strokeWidth={2}
               fill="url(#scoreGradNew)"
               dot={<CustomDot />}
-              activeDot={{ r: 5, fill: '#0BAFBE', stroke: '#ffffff', strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: '#1A8FB5', stroke: '#ffffff', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -520,7 +520,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               const acColor = s.accuracy >= 80 ? '#059669' : s.accuracy >= 60 ? '#D97706' : '#DC2626'
               return (
                 <tr key={i} style={{ backgroundColor: i % 2 === 1 ? '#F8FAFC' : 'transparent' }}>
-                  <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#0F172A', fontFamily: 'Nunito, sans-serif' }}>
+                  <td style={{ padding: '11px 8px', fontSize: '13px', fontWeight: 600, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
                     {s.date}
                   </td>
                   <td style={{ padding: '11px 8px', fontSize: '13px', color: '#64748B', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
@@ -568,7 +568,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               borderRadius: '10px',
               border: `1.5px solid ${focusedClinical ? '#D97706' : '#E2E8F0'}`,
               background: '#ffffff',
-              color: '#0F172A',
+              color: '#33302A',
               fontSize: '14px',
               fontFamily: 'Nunito, sans-serif',
               resize: 'vertical',
@@ -610,9 +610,9 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
         {/* 4 KPIs 2×2 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {[
-            { value: String(weekData.sessions), label: 'Sesiones completadas', color: hasData ? '#0BAFBE' : '#94A3B8' },
-            { value: hasData ? `~${weekData.minutes} min` : '—', label: 'Minutos practicados', color: hasData ? '#0BAFBE' : '#94A3B8' },
-            { value: hasData ? String(weekData.exercises) : '—', label: 'Ejercicios completados', color: hasData ? '#0BAFBE' : '#94A3B8' },
+            { value: String(weekData.sessions), label: 'Sesiones completadas', color: hasData ? '#1A8FB5' : '#94A3B8' },
+            { value: hasData ? `~${weekData.minutes} min` : '—', label: 'Minutos practicados', color: hasData ? '#1A8FB5' : '#94A3B8' },
+            { value: hasData ? String(weekData.exercises) : '—', label: 'Ejercicios completados', color: hasData ? '#1A8FB5' : '#94A3B8' },
             { value: hasData ? `${weekData.accuracy}%` : '—', label: 'Aciertos medio', color: accuracyColor },
           ].map((m, i) => (
             <div key={i} style={{
@@ -637,7 +637,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
         {autoMsg ? (
           <div style={{
             background: '#F0F9FF',
-            borderLeft: '3px solid #0BAFBE',
+            borderLeft: '3px solid #1A8FB5',
             borderRadius: '0 8px 8px 0',
             padding: '14px 16px',
             marginBottom: '24px',
@@ -684,9 +684,9 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             boxSizing: 'border-box',
             padding: '12px 14px',
             borderRadius: '10px',
-            border: `1.5px solid ${focusedTA ? '#0BAFBE' : '#E2E8F0'}`,
+            border: `1.5px solid ${focusedTA ? '#1A8FB5' : '#E2E8F0'}`,
             background: '#ffffff',
-            color: '#0F172A',
+            color: '#33302A',
             fontSize: '14px',
             fontFamily: 'Nunito, sans-serif',
             resize: 'vertical',
@@ -708,7 +708,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
               padding: '10px 20px',
               borderRadius: '10px',
               border: 'none',
-              background: '#0BAFBE',
+              background: '#1A8FB5',
               color: '#ffffff',
               fontSize: '14px',
               fontWeight: 600,
@@ -734,7 +734,7 @@ export default function PatientDetail({ patient: p, supabasePatientId }: Props) 
             <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 700, color: '#059669', fontFamily: 'Nunito, sans-serif' }}>
               Publicado · {therapistDisplayName}
             </p>
-            <p style={{ margin: 0, fontSize: '13px', color: '#0F172A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: '13px', color: '#33302A', fontFamily: 'Nunito, sans-serif', lineHeight: 1.6 }}>
               {published.text}
             </p>
           </div>

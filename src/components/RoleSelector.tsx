@@ -212,7 +212,7 @@ function ProblemaSection() {
 
 function AnimalCard({ icon, label, active, className = '' }: { icon: React.ReactNode; label: string; active: boolean; className?: string }) {
   return (
-    <div className={className} style={{ borderRadius: '10px', border: active ? '2px solid #5B8896' : '2px solid #F1F5F9', padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative', background: active ? '#F0FAFA' : '#ffffff', transition: 'all 0.3s ease' }}>
+    <div className={className} style={{ borderRadius: '10px', border: active ? '2px solid #5B8896' : '2px solid #F1F5F9', padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative', background: active ? '#EAF3F5' : '#ffffff', transition: 'all 0.3s ease' }}>
       {active && (
         <div style={{ position: 'absolute', top: '-6px', right: '-6px', width: '18px', height: '18px', borderRadius: '50%', background: '#5B8896', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Check size={10} color="#ffffff" strokeWidth={3} />
@@ -287,7 +287,7 @@ function SolucionSection() {
             {/* Frame 1 — clinical exercise mockup */}
             <div className="frame-1-container" style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #5B8896 0%, #088a96 100%)', border: '1px solid rgba(250,245,232,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px 14px' : '28px', opacity: activeStep === 0 ? 1 : 0, transform: activeStep === 0 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', overflow: 'hidden' }}>
               <div className="frame-1-tablet" style={{ background: '#ffffff', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}>
-                <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#F0FAFA', border: '1px solid #A5F3FC', borderRadius: '100px', padding: '4px 12px' }}>
+                <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#EAF3F5', border: '1px solid #EAF3F5', borderRadius: '100px', padding: '4px 12px' }}>
                   <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.1em', color: '#5B8896', textTransform: 'uppercase' }}>Ejercicio 3 de 8</span>
                 </div>
                 <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '15px', color: '#33302A', lineHeight: 1.25, textAlign: 'center' }}>
@@ -303,7 +303,7 @@ function SolucionSection() {
                 </div>
                 <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', paddingTop: '4px' }}>
                   {[0,1,2,3].map(i => (
-                    <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: i < 2 ? '#88D4D9' : i === 2 ? '#5B8896' : '#F1F5F9' }} />
+                    <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: i < 2 ? '#1A8FB5' : i === 2 ? '#5B8896' : '#F1F5F9' }} />
                   ))}
                 </div>
               </div>
@@ -313,7 +313,7 @@ function SolucionSection() {
             </div>
 
             {/* Frame 2 — IA adaptativa */}
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #F7C31C 0%, #e5a82a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: activeStep === 1 ? 1 : 0, transform: activeStep === 1 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}>
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '32px', background: 'linear-gradient(135deg, #F7C31C 0%, #C7A24F 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: activeStep === 1 ? 1 : 0, transform: activeStep === 1 ? 'scale(1)' : 'scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ position: 'absolute', width: '200px', height: '200px', borderRadius: '50%', border: '2px dashed rgba(255,255,255,0.6)', animation: 'rotateDot 20s linear infinite' }}>
                   <div style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', width: '12px', height: '12px', borderRadius: '50%', background: '#fff' }} />
@@ -385,7 +385,7 @@ function SolucionSection() {
               <p style={{ margin: '0 0 24px', fontSize: '18px', color: '#FAF5E8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65, maxWidth: '480px' }}>
                 {step.desc}
               </p>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', padding: '6px 16px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #A5F3FC', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '13px', color: '#1A8FB5' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', padding: '6px 16px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #EAF3F5', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '13px', color: '#1A8FB5' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1A8FB5', flexShrink: 0 }} />
                 {step.tag}
               </span>
@@ -409,7 +409,7 @@ function MiniMockupNino() {
   return (
     <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{ display: 'inline-flex', background: 'rgba(91,136,150,0.2)', border: '1px solid rgba(91,136,150,0.3)', borderRadius: '100px', padding: '3px 8px', width: 'fit-content' }}>
-        <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.05em', color: '#88D4D9', textTransform: 'uppercase' }}>EJERCICIO 5/8</span>
+        <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '10px', letterSpacing: '0.05em', color: '#1A8FB5', textTransform: 'uppercase' }}>EJERCICIO 5/8</span>
       </div>
       <p style={{ margin: 0, fontFamily: '"Fredoka", serif', fontWeight: 600, fontSize: '13px', color: '#ffffff', lineHeight: 1.25 }}>
         Ordena la rutina antes de dormir
@@ -435,7 +435,7 @@ function MiniMockupTerapeuta() {
           <div key={i} style={{ flex: 1, height: `${h}%`, background: '#5B8896', borderRadius: '2px 2px 0 0', opacity: 0.75 + i * 0.07 }} />
         ))}
       </div>
-      <div style={{ display: 'inline-flex', background: '#F0FAFA', border: '1px solid #A5F3FC', borderRadius: '100px', padding: '3px 10px' }}>
+      <div style={{ display: 'inline-flex', background: '#EAF3F5', border: '1px solid #EAF3F5', borderRadius: '100px', padding: '3px 10px' }}>
         <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '11px', color: '#5B8896' }}>42 pacientes activos</span>
       </div>
     </div>
@@ -524,7 +524,7 @@ function ConnectedAudienceGrid() {
           <p style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: 400, color: '#6B7280', lineHeight: 1.55, fontFamily: 'Nunito, sans-serif', flex: 1 }}>
             Un logopeda en la pública atiende hasta 25 niños. Con Dracs, llega a 80.
           </p>
-          <span style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '4px 12px', borderRadius: '20px', backgroundColor: '#F0FAFA', border: '1px solid #A5F3FC', color: '#5B8896', fontSize: '12px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          <span style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '4px 12px', borderRadius: '20px', backgroundColor: '#EAF3F5', border: '1px solid #EAF3F5', color: '#5B8896', fontSize: '12px', fontWeight: 600, fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             Panel profesional
           </span>
         </div>
@@ -776,7 +776,7 @@ export default function RoleSelector() {
               El futuro de <em style={{ fontStyle: 'italic', color: '#F1D062' }}>Dracs.</em>
             </h2>
             <p style={{ margin: 0, fontSize: '16px', color: 'rgba(250,245,232,0.88)', fontFamily: 'Nunito, sans-serif', lineHeight: 1.65 }}>
-              De app de ejercicios a compañero clínico. Estas son las próximas cuatro funcionalidades.
+              De juego a acompañante del terapeuta. Estas son las próximas cuatro funcionalidades.
             </p>
           </Reveal>
           <FutureRevealGrid />

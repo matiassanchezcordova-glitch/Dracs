@@ -172,7 +172,7 @@ export default function ExerciseCard({
               height: '26px',
               padding: '0 8px',
               borderRadius: '999px',
-              background: isCorrect || isRevealed ? '#10B981' : '#0BAFBE',
+              background: isCorrect || isRevealed ? '#10B981' : '#1A8FB5',
               color: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',

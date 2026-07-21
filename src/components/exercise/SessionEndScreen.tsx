@@ -4,7 +4,7 @@ import { type WorldPalette, getPaletteForHotspot } from '../../lib/worldColors'
 
 // ── Full-screen confetti (perfect session) ────────────────────────────────
 
-const CONFETTI_COLORS = ['#0BAFBE', '#FFD93D', '#059669', '#F97316', '#DC2626']
+const CONFETTI_COLORS = ['#1A8FB5', '#F7C31C', '#059669', '#F97316', '#DC2626']
 
 function PerfectConfetti() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -65,7 +65,7 @@ function getMessage(pct: number): string {
 
 // ── Stat card ─────────────────────────────────────────────────────────────
 
-function StatCard({ icon, value, label, color = '#0F172A' }: {
+function StatCard({ icon, value, label, color = '#33302A' }: {
   icon: React.ReactNode
   value: number | string
   label: string

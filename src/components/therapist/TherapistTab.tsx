@@ -124,13 +124,13 @@ function LinkRequestBanner({
       gap: '12px',
       padding: '12px 16px',
       background: '#FFF8E8',
-      borderLeft: '3px solid #FFD93D',
+      borderLeft: '3px solid #F7C31C',
       borderRadius: '0 10px 10px 0',
       marginBottom: '8px',
     }}>
       <Bell size={16} color="#D97706" style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+        <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
           {p.child_name} ({p.child_age} años)
         </p>
         <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>
@@ -142,7 +142,7 @@ function LinkRequestBanner({
         disabled={busy}
         style={{
           display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px',
-          borderRadius: '8px', border: 'none', background: '#0BAFBE', color: '#ffffff',
+          borderRadius: '8px', border: 'none', background: '#1A8FB5', color: '#ffffff',
           fontSize: '12px', fontWeight: 700, fontFamily: 'Nunito, sans-serif', cursor: 'pointer',
           opacity: busy ? 0.6 : 1,
         }}
@@ -284,9 +284,9 @@ export default function TherapistTab() {
           <button
             onClick={() => setMobileSidebarOpen(p => !p)}
             style={{
-              display: 'flex', alignItems: 'center', gap: '8px', background: '#F0FAFA',
+              display: 'flex', alignItems: 'center', gap: '8px', background: '#EAF3F5',
               border: '1px solid #E0F2FE', borderRadius: '10px', padding: '8px 14px',
-              fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif',
+              fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif',
               cursor: 'pointer', width: '100%', justifyContent: 'space-between',
             }}
           >
@@ -332,9 +332,9 @@ export default function TherapistTab() {
         <button
           onClick={() => setMobileSidebarOpen(p => !p)}
           style={{
-            display: 'flex', alignItems: 'center', gap: '8px', background: '#F0FAFA',
+            display: 'flex', alignItems: 'center', gap: '8px', background: '#EAF3F5',
             border: '1px solid #E0F2FE', borderRadius: '10px', padding: '8px 14px',
-            fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif',
+            fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif',
             cursor: 'pointer', width: '100%', justifyContent: 'space-between',
           }}
         >
@@ -353,7 +353,7 @@ export default function TherapistTab() {
               </p>
             ) : realPatients.length === 0 ? (
               <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#1A1A2E', fontFamily: 'Nunito, sans-serif' }}>
+                <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>
                   Sin pacientes aún
                 </p>
                 <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', lineHeight: 1.5 }}>

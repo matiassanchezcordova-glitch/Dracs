@@ -78,7 +78,7 @@ export default function WelcomeScreen({ profile, onStart, errorMessage, palette 
         {/* Stat cards */}
         <div style={{ display: 'flex', gap: '12px' }}>
           <StatBox icon={<Flame size={24} style={{ color: '#D97706' }} />} value={profile.streak} label="DÍAS SEGUIDOS" valueColor="#D97706" />
-          <StatBox icon={<Star size={24} style={{ color: '#0BAFBE' }} />} value={profile.level} label="NIVEL ACTUAL" valueColor="#0BAFBE" />
+          <StatBox icon={<Star size={24} style={{ color: '#1A8FB5' }} />} value={profile.level} label="NIVEL ACTUAL" valueColor="#1A8FB5" />
         </div>
       </div>
 

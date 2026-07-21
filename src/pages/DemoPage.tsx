@@ -4,6 +4,7 @@ import RoleCard from '../components/RoleCard'
 import type { Role } from '../components/RoleSelector'
 import RoleConflictModal from '../components/RoleConflictModal'
 import { useAuth } from '../context/AuthContext'
+import { seedDemoHistory, loadHistory } from '../hooks/useChildProfile'
 import {
   clearAllDracsStorage,
   dbRoleToUiRole,
@@ -24,9 +25,15 @@ export default function DemoPage() {
 
   function handleRoleSelect(r: Role) {
     if (r === 'demo') {
+      // Sembrar partidas de ejemplo de esta semana (solo la primera vez) para
+      // que el dashboard y el informe muestren datos reales y coincidan.
+      seedDemoHistory()
+      const seeded = loadHistory()
+      const distinctDays = new Set(seeded.map(s => s.date)).size
       localStorage.setItem('dracs_child_profile', JSON.stringify({
-        name: 'Pablo', age: 6, level: 2, streak: 5,
-        sessionCount: 12, lastSessionDate: '',
+        name: 'Pablo', age: 6, level: 2,
+        streak: distinctDays,
+        lastSessionDate: seeded.length ? seeded[seeded.length - 1].date : '',
       }))
       localStorage.setItem('dracs_role', 'demo')
       navigate('/app/nino')

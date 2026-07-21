@@ -56,7 +56,7 @@ function ProgressAuthPrompt({
         animation: 'wordSlideDown 0.25s ease',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-          <BarChart2 size={44} color="#0BAFBE" />
+          <BarChart2 size={44} color="#1A8FB5" />
         </div>
         <h2 style={{
           margin: '0 0 8px',
@@ -78,7 +78,7 @@ function ProgressAuthPrompt({
             onClick={onSignup}
             style={{
               width: '100%', height: '48px', borderRadius: '14px', border: 'none',
-              background: '#0BAFBE', color: '#ffffff', fontSize: '15px',
+              background: '#1A8FB5', color: '#ffffff', fontSize: '15px',
               fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer',
             }}
           >
@@ -89,7 +89,7 @@ function ProgressAuthPrompt({
             style={{
               width: '100%', height: '48px', borderRadius: '14px',
               border: '1.5px solid #E5E7EB', background: '#ffffff',
-              color: '#1A1A2E', fontSize: '15px',
+              color: '#33302A', fontSize: '15px',
               fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer',
             }}
           >
@@ -147,9 +147,9 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
         textAlign: 'center', gap: '16px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <Stethoscope size={48} color="#0BAFBE" />
+          <Stethoscope size={48} color="#1A8FB5" />
         </div>
-        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1A1A2E' }}>
+        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#33302A' }}>
           Esta sección es para los pacientes
         </h2>
         <p style={{ margin: 0, fontSize: '14px', color: '#6B7280', maxWidth: '360px', lineHeight: 1.6 }}>
@@ -159,7 +159,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
           onClick={onNavigateToTerapeuta}
           style={{
             marginTop: '8px', padding: '12px 24px', borderRadius: '12px',
-            border: 'none', background: '#0BAFBE', color: '#ffffff',
+            border: 'none', background: '#1A8FB5', color: '#ffffff',
             fontSize: '15px', fontWeight: 700, fontFamily: 'Nunito, sans-serif', cursor: 'pointer',
           }}
         >
