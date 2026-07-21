@@ -73,8 +73,11 @@ export function seedDemoHistory(): void {
       dates.push(localIso(d))
     }
     if (dates.length === 0) return
-    // 5 partidas realistas repartidas por los días disponibles (round-robin, así
-    // aunque la semana recién empiece la cuenta se ve con actividad).
+    // 5 partidas realistas repartidas hacia atrás desde HOY (round-robin sobre
+    // los días disponibles, del más reciente al más antiguo). Repartir desde hoy
+    // —y no desde el lunes— garantiza que la racha que deriva el dashboard sea
+    // coherente con las sesiones de la semana: si sembráramos lunes→viernes, un
+    // domingo el dashboard mostraría "5 sesiones" junto a "racha 0".
     const plan = [
       { total: 7, correct: 6 },
       { total: 6, correct: 4 },
@@ -83,7 +86,7 @@ export function seedDemoHistory(): void {
       { total: 7, correct: 5 },
     ]
     const sessions: SessionResult[] = plan.map((p, i) => ({
-      date: dates[i % dates.length],
+      date: dates[dates.length - 1 - (i % dates.length)],
       total: p.total,
       correct: p.correct,
       level: 2,
