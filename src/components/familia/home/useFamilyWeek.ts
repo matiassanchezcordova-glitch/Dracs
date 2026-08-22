@@ -15,13 +15,18 @@ import type { DbSession } from '../../../lib/types'
 import { getStreakDays } from '../../../lib/derived'
 import { loadHistory, type SessionResult } from '../../../hooks/useChildProfile'
 import type { WeekSignal } from './familyHome.copy'
+import { toEmphasisGames, type EmphasisGame } from './todaysGame'
 
 export interface FamilyWeek {
   loading: boolean
   childName: string
   signal: WeekSignal
   isTherapistPreview: boolean
+  // Énfasis del terapeuta ya ruteable (vacío si no hay o si falta la migración).
+  emphasisGames: EmphasisGame[]
 }
+
+const NO_EMPHASIS: EmphasisGame[] = []
 
 const DEFAULT_NAME = 'Pablo'
 
@@ -137,18 +142,20 @@ export function useFamilyWeek(): FamilyWeek {
   // Resultado de Supabase etiquetado con su `key` (el patientId al que
   // corresponde). `loading` se DERIVA de comparar la key con el paciente
   // actual, así no reseteamos estado sincrónicamente dentro del efecto.
-  const [sb, setSb] = useState<{ key: string; name: string; signal: WeekSignal } | null>(null)
+  const [sb, setSb] = useState<{ key: string; name: string; signal: WeekSignal; emphasisGames: EmphasisGame[] } | null>(null)
 
   useEffect(() => {
     if (!isSupabaseMode || !patientId) return
     let cancelled = false
 
     ;(async () => {
-      // Nombre: `children` para el terapeuta; `children_family_view` para la
-      // familia (mantiene clinical_notes fuera del cliente de la familia, PD-4).
+      // Nombre + énfasis. Terapeuta lee `children`; familia lee
+      // `children_family_view` (nunca clinical_notes ni focus_note, PD-4). Se
+      // usa select('*') para degradar con gracia si aún faltan las migraciones
+      // 011/012: emphasis_game_ids simplemente no viene y el énfasis queda vacío.
       const fetchChild = isTherapist
-        ? supabase.from('children').select('full_name').eq('id', patientId).single()
-        : supabase.from('children_family_view').select('full_name').eq('family_id', user!.id).maybeSingle()
+        ? supabase.from('children').select('*').eq('id', patientId).single()
+        : supabase.from('children_family_view').select('*').eq('family_id', user!.id).maybeSingle()
 
       const [sessRes, chRes] = await Promise.all([
         supabase
@@ -162,8 +169,19 @@ export function useFamilyWeek(): FamilyWeek {
       if (cancelled) return
 
       const sessions = (sessRes.data ?? []) as DbSession[]
-      const name = (chRes.data as { full_name?: string } | null)?.full_name ?? 'Paciente'
-      setSb({ key: patientId, name, signal: supabaseSignal(sessions) })
+      const child = chRes.data as { full_name?: string; emphasis_game_ids?: string[] | null } | null
+      const name = child?.full_name ?? 'Paciente'
+
+      // Resolver los lugares de los juegos del énfasis para poder rutearlos.
+      let emphasisGames: EmphasisGame[] = []
+      const ids = child?.emphasis_game_ids ?? []
+      if (ids.length > 0) {
+        const { data: exs } = await supabase.from('exercises').select('id, place').in('id', ids)
+        if (cancelled) return
+        emphasisGames = toEmphasisGames((exs ?? []) as { id: string; place: string | null }[])
+      }
+
+      setSb({ key: patientId, name, signal: supabaseSignal(sessions), emphasisGames })
     })()
 
     return () => { cancelled = true }
@@ -176,14 +194,15 @@ export function useFamilyWeek(): FamilyWeek {
       childName: ready ? sb.name : 'Paciente',
       signal: ready ? sb.signal : EMPTY_SIGNAL,
       isTherapistPreview: !!isTherapist,
+      emphasisGames: ready ? sb.emphasisGames : NO_EMPHASIS,
     }
   }
 
   // Defensa: un terapeuta sin paciente elegido nunca debe ver datos demo
-  // ("Pablo"). La página ya lo intercepta con "Elegí un paciente", pero el hook
+  // ("Pablo"). La página ya lo intercepta con "Elige un paciente", pero el hook
   // no cae al modo local para un terapeuta.
   if (isTherapist) {
-    return { loading: false, childName: 'Paciente', signal: EMPTY_SIGNAL, isTherapistPreview: true }
+    return { loading: false, childName: 'Paciente', signal: EMPTY_SIGNAL, isTherapistPreview: true, emphasisGames: NO_EMPHASIS }
   }
 
   return {
@@ -191,5 +210,6 @@ export function useFamilyWeek(): FamilyWeek {
     childName: local?.name ?? DEFAULT_NAME,
     signal: local?.signal ?? EMPTY_SIGNAL,
     isTherapistPreview: false,
+    emphasisGames: NO_EMPHASIS,
   }
 }

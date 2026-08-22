@@ -30,7 +30,7 @@ const PLACES: Record<HotspotId, { name: string; Icon: Icon }> = {
 export const FEATURED_PLACES: HotspotId[] = ['mar', 'casa', 'playa', 'sol', 'faro']
 
 // Día del año (0–365) en horario local.
-function dayOfYear(d: Date): number {
+export function dayOfYear(d: Date): number {
   const start = new Date(d.getFullYear(), 0, 0)
   return Math.floor((d.getTime() - start.getTime()) / 86_400_000)
 }

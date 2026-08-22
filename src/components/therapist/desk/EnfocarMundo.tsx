@@ -72,10 +72,15 @@ export default function EnfocarMundo({
     setSaving(true)
     const res = await saveChildFocus(isReal, storeId, { areas, note, emphasis: [...emphasis] })
     setSaving(false)
-    setToast(res.ok
-      ? 'Enfoque guardado.'
-      : 'No se pudo guardar. ¿Aplicaste la migración 011?')
-    setTimeout(() => setToast(null), 3200)
+    // Al guardar, el terapeuta sabe que el énfasis ya llega a la familia (sin
+    // números ni claims). Solo cuando hay juegos fijados: un guardado vacío no
+    // alimenta "una cosa para hoy" (la familia ve el lugar del día).
+    setToast(!res.ok
+      ? 'No se pudo guardar. Vuelve a intentarlo.'
+      : emphasis.size > 0
+        ? 'Guardado. En casa aparecerá en "una cosa para hoy".'
+        : 'Enfoque guardado.')
+    setTimeout(() => setToast(null), 3600)
   }
 
   const items = recReady ? rec!.result.items : []
@@ -90,7 +95,7 @@ export default function EnfocarMundo({
         </h3>
       </div>
       <p style={{ margin: '0 0 18px', fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-        Elegí las áreas a priorizar y, si querés, dejá una nota de contexto. Verás juegos que trabajan esas áreas y podés fijar un énfasis para {childName}.
+        Elige las áreas a priorizar y, si quieres, deja una nota de contexto.
       </p>
 
       {/* Áreas de foco */}
@@ -121,7 +126,7 @@ export default function EnfocarMundo({
       <textarea
         value={note}
         onChange={e => setNote(e.target.value)}
-        placeholder={`Dificultades, objetivos o intereses de ${childName}. Se guarda como contexto; por ahora no cambia las sugerencias.`}
+        placeholder={`Dificultades, objetivos o intereses de ${childName}.`}
         rows={3}
         style={{
           width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
@@ -134,23 +139,16 @@ export default function EnfocarMundo({
       <SectionLabel>Juegos sugeridos</SectionLabel>
       {areas.length === 0 ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-          Elegí una o más áreas arriba para ver juegos sugeridos para {childName}.
+          Elige una o más áreas arriba para ver juegos sugeridos para {childName}.
         </p>
       ) : recLoading ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Buscando juegos…</p>
-      ) : recReady && !rec!.result.available ? (
+      ) : items.length === 0 ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-          Todavía no podemos sugerir juegos: falta clasificar los juegos por área. Aparecerán en cuanto se aplique el etiquetado.
+          Todavía no hay juegos para estas áreas.
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* Áreas elegidas sin juegos */}
-          {recReady && rec!.result.emptyAreas.map(a => (
-            <p key={a} style={{ margin: 0, fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
-              Todavía no tenemos juegos para <strong style={{ color: DT.ink, fontWeight: 700 }}>{SKILL_LABELS[a] ?? a}</strong>.
-            </p>
-          ))}
-
           {shown.map(g => {
             const pinned = emphasis.has(g.id)
             return (

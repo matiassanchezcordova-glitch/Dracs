@@ -38,7 +38,7 @@ export default function CasaDeLaFamilia({ onNavigateToJugar, onNavigateToPlace, 
   const { selectedPatientId } = useTherapist()
   const isTherapist = profile?.role === 'therapist'
 
-  const { loading, childName, signal, isTherapistPreview } = useFamilyWeek()
+  const { loading, childName, signal, isTherapistPreview, emphasisGames } = useFamilyWeek()
 
   // Terapeuta que llega a la casa sin paciente elegido: lo guiamos de vuelta.
   if (isTherapist && !selectedPatientId) {
@@ -50,10 +50,10 @@ export default function CasaDeLaFamilia({ onNavigateToJugar, onNavigateToPlace, 
         }}>
           <ClipboardText size={44} weight="duotone" color={HT.blue} />
           <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: HT.ink, fontFamily: HT.display }}>
-            Elegí un paciente
+            Elige un paciente
           </h2>
           <p style={{ margin: 0, fontSize: '14px', color: HT.muted, maxWidth: '360px', lineHeight: 1.6 }}>
-            Volvé al panel clínico y seleccioná un paciente para ver su casa de familia.
+            Vuelve al panel clínico y selecciona un paciente para ver su casa de familia.
           </p>
           <button
             onClick={onNavigateToTerapeuta}
@@ -108,7 +108,7 @@ export default function CasaDeLaFamilia({ onNavigateToJugar, onNavigateToPlace, 
 
         <LaPuerta childName={childName} signal={signal} />
         <CartaDeLaSemana childName={childName} signal={signal} delay={80} />
-        <UnaCosaParaHoy childName={childName} onOpenPlace={onNavigateToPlace} delay={160} />
+        <UnaCosaParaHoy childName={childName} emphasisGames={emphasisGames} onOpenPlace={onNavigateToPlace} delay={160} />
         <DraguiAssistant childName={childName} delay={240} />
         <Continuidad childName={childName} onOpenWorld={onNavigateToJugar} delay={320} />
       </div>

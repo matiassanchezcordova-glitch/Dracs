@@ -1,24 +1,51 @@
-// Una cosa para hoy — un único CTA cálido, anti-deberes (§2.3). Ahora ENTREGA
-// una cosa concreta: "el lugar de hoy" (pick diario determinista, no clínico).
-// El niño conserva su agencia dentro del lugar.
+// Una cosa para hoy — un único CTA cálido, anti-deberes (§2.3). Entrega una cosa
+// concreta: si el terapeuta fijó un énfasis, "el juego de hoy" (guiado, sin
+// jerga ni mención al terapeuta); si no, "el lugar de hoy". La decisión vive en
+// getTodaySuggestion. El niño conserva su agencia dentro del lugar.
 
 import { useMemo, useState } from 'react'
-import { Play, Sparkle } from '@phosphor-icons/react'
+import { Play, Sparkle, GameController } from '@phosphor-icons/react'
 import { HT } from './homeStyles'
-import { TODAY_KICKER, TODAY_PLACE_KICKER, TODAY_CTA, todayHint } from './familyHome.copy'
-import { getPlaceOfTheDay } from './placeOfTheDay'
+import {
+  TODAY_KICKER, TODAY_PLACE_KICKER, TODAY_GAME_KICKER, TODAY_CTA,
+  todayHint, todayGameName, todayGameHint,
+} from './familyHome.copy'
+import { getTodaySuggestion, type EmphasisGame } from './todaysGame'
 
 export default function UnaCosaParaHoy({
-  childName, onOpenPlace, delay = 0,
-}: { childName: string; onOpenPlace: (placeId: string) => void; delay?: number }) {
+  childName, emphasisGames, onOpenPlace, delay = 0,
+}: {
+  childName: string
+  emphasisGames: EmphasisGame[]
+  onOpenPlace: (hotspotId: string) => void
+  delay?: number
+}) {
   const [pressed, setPressed] = useState(false)
-  const place = useMemo(() => getPlaceOfTheDay(), [])
+  const suggestion = useMemo(() => getTodaySuggestion(emphasisGames), [emphasisGames])
+
+  // Vista unificada (juego guiado vs lugar del día).
+  const view = suggestion.kind === 'game'
+    ? {
+        palette: suggestion.palette,
+        kicker: TODAY_GAME_KICKER,
+        name: todayGameName(childName),
+        capitalize: false,
+        hint: todayGameHint(childName),
+        target: suggestion.hotspotId,
+        Icon: GameController,
+      }
+    : {
+        palette: suggestion.place.palette,
+        kicker: TODAY_PLACE_KICKER,
+        name: suggestion.place.name,
+        capitalize: true,
+        hint: todayHint(childName, suggestion.place.name),
+        target: suggestion.place.id,
+        Icon: suggestion.place.Icon,
+      }
 
   return (
-    <section
-      className="home-rise"
-      style={{ animationDelay: `${delay}ms` }}
-    >
+    <section className="home-rise" style={{ animationDelay: `${delay}ms` }}>
       <div style={{
         background: HT.white, border: `1px solid ${HT.line}`, borderRadius: HT.radius,
         padding: '24px', boxShadow: HT.shadow,
@@ -31,28 +58,28 @@ export default function UnaCosaParaHoy({
           {TODAY_KICKER}
         </p>
 
-        {/* Tile del lugar del día — usa la paleta real del lugar. */}
+        {/* Tile — usa la paleta real del lugar (o del lugar del juego guiado). */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <span aria-hidden style={{
             width: '58px', height: '58px', borderRadius: '16px', flexShrink: 0,
-            background: `linear-gradient(135deg, ${place.palette.primary}, ${place.palette.primaryDark})`,
+            background: `linear-gradient(135deg, ${view.palette.primary}, ${view.palette.primaryDark})`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: HT.shadowSoft,
           }}>
-            <place.Icon size={30} weight="duotone" color="#FFFFFF" />
+            <view.Icon size={30} weight="duotone" color="#FFFFFF" />
           </span>
           <div style={{ minWidth: 0 }}>
             <p style={{
               margin: '0 0 2px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em',
               textTransform: 'uppercase', color: HT.taupe, fontFamily: HT.body,
             }}>
-              {TODAY_PLACE_KICKER}
+              {view.kicker}
             </p>
             <p style={{
               margin: 0, fontSize: '20px', fontWeight: 700, color: HT.ink,
-              fontFamily: HT.display, textTransform: 'capitalize', lineHeight: 1.15,
+              fontFamily: HT.display, textTransform: view.capitalize ? 'capitalize' : 'none', lineHeight: 1.15,
             }}>
-              {place.name}
+              {view.name}
             </p>
           </div>
         </div>
@@ -61,11 +88,11 @@ export default function UnaCosaParaHoy({
           margin: 0, fontSize: '15px', fontWeight: 600, color: HT.muted,
           lineHeight: 1.5, fontFamily: HT.body,
         }}>
-          {todayHint(childName, place.name)}
+          {view.hint}
         </p>
 
         <button
-          onClick={() => onOpenPlace(place.id)}
+          onClick={() => onOpenPlace(view.target)}
           onPointerDown={() => setPressed(true)}
           onPointerUp={() => setPressed(false)}
           onPointerLeave={() => setPressed(false)}

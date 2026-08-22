@@ -143,7 +143,9 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
       }
       return {
         sessions: thisWeek.length,
-        minutes: thisWeek.reduce((a, s) => a + (getDurationMinutes(s) ?? 15), 0),
+        // Nunca inventamos duración: las sesiones sin duration_seconds no suman
+        // (se muestran como "—" en la tabla y quedan fuera del total).
+        minutes: thisWeek.reduce((a, s) => a + (getDurationMinutes(s) ?? 0), 0),
         exercises: thisWeek.reduce((a, s) => a + s.total_exercises, 0),
         accuracy: acc(thisWeek),
         prevAccuracy: acc(prevWeek),
@@ -185,7 +187,7 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
   const recentSessions = isReal && sbLoaded
     ? sbSessions.slice(0, 5).map(s => ({
         date: new Date(s.ended_at ?? s.started_at).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }),
-        duration: getDurationMinutes(s) ?? 15, exercises: s.total_exercises, accuracy: getAccuracyPercent(s),
+        duration: getDurationMinutes(s), exercises: s.total_exercises, accuracy: getAccuracyPercent(s),
       }))
     : p.recentSessions
 
@@ -274,7 +276,7 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
           <StatTile value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
-          <StatTile value={week.sessions ? `~${week.minutes}` : '—'} label="minutos" />
+          <StatTile value={week.minutes > 0 ? `~${week.minutes}` : '—'} label="minutos" />
           <StatTile value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
           <StatTile value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
         </div>
@@ -331,7 +333,7 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
                 {recentSessions.map((s, i) => (
                   <tr key={i} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
                     <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{s.date}</td>
-                    <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration} min</td>
+                    <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration == null ? '—' : `${s.duration} min`}</td>
                     <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.exercises}</td>
                     <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center' }}>{s.accuracy}%</td>
                   </tr>

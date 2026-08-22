@@ -43,7 +43,7 @@ export function doorSubline(childName: string, s: WeekSignal): string {
   }
   switch (s.band) {
     case 'strong': return `Fue una semana llena para ${childName}. Qué bueno tenerte en casa.`
-    case 'steady': return `${childName} anduvo por su mundo esta semana. Pasá, mirá cómo le fue.`
+    case 'steady': return `${childName} anduvo por su mundo esta semana. Pasa, mira cómo le fue.`
     default:       return `${childName} dio sus primeros pasitos esta semana. Vamos de a poco.`
   }
 }
@@ -86,10 +86,21 @@ export function cartaBody(childName: string, s: WeekSignal): string {
 
 export const TODAY_KICKER = 'Una cosa para hoy'
 export const TODAY_PLACE_KICKER = 'El lugar de hoy'
+export const TODAY_GAME_KICKER = 'El juego de hoy'
 export const TODAY_CTA = 'Jugar juntos 5 minutos'
 
 export function todayHint(childName: string, placeName: string): string {
-  return `Hoy los espera ${placeName}. Sentate al lado de ${childName}: con cinco minutos alcanza. Adentro, elige él.`
+  return `Hoy los espera ${placeName}. Siéntate al lado de ${childName}: con cinco minutos alcanza. Adentro, elige él.`
+}
+
+// Sugerencia guiada por el énfasis del terapeuta. Nunca menciona al terapeuta ni
+// jerga clínica: sólo calidez. El niño sólo juega.
+export function todayGameName(childName: string): string {
+  return `Un juego pensado para ${childName}`
+}
+
+export function todayGameHint(childName: string): string {
+  return `Hoy lo espera un juego pensado para ${childName}. Siéntate a su lado: con cinco minutos alcanza.`
 }
 
 // ── El asistente (mockup bloqueado) ──────────────────────────────────────────
@@ -99,14 +110,14 @@ export const ASSISTANT_PREVIEW_BADGE = 'Vista previa'
 export const ASSISTANT_LOCKED_PLACEHOLDER = 'Muy pronto…'
 
 export function assistantGreeting(childName: string): string {
-  return `Hola, soy ${DRAGUI}. Contame qué le cuesta a ${childName} en el día a día y te preparo un juego para practicar.`
+  return `Hola, soy ${DRAGUI}. Cuéntame qué le cuesta a ${childName} en el día a día y te preparo un juego para practicar.`
 }
 
 export function assistantPreviewNote(childName: string): string {
   return `Esto es una vista previa. Muy pronto vas a poder crear juegos de verdad para ${childName}.`
 }
 
-export const WAITLIST_CTA = 'Avisame cuando esté'
+export const WAITLIST_CTA = 'Avísame cuando esté'
 export const WAITLIST_THANKS = '¡Listo! Te avisamos apenas esté disponible.'
 
 // Una tarjeta-juego de ejemplo que el asistente "crea" al responder.
@@ -136,7 +147,7 @@ export const ASSISTANT_CHIPS: ScriptedReply[] = [
     id: 'colores',
     chip: 'Quiero trabajar los colores',
     reply: 'Armé un juego de colores para {name}: aparecen objetos de su mundo y hay que atrapar los del color que pide el dragón. Empezamos por tres colores y vamos sumando.',
-    exercise: { title: 'Atrapá el color', skillTag: 'Colores', Icon: Palette, gradient: 'linear-gradient(135deg, #F7C31C, #FF8551)' },
+    exercise: { title: 'Atrapa el color', skillTag: 'Colores', Icon: Palette, gradient: 'linear-gradient(135deg, #F7C31C, #FF8551)' },
   },
   {
     id: 'vestirse',
@@ -148,7 +159,7 @@ export const ASSISTANT_CHIPS: ScriptedReply[] = [
     id: 'mirada',
     chip: 'Trabajar el contacto visual',
     reply: 'Te dejé un juego de miraditas: el dragón aparece en distintos rincones y {name} lo encuentra con la mirada antes de tocarlo. Cortito y con mucho festejo.',
-    exercise: { title: 'Encontrá al dragón', skillTag: 'Contacto visual', Icon: Eye, gradient: 'linear-gradient(135deg, #4A3F73, #352C56)' },
+    exercise: { title: 'Encuentra al dragón', skillTag: 'Contacto visual', Icon: Eye, gradient: 'linear-gradient(135deg, #4A3F73, #352C56)' },
   },
 ]
 
