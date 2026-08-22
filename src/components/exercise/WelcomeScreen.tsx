@@ -96,7 +96,7 @@ export default function WelcomeScreen({ profile, onStart, errorMessage, palette 
         }}
       >
         <img
-          src="/logo-dracs.png"
+          src="/brand/dracs-dragon.png"
           alt="Dracs"
           style={{
             width: '140px',

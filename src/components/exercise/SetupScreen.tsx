@@ -94,7 +94,7 @@ export default function SetupScreen({ onComplete }: Props) {
           }}
         >
           <img
-            src="/logo-dracs.png"
+            src="/brand/dracs-dragon.png"
             alt=""
             style={{ width: '108px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.10))' }}
           />
@@ -175,7 +175,7 @@ export default function SetupScreen({ onComplete }: Props) {
           }}
         >
           <img
-            src="/logo-dracs.png"
+            src="/brand/dracs-dragon.png"
             alt=""
             style={{ width: '96px', height: 'auto', animation: 'floatDracs 3s ease-in-out infinite', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.10))' }}
           />

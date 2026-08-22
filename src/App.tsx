@@ -97,17 +97,19 @@ function AppInner() {
         >
           {/* ── Left: logo ─────────────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            <img
-              src="/logo-dracs.png"
-              alt="Dracs"
-              style={{
-                height: '52px',
-                width: 'auto',
-                display: 'block',
-                cursor: 'pointer',
-              }}
+            {/* Marca de la app: lockup único (dragón + wordmark "Dracs"),
+                idéntico en toda la app. Assets: /brand/*. */}
+            <button
               onClick={() => navigate('/')}
-            />
+              aria-label="Dracs — inicio"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '9px',
+                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              }}
+            >
+              <img src="/brand/dracs-dragon.png" alt="" aria-hidden style={{ height: '38px', width: 'auto', display: 'block' }} />
+              <img src="/brand/dracs-wordmark.svg" alt="Dracs" style={{ height: '22px', width: 'auto', display: 'block' }} />
+            </button>
 
             {isDemo && (
               <button

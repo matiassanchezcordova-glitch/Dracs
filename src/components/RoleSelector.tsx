@@ -741,7 +741,7 @@ export default function RoleSelector() {
 
       {/* ── SECCIÓN 1: HERO ─────────────────────────────────────────────── */}
       <section id="hero" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', position: 'relative', background: '#5B8896' }}>
-        <img src="/logo-dracs.png" alt="Dracs" className="dracs-hero-dragon"
+        <img src="/brand/dracs-dragon.png" alt="Dracs" className="dracs-hero-dragon"
           style={{ width: '180px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.10))', marginBottom: '32px' }}
         />
         <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", system-ui, sans-serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
@@ -789,7 +789,7 @@ export default function RoleSelector() {
       {/* ── SECCIÓN 7: FOOTER CTA ───────────────────────────────────────── */}
       <section id="contacto" style={{ background: '#5B8896', padding: '80px clamp(24px, 5vw, 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '24px' }}>
         <Reveal style={{ display: 'flex', justifyContent: 'center' }}>
-          <img src="/logo-dracs.png" alt="" style={{ height: '80px', width: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.20))' }} />
+          <img src="/brand/dracs-dragon.png" alt="" style={{ height: '80px', width: 'auto', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.20))' }} />
         </Reveal>
         <Reveal delay={100}>
           <h2 style={{ margin: 0, fontFamily: '"Fredoka", system-ui, sans-serif', fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>

@@ -413,3 +413,75 @@ html, body {
   0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 1;    }
   50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.85; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Casa de la Familia — "la puerta de casa" (family home surface)
+   Todas las animaciones viven bajo .casa-home y se apagan con
+   prefers-reduced-motion (§4). Ninguna deja el elemento invisible en reposo:
+   el estado sin animar ya es el estado final visible.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* El dragón saluda al abrir la puerta: un gesto único al montar, luego flota. */
+@keyframes dragonGreet {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  15%  { transform: rotate(-9deg)  scale(1.05); }
+  35%  { transform: rotate(8deg)   scale(1.05); }
+  55%  { transform: rotate(-6deg)  scale(1.03); }
+  75%  { transform: rotate(4deg)   scale(1.02); }
+  100% { transform: rotate(0deg)   scale(1);    }
+}
+
+/* Flotación suave y continua del compañero. */
+@keyframes homeFloat {
+  0%   { transform: translateY(0)    rotate(-1.5deg); }
+  50%  { transform: translateY(-8px) rotate(1.5deg);  }
+  100% { transform: translateY(0)    rotate(-1.5deg); }
+}
+
+/* Cada sección entra desde abajo, en cascada (pixie dust discreto). */
+@keyframes homeRise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* La carta de la semana respira al aparecer. */
+@keyframes cartaFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* Latido cálido del botón principal ("una cosa para hoy"). */
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 6px 18px rgba(247, 195, 28, 0.30); }
+  50%      { box-shadow: 0 10px 30px rgba(247, 195, 28, 0.55); }
+}
+
+/* Chispitas alrededor del CTA / avatar del asistente. */
+@keyframes sparkleTwinkle {
+  0%, 100% { opacity: 0;   transform: scale(0.6) rotate(0deg);   }
+  50%      { opacity: 0.9; transform: scale(1)   rotate(20deg);  }
+}
+
+/* Indicador "escribiendo…" del asistente (tres puntos). */
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0);    }
+  30%           { opacity: 1;    transform: translateY(-3px); }
+}
+
+.casa-home .home-rise   { animation: homeRise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.casa-home .home-float  { animation: homeFloat 4s ease-in-out infinite; }
+.casa-home .home-greet  { animation: dragonGreet 1.1s ease-in-out 1, homeFloat 4s ease-in-out 1.1s infinite; }
+.casa-home .carta-in    { animation: cartaFadeIn 0.7s ease-out both; }
+.casa-home .cta-glow    { animation: ctaGlow 2.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .casa-home .home-rise,
+  .casa-home .home-float,
+  .casa-home .home-greet,
+  .casa-home .carta-in,
+  .casa-home .cta-glow,
+  .casa-home .home-sparkle,
+  .casa-home .home-typing-dot {
+    animation: none !important;
+  }
+}

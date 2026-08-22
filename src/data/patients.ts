@@ -32,6 +32,9 @@ export interface Patient {
   recentSessions: RecentSession[]
   notes?: string
   level?: { min: number; max: number } | null
+  // Escritorio: datos crudos para el estado humano de la carpeta (§Phase 2).
+  lastPlayedISO?: string | null
+  totalSessions?: number
 }
 
 /** Static patient records -------------------------------------------------- */

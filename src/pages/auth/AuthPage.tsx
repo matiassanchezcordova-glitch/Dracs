@@ -259,7 +259,7 @@ function AuthLayout({
           }}
         >
           <img
-            src="/logo-dracs.png"
+            src="/brand/dracs-dragon.png"
             alt="Dracs"
             style={{
               width: '38px',
