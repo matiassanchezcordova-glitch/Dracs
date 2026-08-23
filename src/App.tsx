@@ -1,6 +1,6 @@
 import { type ReactNode, type CSSProperties, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Gamepad2, BarChart2, Users, LogOut, X, ChevronDown } from 'lucide-react'
+import { Gamepad2, BarChart2, Users, LogOut, X, ChevronDown, RotateCcw } from 'lucide-react'
 import { type Role } from './components/RoleSelector'
 import { useAuth } from './context/AuthContext'
 import { TherapistProvider } from './context/TherapistContext'
@@ -9,6 +9,7 @@ import {
   dbRoleToUiRole,
   getLocalRole,
 } from './lib/role'
+import { DEMO_CHILD_NAME, resetDemo } from './lib/demo'
 
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
 
@@ -28,24 +29,31 @@ function AppInner() {
 
   const localRole = getLocalRole()
   const role: Role = profile ? dbRoleToUiRole(profile.role) : (localRole ?? 'child')
-  const isDemo = role === 'demo'
+  // Showroom: sin sesión de Supabase estamos en la demo, sea cual sea la puerta
+  // por la que se entró. Con sesión, el camino real de siempre.
+  const isDemo = !user
   const activeTab = pathToTab(location.pathname)
 
   const childName = isDemo ? null : (patient?.child_name ?? null)
   const therapistName = isDemo ? null : (profile?.full_name ?? null)
 
+  // En la demo el header dice quién eres en el triángulo, no un nombre inventado.
+  const demoName = role === 'therapist' ? 'Logopeda' : role === 'family' ? 'Familia' : DEMO_CHILD_NAME
+
   // Nombre + inicial para el avatar del menú del header.
-  const displayName = childName ?? therapistName ?? (isDemo ? 'Demo' : 'Invitado')
+  const displayName = childName ?? therapistName ?? (isDemo ? demoName : 'Invitado')
   const avatarInitial = displayName.charAt(0).toUpperCase()
 
-  // 3 opciones directas del menú del avatar. La segunda depende del rol:
-  // terapeuta → "Terapeuta" (/app/terapeuta); resto → "Familia" (/app/familia).
-  const menuOptions: { label: string; icon: ReactNode; path: string }[] = [
-    { label: 'Juegos', icon: <Gamepad2 size={18} />, path: '/app/nino' },
-    role === 'therapist'
-      ? { label: 'Terapeuta', icon: <BarChart2 size={18} />, path: '/app/terapeuta' }
-      : { label: 'Familia', icon: <Users size={18} />, path: '/app/familia' },
-  ]
+  // Opciones directas del menú del avatar. En la demo se ven las tres vistas
+  // (es el punto del showroom: recorrer el triángulo entero). Con cuenta real,
+  // la segunda depende del rol: terapeuta → "Terapeuta"; resto → "Familia".
+  const GAMES_OPTION = { label: 'Juegos', icon: <Gamepad2 size={18} />, path: '/app/nino' }
+  const FAMILY_OPTION = { label: 'Familia', icon: <Users size={18} />, path: '/app/familia' }
+  const THERAPIST_OPTION = { label: 'Logopeda', icon: <BarChart2 size={18} />, path: '/app/terapeuta' }
+
+  const menuOptions: { label: string; icon: ReactNode; path: string }[] = isDemo
+    ? [GAMES_OPTION, FAMILY_OPTION, THERAPIST_OPTION]
+    : [GAMES_OPTION, role === 'therapist' ? THERAPIST_OPTION : FAMILY_OPTION]
 
   function closeMenu() {
     setMenuOpen(false)
@@ -58,9 +66,20 @@ function AppInner() {
     navigate('/', { replace: true })
   }
 
-  function handleDemoCreateAccount() {
+  // Reiniciar la demo: el visitante (o el terapeuta en una call) empieza de
+  // cero sin salir del showroom. Sólo borra el localStorage de este navegador.
+  function handleResetDemo() {
+    closeMenu()
     setShowDemoModal(false)
-    navigate('/login?role=child')
+    resetDemo(role)
+    // Recarga completa a propósito: el perfil y el historial viven en el estado
+    // de varios componentes, y así el showroom arranca realmente de cero.
+    window.location.assign('/app/nino')
+  }
+
+  function handleGoToLogin() {
+    setShowDemoModal(false)
+    navigate('/login')
   }
 
   return (
@@ -97,18 +116,18 @@ function AppInner() {
         >
           {/* ── Left: logo ─────────────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            {/* Marca de la app: lockup único (dragón + wordmark "Dracs"),
-                idéntico en toda la app. Assets: /brand/*. */}
+            {/* Marca de la app: SOLO el wordmark. El dragón queda reservado a
+                los momentos de personaje (el hero de la casa y Dragui), para
+                que no aparezcan dos dragones en la misma pantalla. */}
             <button
               onClick={() => navigate('/')}
               aria-label="Dracs — inicio"
               style={{
-                display: 'flex', alignItems: 'center', gap: '9px',
+                display: 'flex', alignItems: 'center',
                 background: 'none', border: 'none', padding: 0, cursor: 'pointer',
               }}
             >
-              <img src="/brand/dracs-dragon.png" alt="" aria-hidden style={{ height: '38px', width: 'auto', display: 'block' }} />
-              <img src="/brand/dracs-wordmark.svg" alt="Dracs" style={{ height: '22px', width: 'auto', display: 'block' }} />
+              <img src="/brand/dracs-wordmark.svg" alt="Dracs" style={{ height: '24px', width: 'auto', display: 'block' }} />
             </button>
 
             {isDemo && (
@@ -208,7 +227,23 @@ function AppInner() {
 
                   <div style={{ height: '1px', background: '#F1F5F9', margin: '6px 4px' }} />
 
-                  {/* Cerrar sesión */}
+                  {/* Reiniciar demo — discreto, sólo en el showroom */}
+                  {isDemo && (
+                    <button
+                      role="menuitem"
+                      onClick={handleResetDemo}
+                      style={{ ...menuItemStyle, color: '#6B7280' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <RotateCcw size={16} />
+                        Reiniciar demo
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Salir */}
                   <button
                     role="menuitem"
                     onClick={handleLogout}
@@ -218,7 +253,9 @@ function AppInner() {
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <LogOut size={16} />
-                      Cerrar sesión
+                      {/* El niño nunca lee "sesión" (§copy). En la demo, salir
+                          es salir del showroom; con cuenta, sólo "Salir". */}
+                      {isDemo ? 'Salir de la demo' : role === 'child' ? 'Salir' : 'Cerrar sesión'}
                     </span>
                   </button>
                 </div>
@@ -256,20 +293,28 @@ function AppInner() {
               DEMO
             </div>
             <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#33302A', fontFamily: 'Nunito, sans-serif', fontWeight: 600, lineHeight: 1.5 }}>
-              Estás en modo demo. Los datos son de ejemplo.
+              Estás recorriendo Dracs sin cuenta. Lo que juegue {DEMO_CHILD_NAME} se guarda
+              en este navegador y aparece en las tres vistas. Lo marcado
+              como <strong>ejemplo</strong> es ilustrativo.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
-                onClick={handleDemoCreateAccount}
+                onClick={() => setShowDemoModal(false)}
                 style={{ width: '100%', height: '44px', borderRadius: '12px', border: 'none', background: '#F7C31C', color: '#33302A', fontSize: '15px', fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 600, cursor: 'pointer' }}
               >
-                Crear cuenta real
+                Seguir explorando
               </button>
               <button
-                onClick={() => setShowDemoModal(false)}
+                onClick={handleResetDemo}
                 style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1.5px solid #E5E7EB', background: '#ffffff', color: '#33302A', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
               >
-                Seguir en demo
+                Reiniciar demo
+              </button>
+              <button
+                onClick={handleGoToLogin}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, padding: '6px 0' }}
+              >
+                ¿Tienes cuenta? Inicia sesión
               </button>
             </div>
           </div>

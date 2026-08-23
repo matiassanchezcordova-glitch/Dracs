@@ -28,12 +28,16 @@ export function SectionLabel({ children }: { children: ReactNode }) {
   )
 }
 
-// Avatar de iniciales — Arena con Tinta (sobrio, sin emoji).
+// Avatar de iniciales — tinte azul con borde fino (sobrio, sin emoji). Lee como
+// chip sobre la tarjeta blanca; el relleno arena anterior se confundía con el
+// fondo crema y parecía un agujero en la card.
 export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   return (
     <span style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: DT.arena, color: DT.ink, fontFamily: DT.body, fontWeight: 800,
+      background: DT.azulTint, color: DT.azulInk,
+      border: `1px solid ${DT.azulTintLine}`, boxSizing: 'border-box',
+      fontFamily: DT.body, fontWeight: 800,
       fontSize: `${Math.round(size * 0.36)}px`, letterSpacing: '0.02em',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>

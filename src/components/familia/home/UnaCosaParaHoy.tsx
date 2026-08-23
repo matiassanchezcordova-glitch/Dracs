@@ -6,10 +6,7 @@
 import { useMemo, useState } from 'react'
 import { Play, Sparkle, GameController } from '@phosphor-icons/react'
 import { HT } from './homeStyles'
-import {
-  TODAY_KICKER, TODAY_PLACE_KICKER, TODAY_GAME_KICKER, TODAY_CTA,
-  todayHint, todayGameName, todayGameHint,
-} from './familyHome.copy'
+import { TODAY_KICKER, TODAY_CTA, todayHint, todayGameName, todayGameHint } from './familyHome.copy'
 import { getTodaySuggestion, type EmphasisGame } from './todaysGame'
 
 export default function UnaCosaParaHoy({
@@ -27,19 +24,17 @@ export default function UnaCosaParaHoy({
   const view = suggestion.kind === 'game'
     ? {
         palette: suggestion.palette,
-        kicker: TODAY_GAME_KICKER,
         name: todayGameName(childName),
         capitalize: false,
-        hint: todayGameHint(childName),
+        hint: todayGameHint(),
         target: suggestion.hotspotId,
         Icon: GameController,
       }
     : {
         palette: suggestion.place.palette,
-        kicker: TODAY_PLACE_KICKER,
         name: suggestion.place.name,
         capitalize: true,
-        hint: todayHint(childName, suggestion.place.name),
+        hint: todayHint(childName),
         target: suggestion.place.id,
         Icon: suggestion.place.Icon,
       }
@@ -68,15 +63,10 @@ export default function UnaCosaParaHoy({
           }}>
             <view.Icon size={30} weight="duotone" color="#FFFFFF" />
           </span>
+          {/* Sin segundo kicker: el nombre del lugar (o del juego) alcanza. */}
           <div style={{ minWidth: 0 }}>
             <p style={{
-              margin: '0 0 2px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: HT.taupe, fontFamily: HT.body,
-            }}>
-              {view.kicker}
-            </p>
-            <p style={{
-              margin: 0, fontSize: '20px', fontWeight: 700, color: HT.ink,
+              margin: 0, fontSize: '22px', fontWeight: 700, color: HT.ink,
               fontFamily: HT.display, textTransform: view.capitalize ? 'capitalize' : 'none', lineHeight: 1.15,
             }}>
               {view.name}

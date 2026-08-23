@@ -22,7 +22,7 @@ function fill(text: string, name: string): string {
   return text.replace(/\{name\}/g, name)
 }
 
-// ── Avatar del dragón (reutilizado en header y en cada burbuja) ───────────────
+// ── Avatar del dragón (SOLO en el header del asistente) ──────────────────────
 function DragonAvatar({ size }: { size: number }) {
   return (
     <span style={{
@@ -87,7 +87,7 @@ function Bubble({ msg, name }: { msg: Msg; name: string }) {
       display: 'flex', gap: '8px', alignItems: 'flex-end',
       flexDirection: isUser ? 'row-reverse' : 'row',
     }}>
-      {!isUser && <DragonAvatar size={30} />}
+      {/* Sin avatar por burbuja: el dragón vive UNA sola vez, en el header. */}
       <div style={{ maxWidth: '82%' }}>
         <div style={{
           padding: '11px 14px',
@@ -108,7 +108,6 @@ function Bubble({ msg, name }: { msg: Msg; name: string }) {
 function TypingIndicator() {
   return (
     <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-      <DragonAvatar size={30} />
       <div style={{
         padding: '13px 16px', borderRadius: '16px 16px 16px 4px',
         background: HT.white, border: `1px solid ${HT.line}`, boxShadow: HT.shadowSoft,

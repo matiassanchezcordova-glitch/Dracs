@@ -14,6 +14,11 @@ export interface SessionResult {
   total: number
   correct: number
   level: Level
+  // Lugar del mundo donde se jugó la partida — `map_hotspots.id`
+  // (sol/faro/casa/pulpo/castillo). Opcional a propósito: las partidas
+  // guardadas antes de registrarlo no lo tienen, y el recorrido de la familia
+  // degrada con gracia cuando falta.
+  place?: string
 }
 
 const PROFILE_KEY = 'dracs_child_profile'
@@ -118,16 +123,17 @@ export function useChildProfile() {
   }, [])
 
   const completeSession = useCallback(
-    (correct: number, total: number) => {
+    (correct: number, total: number, place?: string) => {
       if (!profile) return
 
       const today = getToday()
 
-      // Persist session result
+      // Persist session result. `place` es el hotspot donde se jugó; permite que
+      // la familia vea el recorrido (qué lugares visitó) sin ningún número.
       const history = loadHistory()
       saveHistory([
         ...history,
-        { date: today, total, correct, level: profile.level },
+        { date: today, total, correct, level: profile.level, ...(place ? { place } : {}) },
       ])
 
       // Streak

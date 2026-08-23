@@ -84,13 +84,13 @@ export function cartaBody(childName: string, s: WeekSignal): string {
 // El niño conserva su agencia dentro del lugar: sólo evitamos "caer al mundo
 // entero". Ver getPlaceOfTheDay() en placeOfTheDay.ts.
 
+// Un solo kicker para toda la tarjeta: el nombre del lugar (o del juego) ya
+// dice qué es. Los hints son de UNA línea.
 export const TODAY_KICKER = 'Una cosa para hoy'
-export const TODAY_PLACE_KICKER = 'El lugar de hoy'
-export const TODAY_GAME_KICKER = 'El juego de hoy'
 export const TODAY_CTA = 'Jugar juntos 5 minutos'
 
-export function todayHint(childName: string, placeName: string): string {
-  return `Hoy los espera ${placeName}. Siéntate al lado de ${childName}: con cinco minutos alcanza. Adentro, elige él.`
+export function todayHint(childName: string): string {
+  return `Siéntate al lado de ${childName}: con cinco minutos alcanza.`
 }
 
 // Sugerencia guiada por el énfasis del terapeuta. Nunca menciona al terapeuta ni
@@ -99,8 +99,8 @@ export function todayGameName(childName: string): string {
   return `Un juego pensado para ${childName}`
 }
 
-export function todayGameHint(childName: string): string {
-  return `Hoy lo espera un juego pensado para ${childName}. Siéntate a su lado: con cinco minutos alcanza.`
+export function todayGameHint(): string {
+  return 'Siéntate a su lado: con cinco minutos alcanza.'
 }
 
 // ── El asistente (mockup bloqueado) ──────────────────────────────────────────

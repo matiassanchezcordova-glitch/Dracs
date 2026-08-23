@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Star, BookOpen, CheckCircle2, Target, ArrowUp, BookMarked, RotateCcw, TrendingUp, Lock } from 'lucide-react'
+import { Star, BookOpen, CheckCircle2, Target, ArrowUp, BookMarked, RotateCcw, TrendingUp } from 'lucide-react'
 import { type WorldPalette, getPaletteForHotspot } from '../../lib/worldColors'
 
 // ── Full-screen confetti (perfect session) ────────────────────────────────
@@ -48,8 +48,9 @@ interface Props {
   total: number
   levelChanged: 'up' | 'down' | null
   onRepeat: () => void
+  // "Ver mi progreso" → casa de la familia. Nunca pide cuenta: en el showroom
+  // el progreso del navegador se ve entero, sin login.
   onViewProgress: () => void
-  hasAccount?: boolean
   // Autoplay tipo Netflix: si se pasa, tras un countdown arranca otra partida del
   // mismo hotspot automáticamente. Si está ausente, no hay countdown (legacy).
   onAutoPlayNext?: () => void
@@ -93,7 +94,7 @@ function StatCard({ icon, value, label, color = '#33302A' }: {
   )
 }
 
-export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, hasAccount = true, onAutoPlayNext, palette }: Props) {
+export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, onAutoPlayNext, palette }: Props) {
   const pal     = palette ?? getPaletteForHotspot(undefined)
   const pct     = total > 0 ? Math.round((correct / total) * 100) : 0
   const message = getMessage(pct)
@@ -297,8 +298,8 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
               transition: 'all 0.2s ease',
             }}
           >
-            {hasAccount ? <TrendingUp size={20} /> : <Lock size={14} />}
-            {hasAccount ? 'Ver mi progreso' : 'Guarda tu progreso'}
+            <TrendingUp size={20} />
+            Ver mi progreso
           </button>
         </div>
 

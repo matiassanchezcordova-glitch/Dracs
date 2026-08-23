@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { BarChart2, Stethoscope } from 'lucide-react'
+import { Stethoscope } from 'lucide-react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
 import { buildSessionFromDb, type RuntimeExercise, type HotspotFilter } from '../data/exercises'
 import { getPaletteForHotspot } from '../lib/worldColors'
@@ -16,7 +16,6 @@ type Screen = 'setup' | 'welcome' | 'loading' | 'exercise' | 'end'
 interface Props {
   onNavigateToFamilia: () => void
   onNavigateToTerapeuta: () => void
-  onRequestAuth?: (mode: 'login' | 'signup') => void
   // Mapa-mundo (S5.5): cuando se entra desde un hotspot, filtra el pool de la
   // sesión y permite volver al mapa. Si están ausentes, el comportamiento es el
   // de siempre (sesión sin filtro, salida a la pantalla de bienvenida).
@@ -32,88 +31,9 @@ interface EndState {
   levelChanged: 'up' | 'down' | null
 }
 
-// ── Auth upgrade prompt overlay ───────────────────────────────────────────
-
-function ProgressAuthPrompt({
-  onSignup, onLogin, onDismiss,
-}: {
-  onSignup: () => void
-  onLogin: () => void
-  onDismiss: () => void
-}) {
-  return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(26,26,46,0.65)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px', zIndex: 100,
-    }}>
-      <div style={{
-        background: '#ffffff', borderRadius: '24px',
-        padding: '32px', maxWidth: '360px', width: '100%',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
-        textAlign: 'center',
-        animation: 'wordSlideDown 0.25s ease',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-          <BarChart2 size={44} color="#1A8FB5" />
-        </div>
-        <h2 style={{
-          margin: '0 0 8px',
-          fontFamily: 'Fredoka, system-ui, sans-serif',
-          fontSize: '22px', fontWeight: 700, color: '#33302A',
-        }}>
-          ¡Guarda tu progreso!
-        </h2>
-        <p style={{
-          margin: '0 0 24px', fontSize: '14px', color: '#6B7280',
-          fontFamily: 'Nunito, sans-serif', lineHeight: 1.55,
-        }}>
-          Para guardar y ver tu progreso necesitas una cuenta.
-          Es gratis y toma 30 segundos.
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button
-            onClick={onSignup}
-            style={{
-              width: '100%', height: '48px', borderRadius: '14px', border: 'none',
-              background: '#1A8FB5', color: '#ffffff', fontSize: '15px',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer',
-            }}
-          >
-            Crear cuenta
-          </button>
-          <button
-            onClick={onLogin}
-            style={{
-              width: '100%', height: '48px', borderRadius: '14px',
-              border: '1.5px solid #E5E7EB', background: '#ffffff',
-              color: '#33302A', fontSize: '15px',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer',
-            }}
-          >
-            Iniciar sesión
-          </button>
-          <button
-            onClick={onDismiss}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '13px', color: '#94A3B8',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 600, padding: '6px 0',
-            }}
-          >
-            Seguir sin cuenta
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── Main ─────────────────────────────────────────────────────────────────
 
-export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, onRequestAuth, hotspotFilter, hotspotId, onBackToMap }: Props) {
+export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, hotspotFilter, hotspotId, onBackToMap }: Props) {
   const { profile, createProfile, completeSession } = useChildProfile()
   const { user, child, profile: authProfile } = useAuth()
   const palette = getPaletteForHotspot(hotspotId)
@@ -124,7 +44,6 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
   )
   const [session, setSession] = useState<RuntimeExercise[]>([])
   const [endState, setEndState] = useState<EndState | null>(null)
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false)
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -205,7 +124,9 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
       else if (pct < 0.5 && profile.level > 1) levelChanged = 'down'
     }
 
-    completeSession(correct, total)
+    // `hotspotId` deja registrado el lugar de la partida: es lo que alimenta
+    // "los lugares que exploró" en el recorrido de la familia.
+    completeSession(correct, total, hotspotId)
     setEndState({ correct, total, levelChanged })
     setScreen('end')
 
@@ -235,17 +156,11 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
     else setScreen('welcome')
   }
 
+  // "Ver mi progreso" lleva SIEMPRE a la casa de la familia. En el showroom el
+  // progreso se ve sin cuenta: el historial del navegador es el mismo que leen
+  // la familia y el terapeuta.
   function handleViewProgress() {
-    if (user) {
-      onNavigateToFamilia()
-    } else {
-      setShowAuthPrompt(true)
-    }
-  }
-
-  function handleDismissAuthPrompt() {
-    setShowAuthPrompt(false)
-    setScreen('welcome')
+    onNavigateToFamilia()
   }
 
   // Render
@@ -276,25 +191,15 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
 
   if (screen === 'end' && endState) {
     return (
-      <>
-        <SessionEndScreen
-          correct={endState.correct}
-          total={endState.total}
-          levelChanged={endState.levelChanged}
-          onRepeat={handleRepeat}
-          onViewProgress={handleViewProgress}
-          hasAccount={!!user}
-          onAutoPlayNext={hotspotFilter ? handleRepeat : undefined}
-          palette={palette}
-        />
-        {showAuthPrompt && (
-          <ProgressAuthPrompt
-            onSignup={() => onRequestAuth?.('signup')}
-            onLogin={() => onRequestAuth?.('login')}
-            onDismiss={handleDismissAuthPrompt}
-          />
-        )}
-      </>
+      <SessionEndScreen
+        correct={endState.correct}
+        total={endState.total}
+        levelChanged={endState.levelChanged}
+        onRepeat={handleRepeat}
+        onViewProgress={handleViewProgress}
+        onAutoPlayNext={hotspotFilter ? handleRepeat : undefined}
+        palette={palette}
+      />
     )
   }
 

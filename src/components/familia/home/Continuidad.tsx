@@ -3,7 +3,7 @@
 // de "última parada" no está disponible en el cliente de la familia; mostramos
 // una invitación cálida y siempre verdadera al mundo del niño.
 
-import { MapTrifold } from '@phosphor-icons/react'
+import { MapTrifold, ArrowRight } from '@phosphor-icons/react'
 import { HT } from './homeStyles'
 import { CONTINUITY_KICKER, continuityLine, CONTINUITY_CTA } from './familyHome.copy'
 
@@ -48,10 +48,14 @@ export default function Continuidad({
             {continuityLine(childName)}
           </span>
         </span>
+        {/* Flecha del set Phosphor (nunca el carácter "→", que rompe la
+            tipografía y lee como emoji viejo). */}
         <span style={{
-          flexShrink: 0, fontSize: '13px', fontWeight: 700, color: HT.blue, fontFamily: HT.display,
+          flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px',
+          fontSize: '13px', fontWeight: 700, color: HT.blue, fontFamily: HT.display,
         }}>
-          {CONTINUITY_CTA} →
+          {CONTINUITY_CTA}
+          <ArrowRight size={15} weight="bold" color={HT.blue} />
         </span>
       </button>
     </section>

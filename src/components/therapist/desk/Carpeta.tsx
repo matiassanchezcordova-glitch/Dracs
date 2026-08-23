@@ -22,7 +22,6 @@ import EnfocarMundo from './EnfocarMundo'
 interface Props {
   patient: Patient
   supabasePatientId?: string
-  isDemo: boolean
   onBack: () => void
 }
 
@@ -95,7 +94,7 @@ function ChartTooltip(props: Record<string, unknown>) {
   )
 }
 
-export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack }: Props) {
+export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props) {
   const { user, profile } = useAuth()
   const isReal = !!(user && supabasePatientId)
 
@@ -152,14 +151,20 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
         streak: getStreakDays(sbSessions),
       }
     }
-    // Demo: derivar de los datos de ejemplo del paciente mock.
-    const acc = p.recentSessions.length ? Math.round(p.recentSessions.reduce((a, s) => a + s.accuracy, 0) / p.recentSessions.length) : null
+    // Showroom, niño vivo: las métricas ya vienen derivadas del historial del
+    // navegador. Se usan tal cual — nada se estima.
+    if (p.localWeek) return { ...p.localWeek }
+
+    // Carpeta de ejemplo: derivar de sus datos ilustrativos. El % de "esta
+    // semana" es el ÚLTIMO punto de su propia curva (y el previo, el anterior),
+    // para que el tile y el gráfico no se contradigan entre sí.
+    const curve = p.weeklyProgress
     return {
       sessions: p.metrics.sessionsThisWeek,
-      minutes: p.metrics.sessionsThisWeek * p.metrics.avgDuration,
+      minutes: (p.metrics.sessionsThisWeek * p.metrics.avgDuration) as number | null,
       exercises: p.metrics.sessionsThisWeek * 7,
-      accuracy: acc,
-      prevAccuracy: null as number | null,
+      accuracy: curve.at(-1)?.score ?? null,
+      prevAccuracy: (curve.length > 1 ? curve.at(-2)?.score : null) ?? null,
       streak: 0,
     }
   }, [isReal, sbLoaded, sbSessions, p])
@@ -183,6 +188,12 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
     return p.weeklyProgress.map(d => ({ name: d.week, value: d.score }))
   }, [isReal, sbLoaded, sbSessions, p])
 
+  // La última columna SIEMPRE es la semana en curso. Etiquetarla explícitamente
+  // hace obvio que ese punto es el MISMO número que el tile de aciertos de
+  // arriba, y que las otras tres son historia.
+  const chartRows = chartData.map((d, i) => (
+    i === chartData.length - 1 ? { ...d, name: 'Esta sem.' } : d
+  ))
   const chartHasData = chartData.some(d => d.value > 0)
   const recentSessions = isReal && sbLoaded
     ? sbSessions.slice(0, 5).map(s => ({
@@ -195,6 +206,16 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
   const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
 
   const kSessions = useCountUp(week.sessions)
+
+  // Rango de la semana en curso (lunes → domingo), para que "esta semana" sea
+  // literal y no una etiqueta vaga.
+  const weekRange = useMemo(() => {
+    const now = new Date(), dow = now.getDay()
+    const start = new Date(now); start.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+    const end = new Date(start); end.setDate(start.getDate() + 6)
+    const M = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    return `${start.getDate()} ${M[start.getMonth()]} – ${end.getDate()} ${M[end.getMonth()]}`
+  }, [])
 
   async function handleSaveClinicalNotes() {
     if (!isReal) return
@@ -264,19 +285,26 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
             {p.level && <Chip>Nivel {p.level.min}-{p.level.max}</Chip>}
           </div>
         </div>
-        {isDemo && <EjemploTag />}
+        {p.isExample && <EjemploTag />}
       </Card>
 
       {/* ── Qué jugó ──────────────────────────────────────────────── */}
       <Card>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '16px' }}>
-          <SectionLabel>Qué jugó · esta semana</SectionLabel>
-          {isDemo && <EjemploTag />}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '16px' }}>
+          <div>
+            <SectionLabel>Qué jugó · esta semana</SectionLabel>
+            {/* El rango explícito evita cualquier duda sobre qué período
+                cubren estos cuatro números. */}
+            <p style={{ margin: '-10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+              {weekRange}
+            </p>
+          </div>
+          {p.isExample && <EjemploTag />}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
           <StatTile value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
-          <StatTile value={week.minutes > 0 ? `~${week.minutes}` : '—'} label="minutos" />
+          <StatTile value={(week.minutes ?? 0) > 0 ? `~${week.minutes}` : '—'} label="minutos" />
           <StatTile value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
           <StatTile value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
         </div>
@@ -294,10 +322,17 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
         )}
 
         {/* Evolución semanal */}
-        <p style={{ margin: '22px 0 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>Evolución (últimas 4 semanas)</p>
+        <p style={{ margin: '22px 0 2px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+          Evolución · % de aciertos por semana
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+          Últimas 4 semanas. La última columna es la semana en curso — el mismo número que “aciertos”, arriba.
+        </p>
         {chartHasData ? (
           <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={chartData} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
+            {/* `left: 0` + YAxis ancho: con margen negativo los "100%"/"75%"
+                quedaban recortados y se leían como ")0%". */}
+            <AreaChart data={chartRows} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="deskScoreGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={DT.azul} stopOpacity={0.16} />
@@ -306,7 +341,7 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
               </defs>
               <CartesianGrid strokeDasharray="0" stroke={DT.line} vertical={false} />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 12, fontFamily: DT.body }} />
-              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => v + '%'} axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 11, fontFamily: DT.body }} width={44} />
+              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => v + '%'} axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 11, fontFamily: DT.body }} width={52} tickMargin={6} />
               <Tooltip content={<ChartTooltip />} cursor={{ stroke: DT.arena, strokeWidth: 1 }} />
               <Area type="monotone" dataKey="value" stroke={DT.azul} strokeWidth={2} fill="url(#deskScoreGrad)" activeDot={{ r: 5, fill: DT.azul, stroke: DT.white, strokeWidth: 2 }} />
             </AreaChart>
@@ -333,7 +368,7 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
                 {recentSessions.map((s, i) => (
                   <tr key={i} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
                     <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{s.date}</td>
-                    <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration == null ? '—' : `${s.duration} min`}</td>
+                    <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration ? `${s.duration} min` : '—'}</td>
                     <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.exercises}</td>
                     <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center' }}>{s.accuracy}%</td>
                   </tr>
@@ -349,7 +384,9 @@ export default function Carpeta({ patient: p, supabasePatientId, isDemo, onBack 
         <SectionLabel>Por área</SectionLabel>
         {!isReal ? (
           <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-            La distribución por área aparece con los datos reales de juego del paciente.
+            {p.localWeek
+              ? `El historial de este navegador guarda partidas, no áreas. La distribución por área aparece con una cuenta real.`
+              : 'La distribución por área aparece con los datos reales de juego del paciente.'}
           </p>
         ) : porArea.loading ? (
           <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>

@@ -1,9 +1,16 @@
 // Escritorio del Terapeuta — orquestador (§Phase 2).
 // Aterriza en El Escritorio (grilla de carpetas). Al tocar una carpeta se abre
-// La Carpeta (detalle). Datos reales de Supabase, o de ejemplo en modo demo.
+// La Carpeta (detalle).
+//
+// Dos modos: con cuenta de terapeuta, los pacientes reales de Supabase. En el
+// showroom, el niño demo del navegador (Pol) como carpeta principal —construido
+// desde el mismo historial que escribe el niño al jugar— más tres carpetas de
+// ejemplo debajo, marcadas como tales.
 
 import { useEffect, useMemo, useState } from 'react'
-import { getPatients, type Patient as MockPatient } from '../../data/patients'
+import { type Patient as MockPatient } from '../../data/patients'
+import { buildDemoCaseload } from '../../data/demoCaseload'
+import { loadHistory } from '../../hooks/useChildProfile'
 import { useAuth } from '../../context/AuthContext'
 import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
@@ -80,7 +87,9 @@ export default function TherapistTab() {
   const { setSelectedPatientId } = useTherapist()
   const isReal = !!(user && profile?.role === 'therapist')
 
-  const mockPatients = useMemo(() => getPatients(), [])
+  // Se recalcula al montar la pestaña: si el visitante acaba de jugar, la
+  // carpeta de Pol ya trae esa partida.
+  const demoPatients = useMemo(() => buildDemoCaseload(loadHistory()), [])
   const [realPatients, setRealPatients] = useState<MockPatient[]>([])
   const [linkRequests, setLinkRequests] = useState<LinkRequestWithPatient[]>([])
   const [loadingReal, setLoadingReal] = useState(isReal)
@@ -141,7 +150,7 @@ export default function TherapistTab() {
     setLinkRequests(prev => prev.filter(r => r.id !== req.id))
   }
 
-  const patients = isReal ? realPatients : mockPatients
+  const patients = isReal ? realPatients : demoPatients
   const openPatient = openId ? patients.find(p => p.id === openId) ?? null : null
 
   function openCarpeta(id: string) {
@@ -155,7 +164,6 @@ export default function TherapistTab() {
         <Carpeta
           patient={openPatient}
           supabasePatientId={isReal ? openPatient.id : undefined}
-          isDemo={!isReal}
           onBack={() => setOpenId(null)}
         />
       ) : (

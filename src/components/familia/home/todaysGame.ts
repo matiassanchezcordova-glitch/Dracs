@@ -14,9 +14,12 @@ import type { HotspotId, WorldPalette } from '../../../lib/worldColors'
 import { getPaletteForHotspot } from '../../../lib/worldColors'
 import { getPlaceOfTheDay, dayOfYear, type PlaceOfDay } from './placeOfTheDay'
 
-// place del ejercicio (exercises.place) → hotspot que abre esa sesión.
+// place del ejercicio (exercises.place) → id del hotspot que abre ese pool.
+// Son dos espacios de nombres distintos: `place` es la columna de exercises,
+// `HotspotId` es map_hotspots.id (lo que viaja en la ruta). Verificado contra
+// la DB — solo coinciden en `casa`.
 const PLACE_TO_HOTSPOT: Record<string, HotspotId> = {
-  mar: 'mar', casa: 'casa', playa: 'playa', cielo: 'sol',
+  mar: 'pulpo', casa: 'casa', playa: 'castillo', cielo: 'sol',
 }
 
 // Un juego del énfasis que sí es ruteable (su place mapea a un hotspot).

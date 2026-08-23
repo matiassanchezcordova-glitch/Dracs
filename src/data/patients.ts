@@ -14,6 +14,18 @@ export interface RecentSession {
   accuracy: number
 }
 
+// Métricas de la semana ya derivadas del historial local del navegador
+// (showroom). Cuando están presentes, la carpeta las usa tal cual: nada se
+// estima ni se rellena. `null` significa "no lo sabemos", no cero.
+export interface LocalWeek {
+  sessions: number
+  minutes: number | null
+  exercises: number
+  accuracy: number | null
+  prevAccuracy: number | null
+  streak: number
+}
+
 export interface Patient {
   id: string
   name: string
@@ -35,6 +47,11 @@ export interface Patient {
   // Escritorio: datos crudos para el estado humano de la carpeta (§Phase 2).
   lastPlayedISO?: string | null
   totalSessions?: number
+  // Showroom: carpeta ilustrativa (la UI la marca "ejemplo"). El niño vivo del
+  // visitante nunca lleva esta bandera.
+  isExample?: boolean
+  // Showroom: semana real del niño del navegador, ya derivada.
+  localWeek?: LocalWeek
 }
 
 /** Static patient records -------------------------------------------------- */

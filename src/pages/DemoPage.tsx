@@ -4,7 +4,7 @@ import RoleCard from '../components/RoleCard'
 import type { Role } from '../components/RoleSelector'
 import RoleConflictModal from '../components/RoleConflictModal'
 import { useAuth } from '../context/AuthContext'
-import { seedDemoHistory, loadHistory } from '../hooks/useChildProfile'
+import { enterDemo } from '../lib/demo'
 import {
   clearAllDracsStorage,
   dbRoleToUiRole,
@@ -13,8 +13,12 @@ import {
 } from '../lib/role'
 import type { Profile } from '../lib/types'
 
-// Pantalla de entrada al MVP (/demo): dragón, frase y selector de rol.
+// Pantalla de entrada al MVP (/demo): dragón, frase y las tres puertas.
 // Sin secciones de marketing.
+//
+// Showroom: las tres puertas entran DIRECTO en modo demo, sin login. Quien ya
+// tiene cuenta entra por el link discreto de abajo y recorre el camino real de
+// siempre (Supabase, roles, conflictos); ese camino queda intacto.
 export default function DemoPage() {
   const { user, profile, logout } = useAuth()
   const navigate = useNavigate()
@@ -24,28 +28,13 @@ export default function DemoPage() {
   } | null>(null)
 
   function handleRoleSelect(r: Role) {
-    if (r === 'demo') {
-      // Sembrar partidas de ejemplo de esta semana (solo la primera vez) para
-      // que el dashboard y el informe muestren datos reales y coincidan.
-      seedDemoHistory()
-      const seeded = loadHistory()
-      const distinctDays = new Set(seeded.map(s => s.date)).size
-      localStorage.setItem('dracs_child_profile', JSON.stringify({
-        name: 'Pablo', age: 6, level: 2,
-        streak: distinctDays,
-        lastSessionDate: seeded.length ? seeded[seeded.length - 1].date : '',
-      }))
-      localStorage.setItem('dracs_role', 'demo')
-      navigate('/app/nino')
-      return
-    }
-
+    // Con sesión real: el camino de siempre (rol del perfil, conflictos, etc.).
     if (user && profile) {
       if (isRoleConflict(profile.role, r)) {
         setConflict({ profileRole: profile.role, targetRole: r })
         return
       }
-      // Therapist clicking "Progreso" → familia tab
+      // Terapeuta que toca la puerta "Familia" → casa de la familia
       if (r === 'family' && profile.role === 'therapist') {
         navigate('/app/familia')
         return
@@ -55,8 +44,11 @@ export default function DemoPage() {
       return
     }
 
-    // No session: go to login with the requested role
-    navigate(`/login?role=${r}`)
+    // Sin sesión: showroom directo. Se asegura el niño demo (Pol) una sola vez
+    // y se entra por la puerta elegida. Cero fricción, cero login.
+    const door: Role = r === 'demo' ? 'child' : r
+    enterDemo(door)
+    navigate(`/app/${roleToPath(door)}`)
   }
 
   async function handleConflictLogout() {
@@ -96,7 +88,7 @@ export default function DemoPage() {
         <p className="dracs-hero-phrase" style={{ margin: '0 0 48px', fontFamily: '"Fredoka", system-ui, sans-serif', fontStyle: 'italic', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#FAF5E8', textAlign: 'center', animation: 'heroFadeIn 0.8s ease both', maxWidth: '600px' }}>
           Dracs cree en ti.
         </p>
-        <RoleCard onSelect={handleRoleSelect} />
+        <RoleCard onSelect={handleRoleSelect} onLogin={() => navigate('/login')} />
       </section>
 
       {conflict && (

@@ -108,7 +108,6 @@ export default function HotspotSession() {
       onBackToMap={() => navigate('/app/nino')}
       onNavigateToFamilia={() => navigate('/app/familia')}
       onNavigateToTerapeuta={() => navigate('/app/terapeuta')}
-      onRequestAuth={() => navigate('/login?role=child')}
     />
   )
 }

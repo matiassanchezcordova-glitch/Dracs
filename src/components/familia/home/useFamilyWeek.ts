@@ -13,6 +13,8 @@ import { useTherapist } from '../../../context/TherapistContext'
 import { supabase } from '../../../lib/supabase'
 import type { DbSession } from '../../../lib/types'
 import { getStreakDays } from '../../../lib/derived'
+import { DEMO_CHILD_ID, DEMO_CHILD_NAME } from '../../../lib/demo'
+import { loadChildFocus } from '../../therapist/desk/childFocus'
 import { loadHistory, type SessionResult } from '../../../hooks/useChildProfile'
 import type { WeekSignal } from './familyHome.copy'
 import { toEmphasisGames, type EmphasisGame } from './todaysGame'
@@ -28,7 +30,7 @@ export interface FamilyWeek {
 
 const NO_EMPHASIS: EmphasisGame[] = []
 
-const DEFAULT_NAME = 'Pablo'
+const DEFAULT_NAME = DEMO_CHILD_NAME
 
 const EMPTY_SIGNAL: WeekSignal = {
   firstTime: true, hasActivityThisWeek: false, band: 'none', improving: false, streakDays: 0,
@@ -139,6 +141,35 @@ export function useFamilyWeek(): FamilyWeek {
     return { name: getLocalChildName(), signal: localSignal(history) }
   }, [isSupabaseMode])
 
+  // Showroom: el énfasis que el terapeuta demo fijó para el niño vive en el
+  // mismo localStorage (mismo niño, mismo navegador). Se resuelve el lugar de
+  // cada juego contra el catálogo público de `exercises` para poder abrirlo.
+  const [demoEmphasis, setDemoEmphasis] = useState<{ ready: boolean; games: EmphasisGame[] }>(
+    { ready: false, games: NO_EMPHASIS },
+  )
+
+  useEffect(() => {
+    if (isSupabaseMode) return
+    let cancelled = false
+
+    ;(async () => {
+      const focus = await loadChildFocus(false, DEMO_CHILD_ID)
+      if (cancelled) return
+      if (focus.emphasis.length === 0) {
+        setDemoEmphasis({ ready: true, games: NO_EMPHASIS })
+        return
+      }
+      const { data } = await supabase.from('exercises').select('id, place').in('id', focus.emphasis)
+      if (cancelled) return
+      setDemoEmphasis({
+        ready: true,
+        games: toEmphasisGames((data ?? []) as { id: string; place: string | null }[]),
+      })
+    })()
+
+    return () => { cancelled = true }
+  }, [isSupabaseMode])
+
   // Resultado de Supabase etiquetado con su `key` (el patientId al que
   // corresponde). `loading` se DERIVA de comparar la key con el paciente
   // actual, así no reseteamos estado sincrónicamente dentro del efecto.
@@ -205,11 +236,13 @@ export function useFamilyWeek(): FamilyWeek {
     return { loading: false, childName: 'Paciente', signal: EMPTY_SIGNAL, isTherapistPreview: true, emphasisGames: NO_EMPHASIS }
   }
 
+  // Showroom: la señal local ya está lista; sólo esperamos a resolver el
+  // énfasis para no pintar "el lugar de hoy" y cambiarlo un frame después.
   return {
-    loading: false,
+    loading: !demoEmphasis.ready,
     childName: local?.name ?? DEFAULT_NAME,
     signal: local?.signal ?? EMPTY_SIGNAL,
     isTherapistPreview: false,
-    emphasisGames: NO_EMPHASIS,
+    emphasisGames: demoEmphasis.games,
   }
 }

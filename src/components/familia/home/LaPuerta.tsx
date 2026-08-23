@@ -50,13 +50,9 @@ export default function LaPuerta({ childName, signal }: { childName: string; sig
         />
       </div>
 
+      {/* Sin kicker: "La casa de {Nombre}" ya dice dónde estás. Título + una
+          sola línea de subtítulo. */}
       <div style={{ flex: 1, minWidth: '220px' }}>
-        <p style={{
-          margin: '0 0 6px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em',
-          textTransform: 'uppercase', color: HT.taupe, fontFamily: HT.body,
-        }}>
-          Bienvenida a casa
-        </p>
         <h1 style={{
           margin: 0, fontSize: 'clamp(28px, 6vw, 38px)', fontWeight: 700,
           color: HT.blueDeep, lineHeight: 1.1, fontFamily: HT.display,

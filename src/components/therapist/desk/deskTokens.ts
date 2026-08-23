@@ -18,6 +18,13 @@ export const DT = {
   yellow: '#F7C31C',      // único pop (activo, acción primaria)
   mostaza: '#C7A24F',     // acento de atención (requiere mirada)
 
+  // Tinte del avatar de iniciales. Opaco a propósito: sobre la tarjeta blanca
+  // tiene que leerse como CHIP, no como un hueco recortado en la card (que es
+  // lo que pasaba usando `arena`, casi idéntico a la crema del fondo).
+  azulTint: '#DFEAEE',
+  azulTintLine: 'rgba(91,136,150,0.30)',
+  azulInk: '#3E6773',     // iniciales sobre el tinte (contraste AA)
+
   display: 'Fredoka, system-ui, sans-serif',
   body: 'Nunito, sans-serif',
 

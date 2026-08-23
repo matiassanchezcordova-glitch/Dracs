@@ -16,18 +16,20 @@ export interface PlaceOfDay {
   palette: WorldPalette
 }
 
-// Metadata curada de los 5 lugares reales del mundo (ids tal como están en la DB
-// de map_hotspots). Los nombres siguen los intros de audio del juego.
+// Metadata curada de los 5 lugares reales del mundo. Las claves son los ids de
+// `map_hotspots` — los mismos que abre /app/nino/jugar/:hotspotId. El nombre es
+// cálido (el lugar), el id es técnico (el punto del mapa): "el mar" vive en el
+// hotspot `pulpo`, "el castillo de arena" en `castillo`.
 const PLACES: Record<HotspotId, { name: string; Icon: Icon }> = {
-  mar:   { name: 'el mar',               Icon: Waves },
-  casa:  { name: 'la casa',              Icon: House },
-  playa: { name: 'el castillo de arena', Icon: CastleTurret },
-  sol:   { name: 'el sol',               Icon: Sun },
-  faro:  { name: 'el faro',              Icon: Lighthouse },
+  pulpo:    { name: 'el mar',               Icon: Waves },
+  casa:     { name: 'la casa',              Icon: House },
+  castillo: { name: 'el castillo de arena', Icon: CastleTurret },
+  sol:      { name: 'el sol',               Icon: Sun },
+  faro:     { name: 'el faro',              Icon: Lighthouse },
 }
 
 // Orden "destacado" curado — pura rotación, sin lógica clínica.
-export const FEATURED_PLACES: HotspotId[] = ['mar', 'casa', 'playa', 'sol', 'faro']
+export const FEATURED_PLACES: HotspotId[] = ['pulpo', 'casa', 'castillo', 'sol', 'faro']
 
 // Día del año (0–365) en horario local.
 export function dayOfYear(d: Date): number {

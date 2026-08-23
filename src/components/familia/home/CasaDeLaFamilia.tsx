@@ -2,7 +2,7 @@
 // (§2). No es un dashboard: es abrir la puerta de casa. Sin pestañas, sin menús
 // profundos. La familia sólo ve progreso emocional; nunca métricas (§0, §6).
 
-import { ClipboardText } from '@phosphor-icons/react'
+import { ClipboardText, CaretLeft } from '@phosphor-icons/react'
 import { useAuth } from '../../../context/AuthContext'
 import { useTherapist } from '../../../context/TherapistContext'
 import { HT, COLUMN_MAX } from './homeStyles'
@@ -88,10 +88,12 @@ export default function CasaDeLaFamilia({ onNavigateToJugar, onNavigateToPlace, 
               onClick={onNavigateToTerapeuta}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0,
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
                 fontSize: '13px', fontWeight: 700, color: HT.muted, fontFamily: HT.body,
               }}
             >
-              ← Volver al panel
+              <CaretLeft size={13} weight="bold" />
+              Volver al panel
             </button>
             <div style={{ width: '1px', height: '14px', background: '#D3DDE0', flexShrink: 0 }} />
             <span style={{ fontSize: '13px', fontWeight: 600, color: HT.ink, fontFamily: HT.body }}>
