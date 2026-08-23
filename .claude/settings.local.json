@@ -10,7 +10,11 @@
       "PowerShell(git add *)",
       "PowerShell(git log -1 --format='%H'; \"---\"; git show -s --format=%B HEAD | Select-Object -First 14)",
       "PowerShell(git commit *)",
-      "PowerShell(git push *)"
+      "PowerShell(git push *)",
+      "Bash(git status *)",
+      "Bash(npm run *)",
+      "Bash(node *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)"
     ]
   }
 }
