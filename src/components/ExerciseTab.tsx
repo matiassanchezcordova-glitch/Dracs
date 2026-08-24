@@ -137,14 +137,24 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
         0,
         Math.round((endedAt.getTime() - startedAt.getTime()) / 1000),
       )
-      const { error } = await supabase.from('sessions').insert({
+      const row = {
         child_id: child.id,
         total_exercises: total,
         correct_count: correct,
         started_at: startedAt.toISOString(),
         ended_at: endedAt.toISOString(),
         duration_seconds: durationSec,
-      })
+      }
+
+      // `place` sólo existe si está aplicada la migración 013. Se intenta con el
+      // lugar y, si la columna todavía no está, se reintenta sin él: así el
+      // camino real nunca deja de registrar partidas, y empieza a guardar el
+      // lugar solo, en cuanto se pegue la migración.
+      const withPlace = hotspotId ? { ...row, place: hotspotId } : row
+      let { error } = await supabase.from('sessions').insert(withPlace)
+      if (error && hotspotId && /place/i.test(error.message)) {
+        ;({ error } = await supabase.from('sessions').insert(row))
+      }
       if (error) console.warn('[Dracs] sessions insert failed:', error.message)
     }
     setSessionStartTime(null)

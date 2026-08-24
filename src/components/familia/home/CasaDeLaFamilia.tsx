@@ -11,6 +11,7 @@ import HomeSkeleton from './HomeSkeleton'
 import LaPuerta from './LaPuerta'
 import CartaDeLaSemana from './CartaDeLaSemana'
 import UnaCosaParaHoy from './UnaCosaParaHoy'
+import ElRecorrido from './ElRecorrido'
 import DraguiAssistant from './DraguiAssistant'
 import Continuidad from './Continuidad'
 
@@ -38,7 +39,7 @@ export default function CasaDeLaFamilia({ onNavigateToJugar, onNavigateToPlace, 
   const { selectedPatientId } = useTherapist()
   const isTherapist = profile?.role === 'therapist'
 
-  const { loading, childName, signal, isTherapistPreview, emphasisGames } = useFamilyWeek()
+  const { loading, childName, signal, isTherapistPreview, emphasisGames, journey } = useFamilyWeek()
 
   // Terapeuta que llega a la casa sin paciente elegido: lo guiamos de vuelta.
   if (isTherapist && !selectedPatientId) {
@@ -110,9 +111,13 @@ export default function CasaDeLaFamilia({ onNavigateToJugar, onNavigateToPlace, 
 
         <LaPuerta childName={childName} signal={signal} />
         <CartaDeLaSemana childName={childName} signal={signal} delay={80} />
-        <UnaCosaParaHoy childName={childName} emphasisGames={emphasisGames} onOpenPlace={onNavigateToPlace} delay={160} />
-        <DraguiAssistant childName={childName} delay={240} />
-        <Continuidad childName={childName} onOpenWorld={onNavigateToJugar} delay={320} />
+        {/* El recorrido va después de la carta (que cuenta la semana) y antes
+            del CTA: primero "cómo va", después "por dónde anduvo", y recién
+            entonces "qué hacemos hoy". */}
+        <ElRecorrido childName={childName} journey={journey} delay={160} />
+        <UnaCosaParaHoy childName={childName} emphasisGames={emphasisGames} onOpenPlace={onNavigateToPlace} delay={240} />
+        <DraguiAssistant childName={childName} delay={320} />
+        <Continuidad childName={childName} onOpenWorld={onNavigateToJugar} delay={400} />
       </div>
     </Surface>
   )

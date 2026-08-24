@@ -20,12 +20,15 @@ export interface PlaceOfDay {
 // `map_hotspots` — los mismos que abre /app/nino/jugar/:hotspotId. El nombre es
 // cálido (el lugar), el id es técnico (el punto del mapa): "el mar" vive en el
 // hotspot `pulpo`, "el castillo de arena" en `castillo`.
-const PLACES: Record<HotspotId, { name: string; Icon: Icon }> = {
-  pulpo:    { name: 'el mar',               Icon: Waves },
-  casa:     { name: 'la casa',              Icon: House },
-  castillo: { name: 'el castillo de arena', Icon: CastleTurret },
-  sol:      { name: 'el sol',               Icon: Sun },
-  faro:     { name: 'el faro',              Icon: Lighthouse },
+//
+// Fuente única del nombre/ícono/color de cada lugar para toda la casa de la
+// familia (el lugar de hoy y los sellos del recorrido).
+export const PLACE_META: Record<HotspotId, { name: string; Icon: Icon; palette: WorldPalette }> = {
+  pulpo:    { name: 'el mar',               Icon: Waves,        palette: WORLD_PALETTES.pulpo },
+  casa:     { name: 'la casa',              Icon: House,        palette: WORLD_PALETTES.casa },
+  castillo: { name: 'el castillo de arena', Icon: CastleTurret, palette: WORLD_PALETTES.castillo },
+  sol:      { name: 'el sol',               Icon: Sun,          palette: WORLD_PALETTES.sol },
+  faro:     { name: 'el faro',              Icon: Lighthouse,   palette: WORLD_PALETTES.faro },
 }
 
 // Orden "destacado" curado — pura rotación, sin lógica clínica.
@@ -42,8 +45,8 @@ export function dayOfYear(d: Date): number {
 // quieren usar; si se omite, cae en la lista curada. La copy que lo consume lo
 // trata siempre como "el lugar de hoy" (pick diario), nunca como personalizado.
 export function getPlaceOfTheDay(available?: string[], today: Date = new Date()): PlaceOfDay {
-  const filtered = (available ?? []).filter((id): id is HotspotId => id in PLACES)
+  const filtered = (available ?? []).filter((id): id is HotspotId => id in PLACE_META)
   const pool = filtered.length ? filtered : FEATURED_PLACES
   const id = pool[dayOfYear(today) % pool.length]
-  return { id, name: PLACES[id].name, Icon: PLACES[id].Icon, palette: WORLD_PALETTES[id] }
+  return { id, ...PLACE_META[id] }
 }

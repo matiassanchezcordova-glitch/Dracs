@@ -1,6 +1,12 @@
 // El asistente (familia) — pieza central de pixie dust, mockup 100% front-end
 // y BLOQUEADO (§3). Sin LLM, sin red, sin almacenamiento: puro estado local.
 // Tematizado como el dragón del niño. El nombre vive en la constante DRAGUI.
+//
+// ROADMAP (no ahora): el segundo superpoder del asistente es RESPONDER sobre el
+// recorrido — "¿qué juego le costó más?", "¿cómo fue la semana?" — leyendo los
+// mismos datos que ya derivan `journey.ts` y `useFamilyWeek`, con dos voces
+// distintas: cálida y sin números para la familia (§principio 5), clínica y con
+// números para la logopeda. Hoy sigue siendo el mockup con candado.
 
 import { useEffect, useRef, useState } from 'react'
 import { Lock, Sparkle, PaperPlaneTilt } from '@phosphor-icons/react'

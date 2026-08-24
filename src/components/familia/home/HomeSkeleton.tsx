@@ -29,6 +29,7 @@ export default function HomeSkeleton() {
         </div>
       </div>
       <Block h={150} />
+      <Block h={260} />
       <Block h={120} />
       <Block h={300} />
       <p style={{

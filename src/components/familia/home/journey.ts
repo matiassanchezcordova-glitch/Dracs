@@ -29,17 +29,33 @@ export interface JourneyDay {
 
 export interface Journey {
   firstTime: boolean
-  days: JourneyDay[]            // últimos DAYS_SHOWN, del más viejo al más nuevo
-  placesVisited: HotspotId[]    // en orden de FEATURED_PLACES
+  // Índice completo fecha → lugares. La semana visible se recorta de acá, así
+  // los agregados de abajo no dependen de por dónde esté navegando la familia.
+  playedDates: Record<string, HotspotId[]>
+  placesVisited: HotspotId[]    // en orden del mundo
   newPlacesThisWeek: HotspotId[]
   daysPlayedThisWeek: number
   streakDays: number
   everyPlaceVisited: boolean
 }
 
-export const DAYS_SHOWN = 14
+// Una semana concreta del recorrido (lunes → domingo).
+export interface JourneyWeek {
+  days: JourneyDay[]
+  label: string          // "Semana del 17 al 23 de agosto"
+  isCurrent: boolean
+  canGoBack: boolean     // hay historial antes de esta semana
+  canGoForward: boolean  // nunca se navega al futuro
+}
+
+// Cuántas semanas hacia atrás deja navegar el recorrido.
+export const WEEKS_BACK = 8
 
 const DAY_INITIALS = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+const MONTHS = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+]
 
 function localIso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -67,26 +83,12 @@ export function buildJourney(plays: JourneyPlay[], today: Date = new Date()): Jo
   }
 
   const weekStart = mondayOf(today)
-  const todayIso = localIso(today)
 
-  // Ventana de los últimos DAYS_SHOWN días, terminando hoy.
-  const days: JourneyDay[] = []
-  for (let i = DAYS_SHOWN - 1; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    d.setHours(0, 0, 0, 0)
-    const iso = localIso(d)
-    const places = byDate.get(iso)
-    days.push({
-      iso,
-      label: DAY_INITIALS[d.getDay()],
-      dayOfMonth: d.getDate(),
-      played: byDate.has(iso),
-      isToday: iso === todayIso,
-      thisWeek: d >= weekStart,
-      places: places ? [...places] : [],
-    })
-  }
+  // Índice serializable de fecha → lugares, para recortar cualquier semana.
+  const playedDates: Record<string, HotspotId[]> = {}
+  for (const [iso, places] of byDate) playedDates[iso] = [...places]
+
+  const allDates = [...byDate.keys()].sort()
 
   // Lugares: todos los conocidos, y los estrenados esta semana.
   const allPlaces = new Set<HotspotId>()
@@ -115,11 +117,59 @@ export function buildJourney(plays: JourneyPlay[], today: Date = new Date()): Jo
 
   return {
     firstTime: plays.length === 0,
-    days,
+    playedDates,
     placesVisited,
     newPlacesThisWeek,
-    daysPlayedThisWeek: days.filter(d => d.thisWeek && d.played).length,
+    daysPlayedThisWeek: allDates.filter(iso => iso >= localIso(weekStart)).length,
     streakDays,
     everyPlaceVisited: placesVisited.length === order.length,
+  }
+}
+
+// ── La semana visible ────────────────────────────────────────────────────────
+// `offset` en semanas respecto de la actual: 0 = esta semana, -1 = la anterior.
+// Nunca se navega al futuro: la semana en curso es el tope.
+export function getJourneyWeek(journey: Journey, offset: number, today: Date = new Date()): JourneyWeek {
+  const currentMonday = mondayOf(today)
+  const monday = new Date(currentMonday)
+  monday.setDate(currentMonday.getDate() + offset * 7)
+  const todayIso = localIso(today)
+  const currentMondayIso = localIso(currentMonday)
+
+  const days: JourneyDay[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    const iso = localIso(d)
+    const places = journey.playedDates[iso]
+    days.push({
+      iso,
+      label: DAY_INITIALS[d.getDay()],
+      dayOfMonth: d.getDate(),
+      played: !!places,
+      isToday: iso === todayIso,
+      thisWeek: localIso(monday) === currentMondayIso,
+      places: places ?? [],
+    })
+  }
+
+  const start = monday
+  const end = new Date(monday)
+  end.setDate(monday.getDate() + 6)
+  const label = start.getMonth() === end.getMonth()
+    ? `Semana del ${start.getDate()} al ${end.getDate()} de ${MONTHS[end.getMonth()]}`
+    : `Semana del ${start.getDate()} de ${MONTHS[start.getMonth()]} al ${end.getDate()} de ${MONTHS[end.getMonth()]}`
+
+  // Regla simple y predecible: hacia atrás hasta WEEKS_BACK semanas (aunque
+  // estén vacías — ver una semana sin piedritas es información, no un error);
+  // hacia adelante, nunca más allá de la semana en curso. Acotar el pasado a
+  // "sólo donde hay historial" dejaba las DOS flechas muertas en el caso más
+  // común del showroom (todo el historial dentro de esta semana).
+  return {
+    days,
+    label,
+    isCurrent: offset === 0,
+    canGoBack: offset > -WEEKS_BACK,
+    canGoForward: offset < 0,
   }
 }

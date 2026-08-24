@@ -50,13 +50,18 @@ function saveHistory(h: SessionResult[]) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(h))
 }
 
-function getToday(): string {
-  return new Date().toISOString().split('T')[0]
-}
-
 // Fecha local (no UTC) en formato YYYY-MM-DD.
+//
+// TODA fecha del historial pasa por acá. `toISOString()` da la fecha en UTC:
+// en España (UTC+1/+2) una partida jugada de noche se guardaba con la fecha del
+// día ANTERIOR, así que la estrella caía en el día equivocado y la racha se
+// rompía. `journey.ts` y `useFamilyWeek` ya calculan en local; esto los alinea.
 function localIso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function getToday(): string {
+  return localIso(new Date())
 }
 
 // Siembra la cuenta demo/invitado con partidas de ejemplo de ESTA semana, para
@@ -83,18 +88,23 @@ export function seedDemoHistory(): void {
     // —y no desde el lunes— garantiza que la racha que deriva el dashboard sea
     // coherente con las sesiones de la semana: si sembráramos lunes→viernes, un
     // domingo el dashboard mostraría "5 sesiones" junto a "racha 0".
+    // `place` es el id del hotspot (map_hotspots.id), no el `exercises.place`.
+    // Se siembran 3 de los 5 lugares para que el recorrido muestre sellos
+    // encendidos y sellos pendientes: una colección empezada invita a volver,
+    // una completa no.
     const plan = [
-      { total: 7, correct: 6 },
-      { total: 6, correct: 4 },
-      { total: 7, correct: 6 },
-      { total: 5, correct: 5 },
-      { total: 7, correct: 5 },
+      { total: 7, correct: 6, place: 'pulpo' },
+      { total: 6, correct: 4, place: 'casa' },
+      { total: 7, correct: 6, place: 'pulpo' },
+      { total: 5, correct: 5, place: 'castillo' },
+      { total: 7, correct: 5, place: 'casa' },
     ]
     const sessions: SessionResult[] = plan.map((p, i) => ({
       date: dates[dates.length - 1 - (i % dates.length)],
       total: p.total,
       correct: p.correct,
       level: 2,
+      place: p.place,
     }))
     sessions.sort((a, b) => (a.date < b.date ? -1 : 1))
     saveHistory(sessions)
@@ -104,7 +114,7 @@ export function seedDemoHistory(): void {
 function isYesterday(dateStr: string): boolean {
   const d = new Date()
   d.setDate(d.getDate() - 1)
-  return d.toISOString().split('T')[0] === dateStr
+  return localIso(d) === dateStr
 }
 
 export function useChildProfile() {

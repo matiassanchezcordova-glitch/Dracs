@@ -18,6 +18,7 @@ import { loadChildFocus } from '../../therapist/desk/childFocus'
 import { loadHistory, type SessionResult } from '../../../hooks/useChildProfile'
 import type { WeekSignal } from './familyHome.copy'
 import { toEmphasisGames, type EmphasisGame } from './todaysGame'
+import { buildJourney, type Journey, type JourneyPlay } from './journey'
 
 export interface FamilyWeek {
   loading: boolean
@@ -26,7 +27,11 @@ export interface FamilyWeek {
   isTherapistPreview: boolean
   // Énfasis del terapeuta ya ruteable (vacío si no hay o si falta la migración).
   emphasisGames: EmphasisGame[]
+  // El recorrido: por dónde anduvo el niño. Sin un solo número clínico.
+  journey: Journey
 }
+
+const EMPTY_JOURNEY = buildJourney([])
 
 const NO_EMPHASIS: EmphasisGame[] = []
 
@@ -138,7 +143,11 @@ export function useFamilyWeek(): FamilyWeek {
   const local = useMemo(() => {
     if (isSupabaseMode) return null
     const history = loadHistory()
-    return { name: getLocalChildName(), signal: localSignal(history) }
+    return {
+      name: getLocalChildName(),
+      signal: localSignal(history),
+      journey: buildJourney(history.map(s => ({ date: s.date, place: s.place }))),
+    }
   }, [isSupabaseMode])
 
   // Showroom: el énfasis que el terapeuta demo fijó para el niño vive en el
@@ -173,7 +182,7 @@ export function useFamilyWeek(): FamilyWeek {
   // Resultado de Supabase etiquetado con su `key` (el patientId al que
   // corresponde). `loading` se DERIVA de comparar la key con el paciente
   // actual, así no reseteamos estado sincrónicamente dentro del efecto.
-  const [sb, setSb] = useState<{ key: string; name: string; signal: WeekSignal; emphasisGames: EmphasisGame[] } | null>(null)
+  const [sb, setSb] = useState<{ key: string; name: string; signal: WeekSignal; emphasisGames: EmphasisGame[]; journey: Journey } | null>(null)
 
   useEffect(() => {
     if (!isSupabaseMode || !patientId) return
@@ -212,7 +221,18 @@ export function useFamilyWeek(): FamilyWeek {
         emphasisGames = toEmphasisGames((exs ?? []) as { id: string; place: string | null }[])
       }
 
-      setSb({ key: patientId, name, signal: supabaseSignal(sessions), emphasisGames })
+      // El recorrido desde las sesiones reales. `place` sólo viene si está
+      // aplicada la migración 013; sin ella, los días y la constancia se ven
+      // igual y los sellos de lugares quedan pendientes (nunca inventados).
+      const plays: JourneyPlay[] = sessions.map(s => {
+        const at = new Date(s.ended_at ?? s.started_at)
+        return {
+          date: `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`,
+          place: (s as DbSession & { place?: string | null }).place ?? undefined,
+        }
+      })
+
+      setSb({ key: patientId, name, signal: supabaseSignal(sessions), emphasisGames, journey: buildJourney(plays) })
     })()
 
     return () => { cancelled = true }
@@ -226,6 +246,7 @@ export function useFamilyWeek(): FamilyWeek {
       signal: ready ? sb.signal : EMPTY_SIGNAL,
       isTherapistPreview: !!isTherapist,
       emphasisGames: ready ? sb.emphasisGames : NO_EMPHASIS,
+      journey: ready ? sb.journey : EMPTY_JOURNEY,
     }
   }
 
@@ -233,7 +254,7 @@ export function useFamilyWeek(): FamilyWeek {
   // ("Pablo"). La página ya lo intercepta con "Elige un paciente", pero el hook
   // no cae al modo local para un terapeuta.
   if (isTherapist) {
-    return { loading: false, childName: 'Paciente', signal: EMPTY_SIGNAL, isTherapistPreview: true, emphasisGames: NO_EMPHASIS }
+    return { loading: false, childName: 'Paciente', signal: EMPTY_SIGNAL, isTherapistPreview: true, emphasisGames: NO_EMPHASIS, journey: EMPTY_JOURNEY }
   }
 
   // Showroom: la señal local ya está lista; sólo esperamos a resolver el
@@ -244,5 +265,6 @@ export function useFamilyWeek(): FamilyWeek {
     signal: local?.signal ?? EMPTY_SIGNAL,
     isTherapistPreview: false,
     emphasisGames: demoEmphasis.games,
+    journey: local?.journey ?? EMPTY_JOURNEY,
   }
 }
