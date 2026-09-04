@@ -11,6 +11,7 @@ import AvisoDemo from '../../AvisoDemo'
 import { DT } from './deskTokens'
 import { Avatar, EjemploTag } from './deskUI'
 import { deskStatus, type StatusTone } from './patientStatus'
+import TuDia from './TuDia'
 
 interface Props {
   patients: Patient[]
@@ -195,6 +196,11 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
             <LinkRequestBanner key={req.id} req={req} onAccept={onAccept} onReject={onReject} />
           ))}
         </div>
+      )}
+
+      {/* Tu día: el briefing de la próxima sesión, antes que la grilla. */}
+      {!loading && patients.length > 0 && (
+        <TuDia patients={patients} isDemo={isDemo} onOpen={onOpen} />
       )}
 
       {/* Búsqueda */}

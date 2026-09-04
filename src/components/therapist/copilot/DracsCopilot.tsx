@@ -22,7 +22,7 @@ import {
   Lock, PaperPlaneTilt, X, Info, FileText, CheckCircle, Lightbulb,
 } from '@phosphor-icons/react'
 import { DT } from '../desk/deskTokens'
-import { ANSWERS, GREETING, route, type CopilotAnswer } from './copilotData'
+import { ANSWERS, FALLBACK, GREETING, normalize, route, type CopilotAnswer } from './copilotData'
 
 const ONLINE = '#10B981'          // mismo verde de "en línea" que usa la familia
 const FAVICON = '/brand/dracs-favicon-cut.png'
@@ -413,10 +413,11 @@ export default function DracsCopilot() {
     if (el) el.scrollTop = el.scrollHeight
   }, [messages, typing, open])
 
-  const send = useCallback((raw: string) => {
+  // Entrega una respuesta CONCRETA para un texto de usuario dado. `send` la usa
+  // con lo que devuelve route(); el enganche de "Tu día" la usa directamente.
+  const deliver = useCallback((raw: string, answer: CopilotAnswer) => {
     const text = raw.trim()
     if (!text || busy) return
-    const answer = route(text)
 
     setMessages(prev => [
       ...prev,
@@ -462,6 +463,31 @@ export default function DracsCopilot() {
       timers.current.push(window.setTimeout(step, 30))
     }, 650))
   }, [busy, reduced])
+
+  const send = useCallback((raw: string) => {
+    deliver(raw, route(raw))
+  }, [deliver])
+
+  // Enganche con "Tu día": la banda del escritorio pide preparar una sesión.
+  // Si el guion de la vista previa no cubre a ese niño, se responde el límite
+  // honesto en vez de contar lo de otro paciente.
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { intent?: string; childName?: string } | null
+      if (!detail || detail.intent !== 'prep') return
+      const child = (detail.childName ?? '').trim()
+      const prep = ANSWERS.find(a => a.id === 'prep')
+      if (!prep) return
+      const covered = child !== '' && normalize(prep.text).includes(normalize(child))
+      setOpen(true)
+      deliver(
+        child ? `Prepárame la sesión de ${child}` : prep.chip,
+        covered ? prep : FALLBACK,
+      )
+    }
+    window.addEventListener('dracs-copilot-open', onAsk)
+    return () => window.removeEventListener('dracs-copilot-open', onAsk)
+  }, [deliver])
 
   function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value)
