@@ -8,7 +8,7 @@
 // se jugaron, lo que se atascó) y declara su fuente en `src`. Ninguna afirma
 // una mejora clínica ni emite un juicio: eso es del terapeuta.
 
-export const GREETING = "Hola. Te leo el caseload y te preparo borradores, pero no valoro ni diagnostico: eso lo decides tú. ¿Por dónde arrancamos?"
+export const GREETING = "Hola, Marina. Te leo el caseload y te preparo borradores, pero no valoro ni diagnostico: eso lo decides tú. ¿Por dónde arrancamos?"
 
 export interface CopilotAnswer {
   id: string
@@ -37,7 +37,7 @@ export const ANSWERS: CopilotAnswer[] = [
     src: "de 3 partidas de Mateo" },
   { id: 'prep', chip: 'Prepárame la sesión de las 17:30',
     keys: ['prepar','sesion','17:30','briefing','proxima','mateo hoy'],
-    text: "Mateo, hoy 17:30. Tres cosas cambiaron desde que lo viste:\n\n1. Jugó 3 veces solo, siempre en el mar.\n2. Se atascó en \"ordena la escena\" (2 de 5, lo repitió 3 veces).\n3. No tocó los juegos de casa que fijaste.\n\nPunto de partida cómodo: el mar. Punto a mirar con la familia: por qué lo de casa no arrancó.",
+    text: "Mateo, hoy 17:30. Tres cosas cambiaron desde que lo viste:\n\n1.  Jugó 3 veces solo, siempre en el mar.\n2.  Se atascó en \"ordena la escena\" (2 de 5, lo repitió 3 veces).\n3.  No tocó los juegos de casa que fijaste.\n\nPunto de partida cómodo: el mar. Punto a mirar con la familia: por qué lo de casa no arrancó.",
     src: "de la carpeta de Mateo" },
 ]
 
