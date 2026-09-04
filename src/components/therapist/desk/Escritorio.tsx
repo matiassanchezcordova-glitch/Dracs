@@ -43,7 +43,7 @@ function LinkRequestBanner({ req, onAccept, onReject }: {
       background: DT.white, border: `1px solid ${DT.line}`, borderLeft: `3px solid ${DT.mostaza}`,
       borderRadius: DT.radiusSm, flexWrap: 'wrap',
     }}>
-      <Bell size={18} weight="duotone" color={DT.mostaza} style={{ flexShrink: 0 }} />
+      <Bell size={18} weight="regular" color={DT.mostaza} style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
           {p.child_name} ({p.child_age} años)
@@ -57,14 +57,14 @@ function LinkRequestBanner({ req, onAccept, onReject }: {
         border: 'none', background: DT.yellow, color: DT.ink, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
         cursor: 'pointer', opacity: busy ? 0.6 : 1,
       }}>
-        <Check size={13} weight="bold" /> Aceptar
+        <Check size={13} weight="regular" /> Aceptar
       </button>
       <button onClick={() => run(onReject)} disabled={busy} style={{
         display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: DT.radiusSm,
         border: `1px solid ${DT.line}`, background: DT.white, color: DT.muted, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
         cursor: 'pointer', opacity: busy ? 0.6 : 1,
       }}>
-        <X size={13} weight="bold" /> Rechazar
+        <X size={13} weight="regular" /> Rechazar
       </button>
     </div>
   )
@@ -74,22 +74,36 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
   const [hover, setHover] = useState(false)
   const st = deskStatus({ sessionsThisWeek: p.metrics.sessionsThisWeek, lastPlayedISO: p.lastPlayedISO, totalSessions: p.totalSessions })
   const tone = TONE[st.tone]
+
+  // Objetivo de la semana: partidas hechas sobre las acordadas. Es un dato del
+  // caseload, no una nota ni una valoración.
+  const target = Math.max(1, p.metrics.sessionsTarget)
+  const doneCount = p.metrics.sessionsThisWeek
+  const pct = Math.min(100, Math.round((doneCount / target) * 100))
+
+  // El color de estado entra una sola vez, como variable, y desde ahí lo leen
+  // el filo y la barra de objetivo.
+  const cardStyle = {
+    '--tone': tone.color,
+    textAlign: 'left', cursor: 'pointer', width: '100%',
+    // Altura completa: la grilla estira y todas las filas quedan a la par.
+    height: '100%', boxSizing: 'border-box',
+    background: DT.white, border: `1px solid ${DT.line}`, borderRadius: '20px',
+    // Acento de estado: un filo fino a la izquierda con el color que ya usa
+    // la línea de estado (azul/mostaza/topo). Da vida a la grilla sin
+    // romper lo clínico — un dato más, no decoración.
+    borderLeft: '3px solid var(--tone)',
+    padding: '18px', boxShadow: hover ? DT.shadow : DT.shadowSoft,
+    transform: hover ? 'translateY(-2px)' : 'translateY(0)', transition: 'transform 0.16s ease, box-shadow 0.16s ease',
+    display: 'flex', flexDirection: 'column', gap: '14px',
+  } as React.CSSProperties
+
   return (
     <button
       onClick={onOpen}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{
-        textAlign: 'left', cursor: 'pointer', width: '100%',
-        background: DT.white, border: `1px solid ${DT.line}`, borderRadius: DT.radius,
-        // Acento de estado: un filo fino a la izquierda con el color que ya usa
-        // la línea de estado (azul/mostaza/topo). Da vida a la grilla sin
-        // romper lo clínico — un dato más, no decoración.
-        borderLeft: `3px solid ${tone.color}`,
-        padding: '18px', boxShadow: hover ? DT.shadow : DT.shadowSoft,
-        transform: hover ? 'translateY(-2px)' : 'translateY(0)', transition: 'transform 0.16s ease, box-shadow 0.16s ease',
-        display: 'flex', flexDirection: 'column', gap: '14px',
-      }}
+      style={cardStyle}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Avatar name={p.name} size={44} />
@@ -101,14 +115,36 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
             {p.age} años{p.condition ? ` · ${p.condition}` : ''}
           </p>
         </div>
-        <CaretRight size={16} weight="bold" color={DT.faint} style={{ flexShrink: 0 }} />
+        <CaretRight size={16} weight="regular" color={DT.faint} style={{ flexShrink: 0 }} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <tone.Icon size={16} weight="fill" color={tone.color} style={{ flexShrink: 0 }} />
+        <tone.Icon size={16} weight="regular" color={tone.color} style={{ flexShrink: 0 }} />
         <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
         {/* Sólo las carpetas ilustrativas llevan el tag. El niño vivo del
             visitante (Pol) no: su línea de estado sale de lo que jugó. */}
         {p.isExample && <span style={{ marginLeft: 'auto' }}><EjemploTag /></span>}
+      </div>
+
+      {/* Objetivo: pegado abajo con margin-top auto, para que quede en la misma
+          línea en todas las carpetas de la fila. */}
+      <div style={{ marginTop: 'auto', paddingTop: '13px', borderTop: `1px solid ${DT.line}` }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
+          <span style={{
+            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+          }}>
+            Objetivo
+          </span>
+          <span style={{
+            fontSize: '12.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.body,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            {doneCount} de {target} partidas
+          </span>
+        </div>
+        <div style={{ height: '6px', marginTop: '7px', borderRadius: '999px', background: DT.arena, overflow: 'hidden' }}>
+          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: 'var(--tone)' }} />
+        </div>
       </div>
     </button>
   )
@@ -163,7 +199,7 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
 
       {/* Búsqueda */}
       <div style={{ position: 'relative', marginBottom: '20px', maxWidth: '340px' }}>
-        <MagnifyingGlass size={16} weight="bold" color={DT.faint} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        <MagnifyingGlass size={16} weight="regular" color={DT.faint} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         <input
           type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar paciente…"
           style={{
@@ -186,7 +222,7 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
       ) : filtered.length === 0 ? (
         <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Sin resultados para “{query}”.</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', alignItems: 'stretch', gap: '14px' }}>
           {filtered.map(p => <CarpetaCard key={p.id} p={p} onOpen={() => onOpen(p.id)} />)}
         </div>
       )}

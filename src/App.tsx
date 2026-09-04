@@ -95,8 +95,13 @@ function AppInner() {
       {/* ── Navbar ──────────────────────────────────────────────── */}
       <nav
         style={{
-          // Navbar fundida con el body: misma crema, sin borde ni shadow.
-          backgroundColor: '#FAF5E8',
+          // Navbar fundida con el body: misma crema, sin borde ni shadow. Al
+          // quedarse pegada arriba, el contenido pasa por debajo con un velo
+          // translúcido y desenfoque. Donde no hay backdrop-filter, el alfa
+          // 0.82 ya la deja legible.
+          backgroundColor: 'rgba(250,245,232,0.82)',
+          backdropFilter: 'saturate(1.5) blur(12px)',
+          WebkitBackdropFilter: 'saturate(1.5) blur(12px)',
           position: 'sticky',
           top: 0,
           zIndex: 50,
