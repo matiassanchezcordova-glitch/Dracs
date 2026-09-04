@@ -4,7 +4,7 @@
 // sin tabla densa.
 
 import { useState } from 'react'
-import { MagnifyingGlass, Bell, Check, X, CaretRight, CheckCircle, Clock, MoonStars } from '@phosphor-icons/react'
+import { MagnifyingGlass, Bell, Check, X, CaretRight, CheckCircle, Clock, MoonStars, CalendarBlank, UsersThree } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import type { LinkRequestWithPatient } from '../../../lib/types'
 import AvisoDemo from '../../AvisoDemo'
@@ -12,6 +12,7 @@ import { DT } from './deskTokens'
 import { Avatar, EjemploTag } from './deskUI'
 import { deskStatus, type StatusTone } from './patientStatus'
 import TuDia from './TuDia'
+import ModuleTabs, { type ModuleDef } from './ModuleTabs'
 
 interface Props {
   patients: Patient[]
@@ -29,6 +30,16 @@ const TONE: Record<StatusTone, { color: string; Icon: typeof CheckCircle }> = {
   attention: { color: DT.mostaza, Icon: Clock },
   idle:      { color: DT.topo,    Icon: MoonStars },
 }
+
+// Los dos módulos del escritorio. Cada dato vive en uno solo: la agenda en
+// "Hoy", la línea de estado en la tarjeta de "Pacientes", y toda la profundidad
+// del paciente (objetivos, notas, familia) dentro de su Carpeta.
+const MODULES: ModuleDef[] = [
+  { id: 'hoy', label: 'Hoy', Icon: CalendarBlank },
+  { id: 'pacientes', label: 'Pacientes', Icon: UsersThree },
+]
+
+const panelId = (id: string) => `desk-panel-${id}`
 
 function LinkRequestBanner({ req, onAccept, onReject }: {
   req: LinkRequestWithPatient
@@ -152,6 +163,7 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
 }
 
 export default function Escritorio({ patients, onOpen, linkRequests, onAccept, onReject, loading, isDemo, therapistName }: Props) {
+  const [module, setModule] = useState('hoy')
   const [query, setQuery] = useState('')
   const filtered = query.trim() ? patients.filter(p => p.name.toLowerCase().includes(query.toLowerCase())) : patients
   // La única carpeta viva del showroom: el niño demo de este navegador.
@@ -189,7 +201,8 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
         )}
       </div>
 
-      {/* Solicitudes de vínculo */}
+      {/* Solicitudes de vínculo: son una bandeja de entrada, no contenido de un
+          módulo, así que quedan sobre la barra y no se esconden tras una pestaña. */}
       {linkRequests.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
           {linkRequests.map(req => (
@@ -198,40 +211,72 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
         </div>
       )}
 
-      {/* Tu día: el briefing de la próxima sesión, antes que la grilla. */}
-      {!loading && patients.length > 0 && (
-        <TuDia patients={patients} isDemo={isDemo} onOpen={onOpen} />
-      )}
-
-      {/* Búsqueda */}
-      <div style={{ position: 'relative', marginBottom: '20px', maxWidth: '340px' }}>
-        <MagnifyingGlass size={16} weight="regular" color={DT.faint} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-        <input
-          type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar paciente…"
-          style={{
-            width: '100%', boxSizing: 'border-box', height: '44px', padding: '0 12px 0 36px', borderRadius: DT.radiusSm,
-            border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px', fontFamily: DT.body, outline: 'none',
-          }}
-        />
+      {/* Barra de módulos: solo se ve uno a la vez. */}
+      <div style={{ marginBottom: '20px' }}>
+        <ModuleTabs modules={MODULES} active={module} onChange={setModule} panelId={panelId} />
       </div>
 
-      {/* Grilla de carpetas */}
-      {loading ? (
-        <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando pacientes…</p>
-      ) : patients.length === 0 ? (
-        <div style={{ margin: '32px auto', maxWidth: '420px', textAlign: 'center' }}>
-          <p style={{ margin: '0 0 6px', fontSize: '17px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>Sin pacientes aún</p>
-          <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-            Las familias pueden buscarte por nombre o centro para vincularse. Sus solicitudes aparecerán aquí arriba.
-          </p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Sin resultados para “{query}”.</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', alignItems: 'stretch', gap: '14px' }}>
-          {filtered.map(p => <CarpetaCard key={p.id} p={p} onOpen={() => onOpen(p.id)} />)}
-        </div>
-      )}
+      {/* Módulo Hoy: la agenda y el briefing de la próxima sesión. */}
+      <div
+        id={panelId('hoy')}
+        role="tabpanel"
+        aria-labelledby="tab-hoy"
+        hidden={module !== 'hoy'}
+      >
+        {module === 'hoy' && (
+          loading ? (
+            <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando pacientes…</p>
+          ) : patients.length === 0 ? (
+            <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
+              Hoy no tienes sesiones cargadas.
+            </p>
+          ) : (
+            <TuDia patients={patients} isDemo={isDemo} onOpen={onOpen} />
+          )
+        )}
+      </div>
+
+      {/* Módulo Pacientes: el directorio de carpetas. */}
+      <div
+        id={panelId('pacientes')}
+        role="tabpanel"
+        aria-labelledby="tab-pacientes"
+        hidden={module !== 'pacientes'}
+      >
+        {module === 'pacientes' && (
+          <>
+            {/* Búsqueda */}
+            <div style={{ position: 'relative', marginBottom: '20px', maxWidth: '340px' }}>
+              <MagnifyingGlass size={16} weight="regular" color={DT.faint} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <input
+                type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar paciente…"
+                style={{
+                  width: '100%', boxSizing: 'border-box', height: '44px', padding: '0 12px 0 36px', borderRadius: DT.radiusSm,
+                  border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px', fontFamily: DT.body, outline: 'none',
+                }}
+              />
+            </div>
+
+            {/* Grilla de carpetas */}
+            {loading ? (
+              <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando pacientes…</p>
+            ) : patients.length === 0 ? (
+              <div style={{ margin: '32px auto', maxWidth: '420px', textAlign: 'center' }}>
+                <p style={{ margin: '0 0 6px', fontSize: '17px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>Sin pacientes aún</p>
+                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
+                  Las familias pueden buscarte por nombre o centro para vincularse. Sus solicitudes aparecerán aquí arriba.
+                </p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Sin resultados para “{query}”.</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', alignItems: 'stretch', gap: '14px' }}>
+                {filtered.map(p => <CarpetaCard key={p.id} p={p} onOpen={() => onOpen(p.id)} />)}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
