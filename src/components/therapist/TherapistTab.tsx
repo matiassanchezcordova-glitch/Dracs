@@ -19,6 +19,7 @@ import { getAge, getAccuracyPercent, getDurationMinutes, getCurrentLevel } from 
 import { DT } from './desk/deskTokens'
 import Escritorio from './desk/Escritorio'
 import Carpeta from './desk/Carpeta'
+import DracsCopilot from './copilot/DracsCopilot'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -178,6 +179,9 @@ export default function TherapistTab() {
           therapistName={(profile?.full_name ?? 'Terapeuta').split(' ')[0]}
         />
       )}
+
+      {/* Copiloto clínico: flota sobre el Escritorio y sobre la Carpeta. */}
+      <DracsCopilot />
     </div>
   )
 }
