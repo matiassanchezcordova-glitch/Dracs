@@ -12,7 +12,7 @@
 // cuántas partidas sale el dato cambia cómo se lee (la distribución por áreas y
 // el repaso de la semana). En las conversacionales no aporta y no se pinta.
 
-export const GREETING = "Hola, Marina. Miro cómo va cada niño en casa y te preparo borradores, pero no valoro ni diagnostico: eso lo decides tú. ¿Por dónde empezamos?"
+export const GREETING = "Hola, Marina. Miro cómo va cada niño en casa y te preparo borradores. ¿Por dónde empezamos?"
 
 // Grupos de un repaso: una etiqueta, un punto de color y los nombres. Se
 // dibujan como filas, no como párrafo, para que se escaneen de un vistazo.

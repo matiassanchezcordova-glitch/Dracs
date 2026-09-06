@@ -85,6 +85,7 @@ const CSS = `
 @keyframes dcHalo  { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
 @keyframes dcFade  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dcRise  { from { opacity: 0; transform: translateY(16px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes dcSoon  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .dc-dot   { animation: dcDot 1.1s ease-in-out infinite; }
 .dc-pulse { animation: dcPulse 2s ease-out infinite; }
 .dc-caret { animation: dcCaret 1s step-end infinite; }
@@ -92,13 +93,16 @@ const CSS = `
 .dc-halo  { animation: dcHalo 4.5s ease-in-out infinite; }
 .dc-fade  { animation: dcFade 0.20s ease-out both; }
 .dc-rise  { animation: dcRise 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.dc-soon  { animation: dcSoon 0.16s ease-out both; }
 .dc-bar   { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1); }
 .dc-input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.dc-sug   { transition: background 0.14s ease, border-color 0.14s ease; }
+.dc-sug:hover:not(:disabled) { background: ${DT.white}; border-color: ${DT.line}; }
 .dc-input:focus, .dc-input:focus-within { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(91,136,150,0.16); }
 .dc-btn:focus-visible, .dc-input:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
-  .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise { animation: none !important; }
-  .dc-bar, .dc-input { transition: none !important; }
+  .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise, .dc-soon { animation: none !important; }
+  .dc-bar, .dc-input, .dc-sug { transition: none !important; }
 }
 `
 
@@ -426,32 +430,67 @@ function Bubble({ msg }: { msg: Msg }) {
   )
 }
 
-// ── Acción de vista previa: inerte, se marca "muy pronto" al pasar o al tocar ─
-// No es un botón muerto sin explicación: al acercarse dice cuándo llega.
+// ── Acción de vista previa: dice qué es, y que todavía no está ───────────────
+// Al pasar o al enfocar: el nombre de la acción y un candado pequeño sobre el
+// botón. Al pulsar: un cartel de "Muy pronto" que se va solo. Nada más: el
+// botón tiene que explicarse en un vistazo, no dar un discurso.
+const SOON_MS = 1500
+
 function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; chip?: string }) {
-  const [hint, setHint] = useState(false)
+  const [near, setNear] = useState(false)
+  const [soon, setSoon] = useState(false)
+  const timer = useRef<number | null>(null)
+
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  function announce() {
+    setSoon(true)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => setSoon(false), SOON_MS)
+  }
+
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
-      {hint && (
-        <span aria-hidden style={{
-          position: 'absolute', bottom: 'calc(100% + 7px)', left: 0, zIndex: 3,
-          padding: '4px 9px', borderRadius: '8px', background: DT.ink, color: DT.cream,
-          fontSize: '11px', fontWeight: 700, fontFamily: DT.body,
-          whiteSpace: 'nowrap', pointerEvents: 'none',
-        }}>
-          {INERT_FEEDBACK}
+      {(near || soon) && (
+        <span
+          aria-hidden
+          className={soon ? 'dc-soon' : undefined}
+          style={{
+            position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 3,
+            padding: '4px 9px', borderRadius: '8px',
+            background: soon ? DT.yellow : DT.ink,
+            color: soon ? DT.ink : DT.cream,
+            fontSize: '11px', fontWeight: 700, fontFamily: DT.body,
+            whiteSpace: 'nowrap', pointerEvents: 'none',
+            boxShadow: '0 2px 8px rgba(51,48,42,0.16)',
+          }}
+        >
+          {soon ? 'Muy pronto' : label}
         </span>
       )}
+
+      {/* Candado: aparece al acercarse, para que se vea que aún no está activo. */}
+      {near && !soon && (
+        <span aria-hidden style={{
+          position: 'absolute', top: '-5px', right: '-5px', zIndex: 2,
+          width: '17px', height: '17px', borderRadius: '50%',
+          background: DT.white, border: `1px solid ${DT.line}`, color: DT.muted,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Lock size={10} weight="regular" />
+        </span>
+      )}
+
       <button
         type="button"
         className="dc-btn"
         aria-disabled="true"
-        aria-label={`${label}. ${INERT_FEEDBACK}`}
-        onClick={e => { e.preventDefault(); setHint(true) }}
-        onMouseEnter={() => setHint(true)}
-        onMouseLeave={() => setHint(false)}
-        onFocus={() => setHint(true)}
-        onBlur={() => setHint(false)}
+        aria-label={label}
+        onClick={e => { e.preventDefault(); announce() }}
+        onMouseEnter={() => setNear(true)}
+        onMouseLeave={() => setNear(false)}
+        onFocus={() => setNear(true)}
+        onBlur={() => setNear(false)}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '6px',
           height: '34px', padding: chip ? '0 12px 0 9px' : '0 9px',
@@ -643,7 +682,9 @@ export default function DracsCopilot() {
     }
   }
 
-  const chips = ANSWERS.filter(a => !used.includes(a.id)).slice(0, isFull ? 4 : 3)
+  // Estado vacío: solo el saludo, nada enviado todavía.
+  const isEmptyThread = messages.length <= 1 && !typing
+  const chips = ANSWERS.filter(a => !used.includes(a.id))
   const canSend = input.trim().length > 0 && !busy
 
   const anchor: React.CSSProperties = {
@@ -746,91 +787,48 @@ export default function DracsCopilot() {
     )
   }
 
-  // Sugerencias. En el panel son pastillas; en pantalla completa, donde hay
-  // sitio, las mismas se abren como tarjetas bajo "Dracs puede". Es una sola
-  // lista: no se duplica, se muestra con más aire.
+  // Sugerencias: cuatro filas finas en una columna estrecha, iguales en el panel
+  // y en pantalla completa. Solo se ven en el estado vacío: en cuanto el
+  // terapeuta escribe, el hilo manda y las filas se van con su encabezado.
   function renderSuggestions() {
-    if (chips.length === 0) return null
-
-    if (isFull) {
-      return (
-        <div style={{ flexShrink: 0, padding: '0 24px 14px', background: DT.cream }}>
-          <p style={{
-            margin: '0 0 9px', display: 'flex', alignItems: 'center', gap: '6px',
-            fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em',
-            textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
-          }}>
-            <Lightbulb size={14} weight="regular" /> Dracs puede
-          </p>
-          <div style={{
-            display: 'grid', gap: '9px',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-          }}>
-            {chips.map(chip => {
-              const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
-              return (
-                <button
-                  key={chip.id}
-                  type="button"
-                  className="dc-btn"
-                  onClick={() => send(chip.chip)}
-                  disabled={busy}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
-                    padding: '11px 13px', borderRadius: R_CHIP,
-                    border: `1px solid ${DT.azulTintLine}`, background: DT.white,
-                    color: DT.ink, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
-                    cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
-                  }}
-                  onMouseEnter={e => { if (!busy) e.currentTarget.style.background = DT.azulTint }}
-                  onMouseLeave={e => { e.currentTarget.style.background = DT.white }}
-                >
-                  <span aria-hidden style={{
-                    width: '32px', height: '32px', borderRadius: '10px', flexShrink: 0,
-                    background: DT.azulTint, color: DT.azulInk,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <ChipIcon size={17} weight="regular" />
-                  </span>
-                  {chip.chip}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )
-    }
+    if (!isEmptyThread || chips.length === 0) return null
 
     return (
-      <div style={{ flexShrink: 0, padding: '0 14px 12px', background: DT.cream }}>
+      <div style={{
+        flexShrink: 0, background: DT.cream,
+        padding: isFull ? '0 24px 16px' : '0 14px 12px',
+      }}>
         <p style={{
-          margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: '5px',
+          margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px',
           fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em',
           textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
         }}>
-          <Lightbulb size={13} weight="regular" /> Sugerencias
+          <Lightbulb size={13} weight="regular" /> Dracs puede
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-          {chips.map(chip => (
-            <button
-              key={chip.id}
-              type="button"
-              className="dc-btn"
-              onClick={() => send(chip.chip)}
-              disabled={busy}
-              style={{
-                padding: '8px 13px', minHeight: '36px', borderRadius: R_CHIP,
-                border: `1px solid ${DT.azulTintLine}`, background: DT.white,
-                color: DT.azulInk, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
-                cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
-                textAlign: 'left',
-              }}
-              onMouseEnter={e => { if (!busy) e.currentTarget.style.background = DT.azulTint }}
-              onMouseLeave={e => { e.currentTarget.style.background = DT.white }}
-            >
-              {chip.chip}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '430px' }}>
+          {chips.map(chip => {
+            const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
+            return (
+              <button
+                key={chip.id}
+                type="button"
+                className="dc-btn dc-sug"
+                onClick={() => send(chip.chip)}
+                disabled={busy}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '10px', width: '100%',
+                  padding: '8px 10px', borderRadius: R_CHIP,
+                  border: '1px solid transparent', background: 'transparent',
+                  color: DT.ink, fontSize: '13px', fontWeight: 600, lineHeight: 1.4,
+                  fontFamily: DT.body, textAlign: 'left',
+                  cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
+                }}
+              >
+                <ChipIcon size={17} weight="regular" color={DT.azulInk} style={{ flexShrink: 0, marginTop: '1px' }} />
+                <span style={{ flex: 1, minWidth: 0 }}>{chip.chip}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
     )
@@ -915,12 +913,8 @@ export default function DracsCopilot() {
           }}>
             <PreviewAction Icon={Paperclip} label="Adjuntar archivo" />
             <PreviewAction Icon={Microphone} label="Grabar voz" />
-            <PreviewAction Icon={Waveform} label="Dictar en voz alta" />
-            <PreviewAction
-              Icon={UserCircle}
-              label={`Adjuntar el contexto de ${DEMO_CHILD_NAME}`}
-              chip={DEMO_CHILD_NAME}
-            />
+            <PreviewAction Icon={Waveform} label="Dictar" />
+            <PreviewAction Icon={UserCircle} label="Contexto del paciente" chip={DEMO_CHILD_NAME} />
             <span style={{ flex: 1 }} />
             {renderSendButton(46)}
           </div>
@@ -987,13 +981,17 @@ export default function DracsCopilot() {
     return (
       <>
         <style>{CSS}</style>
+        {/* Fondo atenuado y desenfocado: el escritorio sigue ahí detrás, Dracs
+            está encima. Por eso la superficie deja aire a los lados y no ocupa
+            la ventana entera. */}
         <div
           className="dc-fade"
           style={{
             position: 'fixed', inset: 0, zIndex: 9000,
-            background: 'rgba(51,48,42,0.44)',
+            background: 'rgba(51,48,42,0.40)',
+            backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
             display: 'flex', justifyContent: 'center',
-            padding: narrow ? '0' : '26px 20px',
+            padding: narrow ? '14px 12px' : '30px 24px',
           }}
         >
           <div
@@ -1005,7 +1003,7 @@ export default function DracsCopilot() {
             style={{
               width: '100%', maxWidth: '820px',
               display: 'flex', flexDirection: 'column',
-              background: DT.cream, borderRadius: narrow ? '0' : R_PANEL,
+              background: DT.cream, borderRadius: narrow ? '20px' : R_PANEL,
               border: `1px solid ${DT.line}`, boxShadow: SHADOW_PANEL, overflow: 'hidden',
             }}
           >
