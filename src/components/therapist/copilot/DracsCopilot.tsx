@@ -96,15 +96,13 @@ const CSS = `
 .dc-input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
 .dc-sug   { transition: background 0.14s ease, border-color 0.14s ease; }
 .dc-sug:hover:not(:disabled) { background: ${DT.white}; border-color: ${DT.line}; }
-.dc-pill  { transition: background 0.14s ease; }
-.dc-pill:hover:not(:disabled) { background: ${DT.azulTint}; }
 .dc-strip { scrollbar-width: none; -ms-overflow-style: none; }
 .dc-strip::-webkit-scrollbar { display: none; }
 .dc-input:focus, .dc-input:focus-within { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(91,136,150,0.16); }
 .dc-btn:focus-visible, .dc-input:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise { animation: none !important; }
-  .dc-bar, .dc-input, .dc-sug, .dc-pill { transition: none !important; }
+  .dc-bar, .dc-input, .dc-sug { transition: none !important; }
 }
 `
 
@@ -432,6 +430,45 @@ function Bubble({ msg }: { msg: Msg }) {
   )
 }
 
+// ── Sugerencia: un único estilo, se muestre donde se muestre ─────────────────
+// Fila fina, sin caja ni fondo, icono de línea y texto alineado a la izquierda.
+// `nowrap` es solo colocación (en la tira no puede partirse en dos líneas), no
+// otro diseño: colores, radios, paddings y tipografía son los mismos.
+function Suggestion({ answer, disabled, nowrap, onPick }: {
+  answer: CopilotAnswer
+  disabled: boolean
+  nowrap?: boolean
+  onPick: () => void
+}) {
+  const ChipIcon = CHIP_ICON[answer.id] ?? Lightbulb
+  return (
+    <button
+      type="button"
+      className="dc-btn dc-sug"
+      onClick={onPick}
+      disabled={disabled}
+      style={{
+        display: 'flex', alignItems: nowrap ? 'center' : 'flex-start', gap: '10px',
+        width: nowrap ? 'auto' : '100%', flexShrink: 0,
+        padding: '8px 10px', borderRadius: R_CHIP,
+        border: '1px solid transparent', background: 'transparent',
+        color: DT.ink, fontSize: '13px', fontWeight: 600, lineHeight: 1.4,
+        fontFamily: DT.body, textAlign: 'left',
+        whiteSpace: nowrap ? 'nowrap' : 'normal',
+        cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.55 : 1,
+      }}
+    >
+      <ChipIcon
+        size={17}
+        weight="regular"
+        color={DT.azulInk}
+        style={{ flexShrink: 0, marginTop: nowrap ? 0 : '1px' }}
+      />
+      <span style={{ flex: 1, minWidth: 0 }}>{answer.chip}</span>
+    </button>
+  )
+}
+
 // ── Acción de vista previa: dice qué es, y que todavía no está ───────────────
 // Inerte de verdad: al pulsar no pasa nada. Solo al pasar el cursor o al
 // enfocar con teclado sale el nombre de la función y un candado pequeño. Antes
@@ -501,6 +538,7 @@ export default function DracsCopilot() {
   ])
   const [typing, setTyping] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [used, setUsed] = useState<string[]>([])
   const [input, setInput] = useState('')
 
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)')
@@ -585,6 +623,7 @@ export default function DracsCopilot() {
       ...prev,
       { id: nextId.current++, role: 'user', full: text, shown: text, done: true },
     ])
+    setUsed(prev => prev.includes(answer.id) ? prev : [...prev, answer.id])
     setInput('')
     setBusy(true)
     setTyping(true)
@@ -667,7 +706,9 @@ export default function DracsCopilot() {
 
   // Estado vacío: solo el saludo, nada enviado todavía.
   const isEmptyThread = messages.length <= 1 && !typing
-  const chips = ANSWERS
+  // Una sugerencia usada se va para siempre: volver a pedirla devolvería la
+  // misma respuesta, así que la lista mengua a medida que se gastan.
+  const chips = ANSWERS.filter(a => !used.includes(a.id))
   const canSend = input.trim().length > 0 && !busy
 
   const anchor: React.CSSProperties = {
@@ -770,10 +811,12 @@ export default function DracsCopilot() {
     )
   }
 
-  // Sugerencias. Nunca se pierden y nunca quedan colgando dentro del hilo:
-  //   - hilo vacío: columna de filas finas bajo el rótulo "Dracs puede";
-  //   - con conversación: una tira fija justo encima de la casilla de texto.
-  // Las cuatro están siempre, se pueden volver a pedir.
+  // Sugerencias. Un solo componente y un solo estilo; lo único que cambia es
+  // dónde se colocan:
+  //   - hilo vacío: columna bajo el rótulo "Dracs puede";
+  //   - con conversación: una tira fija encima de la casilla de texto, fuera
+  //     del hilo, para que no queden colgando entre los mensajes.
+  // Las usadas ya no están: la lista mengua sola.
   function renderSuggestions() {
     if (chips.length === 0) return null
 
@@ -795,29 +838,14 @@ export default function DracsCopilot() {
             <Lightbulb size={13} weight="regular" /> Dracs puede
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '430px' }}>
-            {chips.map(chip => {
-              const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
-              return (
-                <button
-                  key={chip.id}
-                  type="button"
-                  className="dc-btn dc-sug"
-                  onClick={() => send(chip.chip)}
-                  disabled={busy}
-                  style={{
-                    display: 'flex', alignItems: 'flex-start', gap: '10px', width: '100%',
-                    padding: '8px 10px', borderRadius: R_CHIP,
-                    border: '1px solid transparent', background: 'transparent',
-                    color: DT.ink, fontSize: '13px', fontWeight: 600, lineHeight: 1.4,
-                    fontFamily: DT.body, textAlign: 'left',
-                    cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
-                  }}
-                >
-                  <ChipIcon size={17} weight="regular" color={DT.azulInk} style={{ flexShrink: 0, marginTop: '1px' }} />
-                  <span style={{ flex: 1, minWidth: 0 }}>{chip.chip}</span>
-                </button>
-              )
-            })}
+            {chips.map(chip => (
+              <Suggestion
+                key={chip.id}
+                answer={chip}
+                disabled={busy}
+                onPick={() => send(chip.chip)}
+              />
+            ))}
           </div>
         </div>
       )
@@ -826,40 +854,26 @@ export default function DracsCopilot() {
     return (
       <div style={{
         flexShrink: 0, background: DT.cream,
-        padding: isFull ? '0 24px 10px' : '0 14px 10px',
+        padding: isFull ? '0 24px 8px' : '0 14px 8px',
       }}>
         <div
           className={scrollStrip ? 'dc-strip' : undefined}
           style={{
-            display: 'flex', alignItems: 'center', gap: '7px',
+            display: 'flex', alignItems: 'center', gap: '2px',
             flexWrap: scrollStrip ? 'nowrap' : 'wrap',
             overflowX: scrollStrip ? 'auto' : 'visible',
             paddingBottom: scrollStrip ? '2px' : 0,
           }}
         >
-          {chips.map(chip => {
-            const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
-            return (
-              <button
-                key={chip.id}
-                type="button"
-                className="dc-btn dc-pill"
-                onClick={() => send(chip.chip)}
-                disabled={busy}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
-                  height: '32px', padding: '0 12px', borderRadius: '999px',
-                  border: `1px solid ${DT.azulTintLine}`, background: DT.white,
-                  color: DT.azulInk, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
-                  whiteSpace: 'nowrap', textAlign: 'left',
-                  cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
-                }}
-              >
-                <ChipIcon size={15} weight="regular" />
-                {chip.chip}
-              </button>
-            )
-          })}
+          {chips.map(chip => (
+            <Suggestion
+              key={chip.id}
+              answer={chip}
+              disabled={busy}
+              nowrap
+              onPick={() => send(chip.chip)}
+            />
+          ))}
         </div>
       </div>
     )
