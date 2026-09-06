@@ -7,7 +7,6 @@ import { useState } from 'react'
 import { MagnifyingGlass, Bell, Check, X, CaretRight, CheckCircle, Clock, MoonStars, CalendarBlank, UsersThree } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import type { LinkRequestWithPatient } from '../../../lib/types'
-import AvisoDemo from '../../AvisoDemo'
 import { DT } from './deskTokens'
 import { Avatar, EjemploTag } from './deskUI'
 import { deskStatus, type StatusTone } from './patientStatus'
@@ -87,11 +86,11 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
   const st = deskStatus({ sessionsThisWeek: p.metrics.sessionsThisWeek, lastPlayedISO: p.lastPlayedISO, totalSessions: p.totalSessions })
   const tone = TONE[st.tone]
 
-  // Objetivo de la semana: partidas hechas sobre las acordadas. Es un dato del
-  // caseload, no una nota ni una valoración.
+  // Seguimiento de la semana: lo hecho sobre lo acordado. El NÚMERO de partidas
+  // no se repite aquí, ya lo dice la línea de estado de arriba; esto pone el
+  // área que se sigue y cuánto lleva, sin decir lo mismo dos veces.
   const target = Math.max(1, p.metrics.sessionsTarget)
-  const doneCount = p.metrics.sessionsThisWeek
-  const pct = Math.min(100, Math.round((doneCount / target) * 100))
+  const pct = Math.min(100, Math.round((p.metrics.sessionsThisWeek / target) * 100))
 
   // El color de estado entra una sola vez, como variable, y desde ahí lo leen
   // el filo y la barra de objetivo.
@@ -138,26 +137,38 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
       </div>
 
       {/* Objetivo: pegado abajo con margin-top auto, para que quede en la misma
-          línea en todas las carpetas de la fila. */}
-      <div style={{ marginTop: 'auto', paddingTop: '13px', borderTop: `1px solid ${DT.line}` }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
-          <span style={{
-            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
-          }}>
-            Objetivo
-          </span>
-          <span style={{
-            fontSize: '12.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.body,
-            fontVariantNumeric: 'tabular-nums',
-          }}>
-            {doneCount} de {target} partidas
-          </span>
+          línea en todas las carpetas de la fila. Sin área no se dibuja. */}
+      {p.area && (
+        <div style={{ marginTop: 'auto', paddingTop: '13px', borderTop: `1px solid ${DT.line}` }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
+            <span style={{
+              fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+            }}>
+              Objetivo
+            </span>
+            <span style={{
+              minWidth: 0, fontSize: '12.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.body,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {p.area}
+            </span>
+          </div>
+          {/* La barra es el seguimiento de la semana. El número vive arriba, en
+              la línea de estado, así que aquí solo va para quien lee con
+              lector de pantalla. */}
+          <div
+            role="progressbar"
+            aria-label="Seguimiento de la semana"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            style={{ height: '6px', marginTop: '7px', borderRadius: '999px', background: DT.arena, overflow: 'hidden' }}
+          >
+            <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: 'var(--tone)' }} />
+          </div>
         </div>
-        <div style={{ height: '6px', marginTop: '7px', borderRadius: '999px', background: DT.arena, overflow: 'hidden' }}>
-          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: 'var(--tone)' }} />
-        </div>
-      </div>
+      )}
     </button>
   )
 }
@@ -171,27 +182,18 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
 
   return (
     <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 48px', fontFamily: DT.body }}>
-      {/* Aviso de bienvenida del showroom — se cierra con la X y no vuelve. */}
-      {isDemo && (
-        <AvisoDemo id="logopeda">
-          En Dracs, cada rol ve solo su sección: la familia no entra al panel clínico
-          y el niño solo ve sus juegos. Aquí puedes recorrer las tres para entender
-          cómo encajan{liveName ? <>, y <strong style={{ color: DT.ink }}>{liveName}</strong> es el paciente de esta demo: lo que juegues en Juegos aparece en su carpeta</> : null}.
-        </AvisoDemo>
-      )}
-
       {/* Encabezado */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>Escritorio</h1>
         </div>
         {/* En el showroom no decimos "hola, {nombre}" (no hay terapeuta real) y
-            distinguimos de entrada qué carpeta es viva y cuáles ilustrativas. */}
+            distinguimos de entrada qué carpeta es viva y cuáles ilustrativas.
+            Esta es la ÚNICA explicación de la demo en el escritorio: antes había
+            además un aviso descartable que decía lo mismo. */}
         {isDemo ? (
-          // Corto a propósito: el detalle vive en el aviso de arriba. Esta línea
-          // sobrevive a que se cierre el aviso, así que dice lo imprescindible.
           <p style={{ margin: '6px 0 0', fontSize: '15px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-            {liveName ? <><strong style={{ color: DT.ink }}>{liveName}</strong> es el niño de esta demo. </> : null}
+            {liveName ? <><strong style={{ color: DT.ink }}>{liveName}</strong> es el niño de esta demo: lo que juegue aparece en su carpeta. </> : null}
             Las carpetas marcadas <EjemploTag /> son ilustrativas.
           </p>
         ) : (

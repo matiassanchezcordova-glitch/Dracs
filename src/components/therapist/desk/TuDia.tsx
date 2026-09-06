@@ -16,8 +16,8 @@
 //      partidas dicen algo útil. "No abrió" es información, no un hueco.
 //   2. Que se lea como si le dijéramos al experto cómo trabajar: solo hechos,
 //      en pasado, sin verbo clínico. Dracs no valora ni interpreta.
-//   3. Que cueste tiempo: una banda, 20 segundos, y solo la próxima sesión
-//      desplegada. La profundidad del paciente vive en su Carpeta.
+//   3. Que cueste tiempo: una banda corta y solo la próxima sesión desplegada.
+//      La profundidad del paciente vive en su Carpeta.
 //
 // Cada línea sale de deskStatus, de las sesiones que el escritorio ya tiene en
 // memoria, de usePorArea o de childFocus. La línea sin dato detrás no se dibuja.
@@ -33,7 +33,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  CalendarBlank, Clock, Info, Target, MapPin, Lock, VideoCamera, FolderOpen,
+  CalendarBlank, Clock, Target, MapPin, Lock, VideoCamera, FolderOpen,
 } from '@phosphor-icons/react'
 import type { Patient } from '../../../data/patients'
 import { DT } from './deskTokens'
@@ -180,14 +180,9 @@ function Briefing({ patient, isDemo, onOpenCarpeta }: {
   return (
     <div>
       <p style={{
-        margin: 0, fontSize: '16px', fontWeight: 700, color: DT.ink, fontFamily: DT.display,
+        margin: '0 0 14px', fontSize: '16px', fontWeight: 700, color: DT.ink, fontFamily: DT.display,
       }}>
         Antes de tu sesión con {name}
-      </p>
-      <p style={{
-        margin: '3px 0 14px', fontSize: '13px', fontWeight: 600, color: DT.muted, fontFamily: DT.body,
-      }}>
-        Lo que cambió en casa. Léelo en 20 segundos.
       </p>
 
       {!hasAnyPlay ? (
@@ -235,13 +230,15 @@ function Briefing({ patient, isDemo, onOpenCarpeta }: {
         <FolderOpen size={15} weight="regular" /> Abrir carpeta de {name}
       </button>
 
-      <p style={{
-        margin: '13px 0 0', display: 'flex', alignItems: 'flex-start', gap: '7px',
-        fontSize: '11.5px', fontWeight: 600, lineHeight: 1.45, color: DT.faint, fontFamily: DT.body,
-      }}>
-        <Info size={14} weight="regular" style={{ flexShrink: 0, marginTop: '1px' }} />
-        Sale de sus partidas reales. Dracs no interpreta ni valora, te muestra lo que pasó.
-      </p>
+      {/* Procedencia, solo si hay partidas detrás. Sin dato, no se dice. */}
+      {rows.length > 0 && (
+        <p style={{
+          margin: '13px 0 0', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.45,
+          color: DT.muted, fontFamily: DT.body,
+        }}>
+          Según sus partidas en casa.
+        </p>
+      )}
     </div>
   )
 }
@@ -315,7 +312,7 @@ interface Props {
 }
 
 export default function TuDia({ patients, isDemo, onOpen }: Props) {
-  // Agenda de ejemplo: solo las citas cuyo paciente existe en el caseload.
+  // Agenda de ejemplo: solo las citas cuyo paciente está en la lista.
   const slots = DEMO_SLOTS
     .map(s => ({ ...s, patient: patients.find(p => p.id === s.patientId) }))
     .filter((s): s is typeof s & { patient: Patient } => !!s.patient)
@@ -451,11 +448,6 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
         >
           <VideoCamera size={15} weight="regular" /> Proponer videollamada a la familia (muy pronto)
         </button>
-        <p style={{
-          margin: '7px 0 0', fontSize: '11.5px', fontWeight: 600, color: DT.faint, fontFamily: DT.body,
-        }}>
-          Se sincronizará con tu calendario.
-        </p>
       </div>
     </section>
   )

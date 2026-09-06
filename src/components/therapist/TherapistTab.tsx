@@ -180,6 +180,20 @@ export default function TherapistTab() {
         />
       )}
 
+      {/* Aviso legal: UNO para toda la sección del logopeda, al pie y fuera de
+          los módulos. Antes se repetía dentro del briefing, del borrador y del
+          pie del copiloto; decirlo una vez y bien vale más que decirlo cuatro. */}
+      <footer style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 88px' }}>
+        <p style={{
+          margin: 0, paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
+          fontSize: '11.5px', fontWeight: 600, lineHeight: 1.5,
+          color: DT.muted, fontFamily: DT.body,
+        }}>
+          Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda
+          revisa y firma todo.
+        </p>
+      </footer>
+
       {/* Copiloto clínico: flota sobre el Escritorio y sobre la Carpeta. */}
       <DracsCopilot />
     </div>

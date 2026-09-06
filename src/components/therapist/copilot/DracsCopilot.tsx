@@ -2,8 +2,11 @@
 // Sin LLM, sin red, sin almacenamiento: estado local y un guion escrito a mano
 // (copilotData.ts). Es el equivalente de Dragui para el lado profesional.
 //
-// ROADMAP (no ahora): la versión real va anclada a los datos reales del
-// caseload, con recuperación sobre las mismas sesiones que ya lee el escritorio
+// Tres estados: minimizado (el botón flotante), panel de esquina y pantalla
+// completa. Cerrar nunca borra el hilo: minimiza, y al volver está donde estaba.
+//
+// ROADMAP (no ahora): la versión real va anclada a los datos reales de sus
+// pacientes, con recuperación sobre las mismas sesiones que ya lee el escritorio
 // (las partidas, las áreas jugadas, lo que se atascó). Dos límites que no se
 // negocian:
 //   1. Responde solo desde datos reales. Si el dato no está, lo dice. No
@@ -19,10 +22,13 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
-  Lock, PaperPlaneTilt, X, Info, FileText, CheckCircle, Lightbulb,
+  Lock, PaperPlaneTilt, X, FileText, CheckCircle, Lightbulb, ArrowsOut, ArrowsIn,
+  Paperclip, Microphone, Waveform, UserCircle, ChartBar, UsersThree, CalendarBlank,
+  type Icon,
 } from '@phosphor-icons/react'
+import { DEMO_CHILD_NAME } from '../../../lib/demo'
 import { DT } from '../desk/deskTokens'
-import { ANSWERS, FALLBACK, GREETING, normalize, route, type CopilotAnswer } from './copilotData'
+import { ANSWERS, FALLBACK, GREETING, normalize, route, type AnswerGroup, type CopilotAnswer } from './copilotData'
 
 const ONLINE = '#10B981'          // mismo verde de "en línea" que usa la familia
 const FAVICON = '/brand/dracs-favicon-cut.png'
@@ -39,6 +45,25 @@ const SHADOW_PANEL = '0 2px 6px rgba(51,48,42,0.06), 0 24px 60px rgba(51,48,42,0
 
 // Punto de color por línea del briefing: jugó / se atascó / no tocó.
 const BRIEF_TONES = [DT.azul, DT.mostaza, DT.topo]
+
+// Punto de color de un grupo de repaso, el mismo que usa el escritorio.
+const GROUP_TONE: Record<AnswerGroup['tone'], string> = {
+  played: DT.azul,
+  idle: DT.topo,
+}
+
+// Icono de cada sugerencia en pantalla completa, donde hay sitio para verlas
+// como tarjetas y no como pastillas.
+const CHIP_ICON: Record<string, Icon> = {
+  quien: UsersThree,
+  area: ChartBar,
+  redacta: FileText,
+  prep: CalendarBlank,
+}
+
+// El aviso legal vive UNA vez en el pie del escritorio. Aquí se repite solo en
+// pantalla completa, porque la capa tapa ese pie y el terapeuta ya no lo ve.
+const AVISO_LEGAL = 'Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda revisa y firma todo.'
 
 interface Msg {
   id: number
@@ -58,17 +83,21 @@ const CSS = `
 @keyframes dcCaret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @keyframes dcIn    { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes dcHalo  { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes dcFade  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dcRise  { from { opacity: 0; transform: translateY(16px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .dc-dot   { animation: dcDot 1.1s ease-in-out infinite; }
 .dc-pulse { animation: dcPulse 2s ease-out infinite; }
 .dc-caret { animation: dcCaret 1s step-end infinite; }
 .dc-in    { animation: dcIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .dc-halo  { animation: dcHalo 4.5s ease-in-out infinite; }
+.dc-fade  { animation: dcFade 0.20s ease-out both; }
+.dc-rise  { animation: dcRise 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .dc-bar   { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1); }
 .dc-input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-.dc-input:focus { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(91,136,150,0.16); }
+.dc-input:focus, .dc-input:focus-within { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(91,136,150,0.16); }
 .dc-btn:focus-visible, .dc-input:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
-  .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo { animation: none !important; }
+  .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise { animation: none !important; }
   .dc-bar, .dc-input { transition: none !important; }
 }
 `
@@ -239,14 +268,7 @@ function DraftCard({ text }: { text: string }) {
       }}>
         {text}
       </p>
-      <p style={{
-        margin: '13px 0 0', display: 'flex', gap: '7px', alignItems: 'flex-start',
-        fontSize: '12px', fontWeight: 600, lineHeight: 1.45, color: DT.muted, fontFamily: DT.body,
-      }}>
-        <Lock size={14} weight="regular" color={DT.topo} style={{ flexShrink: 0, marginTop: '1px' }} />
-        Dracs no afirma mejoras clínicas. Tú lo revisas y lo firmas.
-      </p>
-      <div style={{ display: 'flex', gap: '8px', marginTop: '13px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
         <button
           type="button"
           className="dc-btn"
@@ -280,17 +302,52 @@ function DraftCard({ text }: { text: string }) {
   )
 }
 
-// ── Pastilla de fuente: de dónde salió lo que acaba de decir ─────────────────
-function SourcePill({ src }: { src: string }) {
+// ── Grupos de un repaso: etiqueta con punto de color y los nombres ───────────
+// Dos filas escaneables en vez de una frase corrida: el terapeuta busca nombres,
+// no lee prosa.
+function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '13px',
-      padding: '5px 11px', borderRadius: '999px',
-      background: DT.azulTint, border: `1px solid ${DT.azulTintLine}`,
-      color: DT.azulInk, fontSize: '11.5px', fontWeight: 700, fontFamily: DT.body,
+    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '9px' }}>
+      {groups.map(g => (
+        <div key={g.label} style={{
+          display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap',
+          padding: '9px 11px', borderRadius: R_CHIP,
+          background: DT.white, border: `1px solid ${DT.line}`,
+        }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
+            fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em',
+            textTransform: 'uppercase', color: DT.muted, fontFamily: DT.body,
+          }}>
+            <span aria-hidden style={{
+              width: '8px', height: '8px', borderRadius: '50%',
+              background: GROUP_TONE[g.tone],
+            }} />
+            {g.label}
+          </span>
+          <span style={{
+            flex: 1, minWidth: '120px', fontSize: '13.5px', fontWeight: 600,
+            lineHeight: 1.5, color: DT.ink, fontFamily: DT.body,
+          }}>
+            {g.names.join(' · ')}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Pie de procedencia: de cuántas partidas sale el dato ─────────────────────
+// Sin icono y sin pastilla: es una nota al pie, no otro elemento que mirar.
+// Solo aparece donde saberlo cambia cómo se lee la respuesta.
+function SourceLine({ src }: { src: string }) {
+  return (
+    <p style={{
+      margin: '11px 0 0', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.45,
+      color: DT.muted, fontFamily: DT.body,
     }}>
-      <Info size={13} weight="regular" /> {src}
-    </span>
+      {src}
+    </p>
   )
 }
 
@@ -360,16 +417,61 @@ function Bubble({ msg }: { msg: Msg }) {
             }}
           />
         )}
+        {msg.done && msg.answer?.groups && <StatusGroups groups={msg.answer.groups} />}
         {msg.done && msg.answer?.dist && <DistBars dist={msg.answer.dist} />}
         {msg.done && msg.answer?.draft && <DraftCard text={msg.answer.draft} />}
-        {msg.done && msg.answer && <SourcePill src={msg.answer.src} />}
+        {msg.done && msg.answer?.src && <SourceLine src={msg.answer.src} />}
       </div>
     </AssistantRow>
   )
 }
 
+// ── Acción de vista previa: inerte, se marca "muy pronto" al pasar o al tocar ─
+// No es un botón muerto sin explicación: al acercarse dice cuándo llega.
+function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; chip?: string }) {
+  const [hint, setHint] = useState(false)
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex' }}>
+      {hint && (
+        <span aria-hidden style={{
+          position: 'absolute', bottom: 'calc(100% + 7px)', left: 0, zIndex: 3,
+          padding: '4px 9px', borderRadius: '8px', background: DT.ink, color: DT.cream,
+          fontSize: '11px', fontWeight: 700, fontFamily: DT.body,
+          whiteSpace: 'nowrap', pointerEvents: 'none',
+        }}>
+          {INERT_FEEDBACK}
+        </span>
+      )}
+      <button
+        type="button"
+        className="dc-btn"
+        aria-disabled="true"
+        aria-label={`${label}. ${INERT_FEEDBACK}`}
+        onClick={e => { e.preventDefault(); setHint(true) }}
+        onMouseEnter={() => setHint(true)}
+        onMouseLeave={() => setHint(false)}
+        onFocus={() => setHint(true)}
+        onBlur={() => setHint(false)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          height: '34px', padding: chip ? '0 12px 0 9px' : '0 9px',
+          borderRadius: R_CHIP, border: `1px solid ${DT.line}`,
+          background: DT.white, color: DT.muted, cursor: 'default',
+          fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+        }}
+      >
+        <I size={17} weight="regular" />
+        {chip}
+      </button>
+    </span>
+  )
+}
+
+// Minimizado, panel de esquina, pantalla completa.
+type View = 'min' | 'panel' | 'full'
+
 export default function DracsCopilot() {
-  const [open, setOpen] = useState(false)
+  const [view, setView] = useState<View>('min')
   const [messages, setMessages] = useState<Msg[]>([
     { id: 0, role: 'assistant', full: GREETING, shown: GREETING, done: true },
   ])
@@ -381,16 +483,22 @@ export default function DracsCopilot() {
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)')
   const narrow = useMediaQuery('(max-width: 520px)')
 
+  const open = view !== 'min'
+  const isFull = view === 'full'
+
   const nextId = useRef(1)
   const timers = useRef<number[]>([])
   const chatRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const launcherRef = useRef<HTMLButtonElement>(null)
+  const fullRef = useRef<HTMLDivElement>(null)
   const wasOpen = useRef(false)
 
   useEffect(() => () => { timers.current.forEach(clearTimeout) }, [])
 
-  // Foco: al abrir va al input, al cerrar vuelve al lanzador (nunca al montar).
+  // Foco: al abrir va al input, al minimizar vuelve al lanzador (nunca al
+  // montar). Al pasar de panel a pantalla completa el input es otro nodo, así
+  // que se vuelve a enfocar y el teclado no se queda huérfano.
   useEffect(() => {
     if (open) {
       inputRef.current?.focus()
@@ -398,20 +506,51 @@ export default function DracsCopilot() {
     } else if (wasOpen.current) {
       launcherRef.current?.focus()
     }
-  }, [open])
+  }, [open, view])
 
+  // Escape: en pantalla completa contrae al panel; en el panel, minimiza.
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setView(v => v === 'full' ? 'panel' : 'min')
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
+
+  // Foco atrapado dentro de la capa: en pantalla completa el resto de la página
+  // está tapado, así que tabular hasta ella sería tabular a ciegas.
+  useEffect(() => {
+    if (!isFull) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const root = fullRef.current
+      if (!root) return
+      const items = Array.from(
+        root.querySelectorAll<HTMLElement>('button, textarea, input, [href], [tabindex]:not([tabindex="-1"])'),
+      ).filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null)
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey && (active === first || !root.contains(active))) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isFull])
 
   // Autoscroll mientras llega texto.
   useEffect(() => {
     const el = chatRef.current
     if (el) el.scrollTop = el.scrollHeight
-  }, [messages, typing, open])
+  }, [messages, typing, view])
 
   // Entrega una respuesta CONCRETA para un texto de usuario dado. `send` la usa
   // con lo que devuelve route(); el enganche de "Tu día" la usa directamente.
@@ -479,7 +618,7 @@ export default function DracsCopilot() {
       const prep = ANSWERS.find(a => a.id === 'prep')
       if (!prep) return
       const covered = child !== '' && normalize(prep.text).includes(normalize(child))
-      setOpen(true)
+      setView(v => v === 'min' ? 'panel' : v)
       deliver(
         child ? `Prepárame la sesión de ${child}` : prep.chip,
         covered ? prep : FALLBACK,
@@ -493,7 +632,7 @@ export default function DracsCopilot() {
     setInput(e.target.value)
     const el = e.target
     el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 100)}px`
+    el.style.height = `${Math.min(el.scrollHeight, isFull ? 168 : 100)}px`
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -504,14 +643,302 @@ export default function DracsCopilot() {
     }
   }
 
-  const chips = ANSWERS.filter(a => !used.includes(a.id)).slice(0, 3)
+  const chips = ANSWERS.filter(a => !used.includes(a.id)).slice(0, isFull ? 4 : 3)
   const canSend = input.trim().length > 0 && !busy
 
   const anchor: React.CSSProperties = {
     position: 'fixed', right: '22px', bottom: '22px', zIndex: 9000,
   }
 
-  if (!open) {
+  // ── Piezas compartidas entre el panel y la pantalla completa ──────────────
+  // Son funciones, no componentes: el chat no se desmonta al cambiar de vista y
+  // la conversación sigue exactamente donde estaba.
+
+  // Control de cabecera. Con `text` se ve la palabra al lado del icono (en
+  // pantalla completa sobra el sitio); sin ella, solo el icono con su etiqueta.
+  function headerButton(label: string, onClick: () => void, children: React.ReactNode, text?: string) {
+    return (
+      <button
+        type="button"
+        className="dc-btn"
+        onClick={onClick}
+        aria-label={label}
+        style={{
+          height: '34px', width: text ? undefined : '34px',
+          padding: text ? '0 12px 0 9px' : 0,
+          gap: text ? '6px' : 0,
+          borderRadius: R_CHIP, flexShrink: 0,
+          border: 'none', background: 'transparent', color: DT.muted, cursor: 'pointer',
+          fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = DT.arena }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+      >
+        {children}
+        {text}
+      </button>
+    )
+  }
+
+  function renderHeader() {
+    return (
+      <div style={{
+        flexShrink: 0,
+        background: `linear-gradient(180deg, ${DT.azulTint} 0%, ${DT.white} 100%)`,
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '11px',
+          padding: isFull ? '14px 18px' : '13px 14px',
+        }}>
+          <DracsMark size={40} radius={11} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.display }}>
+              Dracs
+            </p>
+            <p style={{
+              margin: '1px 0 0', display: 'flex', alignItems: 'center', gap: '6px',
+              fontSize: '12.5px', fontWeight: 600, color: DT.muted, fontFamily: DT.body,
+            }}>
+              <span aria-hidden style={{
+                width: '7px', height: '7px', borderRadius: '50%', background: ONLINE, flexShrink: 0,
+              }} />
+              Copiloto clínico
+            </p>
+          </div>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
+            padding: '5px 10px', borderRadius: '999px',
+            background: DT.white, border: `1px solid ${DT.line}`,
+            color: DT.muted, fontSize: '11px', fontWeight: 800, fontFamily: DT.body,
+            letterSpacing: '0.02em',
+          }}>
+            <Lock size={13} weight="regular" /> Vista previa
+          </span>
+          {isFull
+            ? headerButton('Contraer al panel de esquina', () => setView('panel'), <ArrowsIn size={18} weight="regular" />, 'Contraer')
+            : headerButton('Expandir a pantalla completa', () => setView('full'), <ArrowsOut size={18} weight="regular" />)}
+          {/* Cerrar minimiza: el hilo se conserva y vuelve donde estaba. */}
+          {headerButton('Minimizar el copiloto', () => setView('min'), <X size={18} weight="regular" />)}
+        </div>
+        <div aria-hidden style={{
+          height: '1px',
+          background: `linear-gradient(90deg, transparent 0%, ${DT.azulTintLine} 18%, ${DT.azulTintLine} 82%, transparent 100%)`,
+        }} />
+      </div>
+    )
+  }
+
+  function renderChat() {
+    return (
+      <div
+        ref={chatRef}
+        aria-live="polite"
+        style={{
+          flex: 1, minHeight: 0, overflowY: 'auto', background: DT.cream,
+          padding: isFull ? '22px 24px' : '16px',
+          display: 'flex', flexDirection: 'column', gap: '13px',
+        }}
+      >
+        {messages.map(m => <Bubble key={m.id} msg={m} />)}
+        {typing && <TypingIndicator />}
+      </div>
+    )
+  }
+
+  // Sugerencias. En el panel son pastillas; en pantalla completa, donde hay
+  // sitio, las mismas se abren como tarjetas bajo "Dracs puede". Es una sola
+  // lista: no se duplica, se muestra con más aire.
+  function renderSuggestions() {
+    if (chips.length === 0) return null
+
+    if (isFull) {
+      return (
+        <div style={{ flexShrink: 0, padding: '0 24px 14px', background: DT.cream }}>
+          <p style={{
+            margin: '0 0 9px', display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em',
+            textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+          }}>
+            <Lightbulb size={14} weight="regular" /> Dracs puede
+          </p>
+          <div style={{
+            display: 'grid', gap: '9px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+          }}>
+            {chips.map(chip => {
+              const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  className="dc-btn"
+                  onClick={() => send(chip.chip)}
+                  disabled={busy}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
+                    padding: '11px 13px', borderRadius: R_CHIP,
+                    border: `1px solid ${DT.azulTintLine}`, background: DT.white,
+                    color: DT.ink, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+                    cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
+                  }}
+                  onMouseEnter={e => { if (!busy) e.currentTarget.style.background = DT.azulTint }}
+                  onMouseLeave={e => { e.currentTarget.style.background = DT.white }}
+                >
+                  <span aria-hidden style={{
+                    width: '32px', height: '32px', borderRadius: '10px', flexShrink: 0,
+                    background: DT.azulTint, color: DT.azulInk,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <ChipIcon size={17} weight="regular" />
+                  </span>
+                  {chip.chip}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div style={{ flexShrink: 0, padding: '0 14px 12px', background: DT.cream }}>
+        <p style={{
+          margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: '5px',
+          fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em',
+          textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+        }}>
+          <Lightbulb size={13} weight="regular" /> Sugerencias
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+          {chips.map(chip => (
+            <button
+              key={chip.id}
+              type="button"
+              className="dc-btn"
+              onClick={() => send(chip.chip)}
+              disabled={busy}
+              style={{
+                padding: '8px 13px', minHeight: '36px', borderRadius: R_CHIP,
+                border: `1px solid ${DT.azulTintLine}`, background: DT.white,
+                color: DT.azulInk, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+                cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
+                textAlign: 'left',
+              }}
+              onMouseEnter={e => { if (!busy) e.currentTarget.style.background = DT.azulTint }}
+              onMouseLeave={e => { e.currentTarget.style.background = DT.white }}
+            >
+              {chip.chip}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  function renderSendButton(size: number) {
+    return (
+      <button
+        type="button"
+        className="dc-btn"
+        onClick={() => send(input)}
+        disabled={!canSend}
+        aria-label="Enviar"
+        style={{
+          width: `${size}px`, height: `${size}px`, borderRadius: '50%', border: 'none', flexShrink: 0,
+          background: canSend ? DT.yellow : DT.arena,
+          color: canSend ? DT.ink : DT.faint,
+          cursor: canSend ? 'pointer' : 'not-allowed',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: canSend ? '0 1px 2px rgba(51,48,42,0.08), 0 4px 12px rgba(247,195,28,0.30)' : 'none',
+        }}
+      >
+        <PaperPlaneTilt size={19} weight="regular" />
+      </button>
+    )
+  }
+
+  function renderComposer() {
+    const textarea = (
+      <textarea
+        ref={inputRef}
+        className={isFull ? undefined : 'dc-input'}
+        value={input}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        rows={1}
+        placeholder="Pregúntale por una carpeta o pídele un borrador"
+        aria-label="Escribir al copiloto"
+        style={{
+          flex: 1, width: isFull ? '100%' : undefined,
+          minHeight: isFull ? '54px' : '44px', maxHeight: isFull ? '168px' : '100px',
+          resize: 'none', boxSizing: 'border-box',
+          padding: isFull ? '14px 2px 6px' : '12px 14px',
+          borderRadius: isFull ? '0' : R_CHIP,
+          background: isFull ? 'transparent' : DT.cream,
+          border: isFull ? 'none' : `1px solid ${DT.line}`,
+          outline: 'none',
+          fontSize: isFull ? '15.5px' : '14.5px',
+          fontFamily: DT.body, fontWeight: 500, color: DT.ink, lineHeight: 1.45,
+        }}
+      />
+    )
+
+    if (!isFull) {
+      return (
+        <div style={{
+          flexShrink: 0, padding: '11px 14px 12px', background: DT.white,
+          borderTop: `1px solid ${DT.line}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px' }}>
+            {textarea}
+            {renderSendButton(44)}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div style={{
+        flexShrink: 0, padding: '14px 24px 18px', background: DT.white,
+        borderTop: `1px solid ${DT.line}`,
+      }}>
+        <div className="dc-input" style={{
+          padding: '2px 14px 11px', borderRadius: '18px',
+          background: DT.cream, border: `1px solid ${DT.line}`,
+        }}>
+          {textarea}
+          {/* Barra de acciones: todas son vista previa y ninguna hace nada
+              todavía. Enviar texto sí funciona. */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '6px',
+          }}>
+            <PreviewAction Icon={Paperclip} label="Adjuntar archivo" />
+            <PreviewAction Icon={Microphone} label="Grabar voz" />
+            <PreviewAction Icon={Waveform} label="Dictar en voz alta" />
+            <PreviewAction
+              Icon={UserCircle}
+              label={`Adjuntar el contexto de ${DEMO_CHILD_NAME}`}
+              chip={DEMO_CHILD_NAME}
+            />
+            <span style={{ flex: 1 }} />
+            {renderSendButton(46)}
+          </div>
+        </div>
+        {/* El pie legal del escritorio queda tapado por esta capa, así que aquí
+            se dice una vez. En el panel de esquina no hace falta: se ve debajo. */}
+        <p style={{
+          margin: '10px 2px 0', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.45,
+          color: DT.faint, fontFamily: DT.body,
+        }}>
+          {AVISO_LEGAL}
+        </p>
+      </div>
+    )
+  }
+
+  // ── Minimizado: solo el botón flotante ───────────────────────────────────
+  if (view === 'min') {
     return (
       <>
         <style>{CSS}</style>
@@ -528,7 +955,7 @@ export default function DracsCopilot() {
             ref={launcherRef}
             type="button"
             className="dc-btn"
-            onClick={() => setOpen(true)}
+            onClick={() => setView('panel')}
             aria-label="Abrir el copiloto clínico de Dracs"
             style={{
               position: 'relative',
@@ -555,6 +982,44 @@ export default function DracsCopilot() {
     )
   }
 
+  // ── Pantalla completa: capa sobre la ventana, ancho de lectura cómodo ─────
+  if (isFull) {
+    return (
+      <>
+        <style>{CSS}</style>
+        <div
+          className="dc-fade"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9000,
+            background: 'rgba(51,48,42,0.44)',
+            display: 'flex', justifyContent: 'center',
+            padding: narrow ? '0' : '26px 20px',
+          }}
+        >
+          <div
+            ref={fullRef}
+            className="dc-rise"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Copiloto clínico de Dracs, pantalla completa"
+            style={{
+              width: '100%', maxWidth: '820px',
+              display: 'flex', flexDirection: 'column',
+              background: DT.cream, borderRadius: narrow ? '0' : R_PANEL,
+              border: `1px solid ${DT.line}`, boxShadow: SHADOW_PANEL, overflow: 'hidden',
+            }}
+          >
+            {renderHeader()}
+            {renderChat()}
+            {renderSuggestions()}
+            {renderComposer()}
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // ── Panel de esquina ─────────────────────────────────────────────────────
   return (
     <>
       <style>{CSS}</style>
@@ -575,158 +1040,10 @@ export default function DracsCopilot() {
           boxShadow: SHADOW_PANEL, overflow: 'hidden',
         }}
       >
-        {/* Cabecera: degradado azulTint a blanco, hairline degradada debajo */}
-        <div style={{
-          flexShrink: 0,
-          background: `linear-gradient(180deg, ${DT.azulTint} 0%, ${DT.white} 100%)`,
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 14px',
-          }}>
-            <DracsMark size={40} radius={11} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.display }}>
-                Dracs
-              </p>
-              <p style={{
-                margin: '1px 0 0', display: 'flex', alignItems: 'center', gap: '6px',
-                fontSize: '12.5px', fontWeight: 600, color: DT.muted, fontFamily: DT.body,
-              }}>
-                <span aria-hidden style={{
-                  width: '7px', height: '7px', borderRadius: '50%', background: ONLINE, flexShrink: 0,
-                }} />
-                Copiloto clínico
-              </p>
-            </div>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-              padding: '5px 10px', borderRadius: '999px',
-              background: DT.white, border: `1px solid ${DT.line}`,
-              color: DT.muted, fontSize: '11px', fontWeight: 800, fontFamily: DT.body,
-              letterSpacing: '0.02em',
-            }}>
-              <Lock size={13} weight="regular" /> Vista previa
-            </span>
-            <button
-              type="button"
-              className="dc-btn"
-              onClick={() => setOpen(false)}
-              aria-label="Cerrar el copiloto"
-              style={{
-                width: '34px', height: '34px', borderRadius: R_CHIP, flexShrink: 0,
-                border: 'none', background: 'transparent', color: DT.muted, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = DT.arena }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              <X size={18} weight="regular" />
-            </button>
-          </div>
-          <div aria-hidden style={{
-            height: '1px',
-            background: `linear-gradient(90deg, transparent 0%, ${DT.azulTintLine} 18%, ${DT.azulTintLine} 82%, transparent 100%)`,
-          }} />
-        </div>
-
-        {/* Chat */}
-        <div
-          ref={chatRef}
-          aria-live="polite"
-          style={{
-            flex: 1, minHeight: 0, overflowY: 'auto', background: DT.cream,
-            padding: '16px', display: 'flex', flexDirection: 'column', gap: '13px',
-          }}
-        >
-          {messages.map(m => <Bubble key={m.id} msg={m} />)}
-          {typing && <TypingIndicator />}
-        </div>
-
-        {/* Sugerencias */}
-        {chips.length > 0 && (
-          <div style={{ flexShrink: 0, padding: '0 14px 12px', background: DT.cream }}>
-            <p style={{
-              margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: '5px',
-              fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em',
-              textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
-            }}>
-              <Lightbulb size={13} weight="regular" /> Sugerencias
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-              {chips.map(chip => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  className="dc-btn"
-                  onClick={() => send(chip.chip)}
-                  disabled={busy}
-                  style={{
-                    padding: '8px 13px', minHeight: '36px', borderRadius: R_CHIP,
-                    border: `1px solid ${DT.azulTintLine}`, background: DT.white,
-                    color: DT.azulInk, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
-                    cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={e => { if (!busy) e.currentTarget.style.background = DT.azulTint }}
-                  onMouseLeave={e => { e.currentTarget.style.background = DT.white }}
-                >
-                  {chip.chip}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Entrada */}
-        <div style={{
-          flexShrink: 0, padding: '11px 14px 12px', background: DT.white,
-          borderTop: `1px solid ${DT.line}`,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px' }}>
-            <textarea
-              ref={inputRef}
-              className="dc-input"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              rows={1}
-              placeholder="Pregúntale por una carpeta o pídele un borrador"
-              aria-label="Escribir al copiloto"
-              style={{
-                flex: 1, minHeight: '44px', maxHeight: '100px', resize: 'none',
-                padding: '12px 14px', borderRadius: R_CHIP,
-                background: DT.cream, border: `1px solid ${DT.line}`, outline: 'none',
-                fontSize: '14.5px', fontFamily: DT.body, fontWeight: 500, color: DT.ink,
-                lineHeight: 1.4,
-              }}
-            />
-            <button
-              type="button"
-              className="dc-btn"
-              onClick={() => send(input)}
-              disabled={!canSend}
-              aria-label="Enviar"
-              style={{
-                width: '44px', height: '44px', borderRadius: '50%', border: 'none', flexShrink: 0,
-                background: canSend ? DT.yellow : DT.arena,
-                color: canSend ? DT.ink : DT.faint,
-                cursor: canSend ? 'pointer' : 'not-allowed',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: canSend ? '0 1px 2px rgba(51,48,42,0.08), 0 4px 12px rgba(247,195,28,0.30)' : 'none',
-              }}
-            >
-              <PaperPlaneTilt size={19} weight="regular" />
-            </button>
-          </div>
-          <p style={{
-            margin: '9px 2px 0', display: 'flex', alignItems: 'flex-start', gap: '6px',
-            fontSize: '11.5px', fontWeight: 600, lineHeight: 1.4,
-            color: DT.faint, fontFamily: DT.body,
-          }}>
-            <Info size={14} weight="regular" style={{ flexShrink: 0, marginTop: '1px' }} />
-            Vista previa. Dracs no valora ni diagnostica: tú decides y tú firmas.
-          </p>
-        </div>
+        {renderHeader()}
+        {renderChat()}
+        {renderSuggestions()}
+        {renderComposer()}
       </div>
     </>
   )
