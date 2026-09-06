@@ -85,7 +85,6 @@ const CSS = `
 @keyframes dcHalo  { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
 @keyframes dcFade  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dcRise  { from { opacity: 0; transform: translateY(16px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes dcSoon  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .dc-dot   { animation: dcDot 1.1s ease-in-out infinite; }
 .dc-pulse { animation: dcPulse 2s ease-out infinite; }
 .dc-caret { animation: dcCaret 1s step-end infinite; }
@@ -93,16 +92,19 @@ const CSS = `
 .dc-halo  { animation: dcHalo 4.5s ease-in-out infinite; }
 .dc-fade  { animation: dcFade 0.20s ease-out both; }
 .dc-rise  { animation: dcRise 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.dc-soon  { animation: dcSoon 0.16s ease-out both; }
 .dc-bar   { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1); }
 .dc-input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
 .dc-sug   { transition: background 0.14s ease, border-color 0.14s ease; }
 .dc-sug:hover:not(:disabled) { background: ${DT.white}; border-color: ${DT.line}; }
+.dc-pill  { transition: background 0.14s ease; }
+.dc-pill:hover:not(:disabled) { background: ${DT.azulTint}; }
+.dc-strip { scrollbar-width: none; -ms-overflow-style: none; }
+.dc-strip::-webkit-scrollbar { display: none; }
 .dc-input:focus, .dc-input:focus-within { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(91,136,150,0.16); }
 .dc-btn:focus-visible, .dc-input:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
-  .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise, .dc-soon { animation: none !important; }
-  .dc-bar, .dc-input, .dc-sug { transition: none !important; }
+  .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise { animation: none !important; }
+  .dc-bar, .dc-input, .dc-sug, .dc-pill { transition: none !important; }
 }
 `
 
@@ -431,46 +433,29 @@ function Bubble({ msg }: { msg: Msg }) {
 }
 
 // ── Acción de vista previa: dice qué es, y que todavía no está ───────────────
-// Al pasar o al enfocar: el nombre de la acción y un candado pequeño sobre el
-// botón. Al pulsar: un cartel de "Muy pronto" que se va solo. Nada más: el
-// botón tiene que explicarse en un vistazo, no dar un discurso.
-const SOON_MS = 1500
-
+// Inerte de verdad: al pulsar no pasa nada. Solo al pasar el cursor o al
+// enfocar con teclado sale el nombre de la función y un candado pequeño. Antes
+// el clic dejaba un cartel, y pulsando dos botones seguidos se pisaban.
 function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; chip?: string }) {
   const [near, setNear] = useState(false)
-  const [soon, setSoon] = useState(false)
-  const timer = useRef<number | null>(null)
-
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
-
-  function announce() {
-    setSoon(true)
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => setSoon(false), SOON_MS)
-  }
 
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
-      {(near || soon) && (
-        <span
-          aria-hidden
-          className={soon ? 'dc-soon' : undefined}
-          style={{
-            position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 3,
-            padding: '4px 9px', borderRadius: '8px',
-            background: soon ? DT.yellow : DT.ink,
-            color: soon ? DT.ink : DT.cream,
-            fontSize: '11px', fontWeight: 700, fontFamily: DT.body,
-            whiteSpace: 'nowrap', pointerEvents: 'none',
-            boxShadow: '0 2px 8px rgba(51,48,42,0.16)',
-          }}
-        >
-          {soon ? 'Muy pronto' : label}
+      {near && (
+        <span aria-hidden style={{
+          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 3,
+          padding: '4px 9px', borderRadius: '8px',
+          background: DT.ink, color: DT.cream,
+          fontSize: '11px', fontWeight: 700, fontFamily: DT.body,
+          whiteSpace: 'nowrap', pointerEvents: 'none',
+          boxShadow: '0 2px 8px rgba(51,48,42,0.16)',
+        }}>
+          {label}
         </span>
       )}
 
       {/* Candado: aparece al acercarse, para que se vea que aún no está activo. */}
-      {near && !soon && (
+      {near && (
         <span aria-hidden style={{
           position: 'absolute', top: '-5px', right: '-5px', zIndex: 2,
           width: '17px', height: '17px', borderRadius: '50%',
@@ -486,7 +471,7 @@ function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; ch
         className="dc-btn"
         aria-disabled="true"
         aria-label={label}
-        onClick={e => { e.preventDefault(); announce() }}
+        onClick={e => e.preventDefault()}
         onMouseEnter={() => setNear(true)}
         onMouseLeave={() => setNear(false)}
         onFocus={() => setNear(true)}
@@ -516,7 +501,6 @@ export default function DracsCopilot() {
   ])
   const [typing, setTyping] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [used, setUsed] = useState<string[]>([])
   const [input, setInput] = useState('')
 
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)')
@@ -601,7 +585,6 @@ export default function DracsCopilot() {
       ...prev,
       { id: nextId.current++, role: 'user', full: text, shown: text, done: true },
     ])
-    setUsed(prev => prev.includes(answer.id) ? prev : [...prev, answer.id])
     setInput('')
     setBusy(true)
     setTyping(true)
@@ -684,7 +667,7 @@ export default function DracsCopilot() {
 
   // Estado vacío: solo el saludo, nada enviado todavía.
   const isEmptyThread = messages.length <= 1 && !typing
-  const chips = ANSWERS.filter(a => !used.includes(a.id))
+  const chips = ANSWERS
   const canSend = input.trim().length > 0 && !busy
 
   const anchor: React.CSSProperties = {
@@ -787,45 +770,93 @@ export default function DracsCopilot() {
     )
   }
 
-  // Sugerencias: cuatro filas finas en una columna estrecha, iguales en el panel
-  // y en pantalla completa. Solo se ven en el estado vacío: en cuanto el
-  // terapeuta escribe, el hilo manda y las filas se van con su encabezado.
+  // Sugerencias. Nunca se pierden y nunca quedan colgando dentro del hilo:
+  //   - hilo vacío: columna de filas finas bajo el rótulo "Dracs puede";
+  //   - con conversación: una tira fija justo encima de la casilla de texto.
+  // Las cuatro están siempre, se pueden volver a pedir.
   function renderSuggestions() {
-    if (!isEmptyThread || chips.length === 0) return null
+    if (chips.length === 0) return null
+
+    // Ancho real disponible: el panel de esquina son 440px, así que ahí la tira
+    // también va en scroll horizontal. Envolver comería media conversación.
+    const scrollStrip = narrow || !isFull
+
+    if (isEmptyThread) {
+      return (
+        <div style={{
+          flexShrink: 0, background: DT.cream,
+          padding: isFull ? '0 24px 16px' : '0 14px 12px',
+        }}>
+          <p style={{
+            margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em',
+            textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+          }}>
+            <Lightbulb size={13} weight="regular" /> Dracs puede
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '430px' }}>
+            {chips.map(chip => {
+              const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  className="dc-btn dc-sug"
+                  onClick={() => send(chip.chip)}
+                  disabled={busy}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '10px', width: '100%',
+                    padding: '8px 10px', borderRadius: R_CHIP,
+                    border: '1px solid transparent', background: 'transparent',
+                    color: DT.ink, fontSize: '13px', fontWeight: 600, lineHeight: 1.4,
+                    fontFamily: DT.body, textAlign: 'left',
+                    cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
+                  }}
+                >
+                  <ChipIcon size={17} weight="regular" color={DT.azulInk} style={{ flexShrink: 0, marginTop: '1px' }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>{chip.chip}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
 
     return (
       <div style={{
         flexShrink: 0, background: DT.cream,
-        padding: isFull ? '0 24px 16px' : '0 14px 12px',
+        padding: isFull ? '0 24px 10px' : '0 14px 10px',
       }}>
-        <p style={{
-          margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em',
-          textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
-        }}>
-          <Lightbulb size={13} weight="regular" /> Dracs puede
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '430px' }}>
+        <div
+          className={scrollStrip ? 'dc-strip' : undefined}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '7px',
+            flexWrap: scrollStrip ? 'nowrap' : 'wrap',
+            overflowX: scrollStrip ? 'auto' : 'visible',
+            paddingBottom: scrollStrip ? '2px' : 0,
+          }}
+        >
           {chips.map(chip => {
             const ChipIcon = CHIP_ICON[chip.id] ?? Lightbulb
             return (
               <button
                 key={chip.id}
                 type="button"
-                className="dc-btn dc-sug"
+                className="dc-btn dc-pill"
                 onClick={() => send(chip.chip)}
                 disabled={busy}
                 style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '10px', width: '100%',
-                  padding: '8px 10px', borderRadius: R_CHIP,
-                  border: '1px solid transparent', background: 'transparent',
-                  color: DT.ink, fontSize: '13px', fontWeight: 600, lineHeight: 1.4,
-                  fontFamily: DT.body, textAlign: 'left',
+                  display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
+                  height: '32px', padding: '0 12px', borderRadius: '999px',
+                  border: `1px solid ${DT.azulTintLine}`, background: DT.white,
+                  color: DT.azulInk, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+                  whiteSpace: 'nowrap', textAlign: 'left',
                   cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1,
                 }}
               >
-                <ChipIcon size={17} weight="regular" color={DT.azulInk} style={{ flexShrink: 0, marginTop: '1px' }} />
-                <span style={{ flex: 1, minWidth: 0 }}>{chip.chip}</span>
+                <ChipIcon size={15} weight="regular" />
+                {chip.chip}
               </button>
             )
           })}
