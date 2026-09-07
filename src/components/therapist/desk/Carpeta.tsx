@@ -1,13 +1,22 @@
-// La Carpeta — detalle de un paciente en una sola superficie calma (§Phase 2).
-// Secciones: identidad · Qué jugó (datos reales) · Por área · Notas clínicas
-// (privadas) · Comentario para la familia. El terapeuta SÍ ve números; sobrios,
-// legibles, sin claims clínicos y sin datos inventados.
+// La Carpeta — detalle de un paciente, ordenado en cuatro secciones.
+//
+// Fijo arriba: volver al escritorio y la identidad del paciente (avatar, nombre,
+// edad, condición, nivel). Debajo, una sub-barra de burbuja igual que la de
+// módulos pero en talla chica, para que se lea como subordinada y no compita.
+//
+//   Resumen  qué jugó esta semana, evolución, últimas partidas y por área.
+//   Plan     enfocar el mundo (áreas, nota, juegos, énfasis) y dificultad.
+//   Notas    notas clínicas privadas, solo con cuenta real.
+//   Familia  el comentario que se publica a la familia.
+//
+// Un dato, un lugar: lo que jugó vive solo en Resumen. El terapeuta SÍ ve
+// números; sobrios, legibles, sin claims clínicos y sin datos inventados.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { CaretLeft, Lock, PaperPlaneTilt, MapPin } from '@phosphor-icons/react'
+import { CaretLeft, Lock, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil, House } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
@@ -18,12 +27,26 @@ import { DT } from './deskTokens'
 import { Card, SectionLabel, Avatar, EjemploTag } from './deskUI'
 import { usePorArea } from './usePorArea'
 import EnfocarMundo from './EnfocarMundo'
+import AjusteDificultad from './AjusteDificultad'
+import ModuleTabs, { type ModuleDef } from './ModuleTabs'
+import type { ChildLevel } from './childLevel'
 
 interface Props {
   patient: Patient
   supabasePatientId?: string
   onBack: () => void
 }
+
+// Las cuatro secciones de la Carpeta. La profundidad del paciente vive aquí
+// dentro, no en el escritorio.
+const SECTIONS: ModuleDef[] = [
+  { id: 'resumen', label: 'Resumen', Icon: ChartLine },
+  { id: 'plan', label: 'Plan', Icon: Target },
+  { id: 'notas', label: 'Notas', Icon: NotePencil },
+  { id: 'familia', label: 'Familia', Icon: House },
+]
+
+const panelId = (id: string) => `carpeta-panel-${id}`
 
 function slugify(name: string): string {
   return name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
@@ -108,6 +131,10 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
   const [comment, setComment] = useState('')
   const [published, setPublished] = useState<{ text: string; date: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [section, setSection] = useState('resumen')
+  // El nivel vive aquí y no en la tarjeta de identidad: al guardarlo en Plan, el
+  // chip de arriba tiene que decir lo mismo sin recargar la Carpeta.
+  const [level, setLevel] = useState<ChildLevel | null>(p.level ?? null)
 
   const porArea = usePorArea(isReal ? supabasePatientId : null)
 
@@ -272,7 +299,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
         <CaretLeft size={16} weight="bold" /> Escritorio
       </button>
 
-      {/* ── Identidad ─────────────────────────────────────────────── */}
+      {/* ── Identidad: fija, fuera de las secciones ───────────────── */}
       <Card style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
         <Avatar name={p.name} size={54} />
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -282,149 +309,226 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <Chip>{p.age} años</Chip>
             {p.condition && <Chip>{p.condition}</Chip>}
-            {p.level && <Chip>Nivel {p.level.min}-{p.level.max}</Chip>}
+            {level && <Chip>Nivel {level.min}-{level.max}</Chip>}
           </div>
         </div>
+        {/* La marca de carpeta ilustrativa va aquí y solo aquí: como la
+            identidad queda fija, se ve desde cualquier sección. */}
         {p.isExample && <EjemploTag />}
       </Card>
 
-      {/* ── Qué jugó ──────────────────────────────────────────────── */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '16px' }}>
-          <div>
-            <SectionLabel>Qué jugó · esta semana</SectionLabel>
-            {/* El rango explícito evita cualquier duda sobre qué período
-                cubren estos cuatro números. */}
-            <p style={{ margin: '-10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-              {weekRange}
-            </p>
-          </div>
-          {p.isExample && <EjemploTag />}
-        </div>
+      {/* ── Sub-barra de secciones ────────────────────────────────── */}
+      <ModuleTabs
+        modules={SECTIONS}
+        active={section}
+        onChange={setSection}
+        panelId={panelId}
+        size="sm"
+        label="Secciones de la carpeta"
+      />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
-          <StatTile value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
-          <StatTile value={(week.minutes ?? 0) > 0 ? `~${week.minutes}` : '—'} label="minutos" />
-          <StatTile value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
-          <StatTile value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
-        </div>
-
-        {(accuracyLine || week.streak > 0 || porArea.placesVisited.length > 0) && (
-          <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {accuracyLine && <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>{accuracyLine}</p>}
-            {week.streak > 0 && <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Racha actual: {week.streak} {week.streak === 1 ? 'día' : 'días'} seguidos.</p>}
-            {porArea.placesVisited.length > 0 && (
-              <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <MapPin size={15} weight="duotone" color={DT.azul} /> Lugares: {porArea.placesVisited.join(', ')}.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Evolución semanal */}
-        <p style={{ margin: '22px 0 2px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
-          Evolución · % de aciertos por semana
-        </p>
-        <p style={{ margin: '0 0 8px', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-          Últimas 4 semanas. La última columna es la semana en curso — el mismo número que “aciertos”, arriba.
-        </p>
-        {chartHasData ? (
-          <ResponsiveContainer width="100%" height={170}>
-            {/* `left: 0` + YAxis ancho: con margen negativo los "100%"/"75%"
-                quedaban recortados y se leían como ")0%". */}
-            <AreaChart data={chartRows} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="deskScoreGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={DT.azul} stopOpacity={0.16} />
-                  <stop offset="95%" stopColor={DT.azul} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="0" stroke={DT.line} vertical={false} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 12, fontFamily: DT.body }} />
-              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => v + '%'} axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 11, fontFamily: DT.body }} width={52} tickMargin={6} />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke: DT.arena, strokeWidth: 1 }} />
-              <Area type="monotone" dataKey="value" stroke={DT.azul} strokeWidth={2} fill="url(#deskScoreGrad)" activeDot={{ r: 5, fill: DT.azul, stroke: DT.white, strokeWidth: 2 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-            Todavía no hay suficientes partidas para trazar la evolución.
-          </p>
-        )}
-
-        {/* Últimas sesiones */}
-        {recentSessions.length > 0 && (
-          <>
-            <p style={{ margin: '22px 0 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>Últimas partidas</p>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  {['Fecha', 'Duración', 'Juegos', 'Aciertos'].map((c, i) => (
-                    <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11px', fontWeight: 700, color: DT.faint, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: DT.body, padding: '0 8px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {recentSessions.map((s, i) => (
-                  <tr key={i} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
-                    <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{s.date}</td>
-                    <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration ? `${s.duration} min` : '—'}</td>
-                    <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.exercises}</td>
-                    <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center' }}>{s.accuracy}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-      </Card>
-
-      {/* ── Por área ──────────────────────────────────────────────── */}
-      <Card>
-        <SectionLabel>Por área</SectionLabel>
-        {!isReal ? (
-          <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-            {p.localWeek
-              ? `El historial de este navegador guarda partidas, no áreas. La distribución por área aparece con una cuenta real.`
-              : 'La distribución por área aparece con los datos reales de juego del paciente.'}
-          </p>
-        ) : porArea.loading ? (
-          <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
-        ) : !porArea.hasTags ? (
-          <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-            Aún estamos recogiendo datos por área. Cuando {firstName} juegue más y los juegos estén clasificados, verás aquí en qué áreas se apoya y cuáles evita.
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {porArea.distribution.map(a => (
-              <div key={a.slug}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
-                </div>
-                <div style={{ height: '8px', background: DT.arena, borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${a.pct}%`, background: DT.azul, borderRadius: '4px', transition: 'width 0.6s ease' }} />
-                </div>
+      {/* ── Resumen ───────────────────────────────────────────────── */}
+      {/* Se monta solo cuando está activo: el gráfico necesita medir su ancho
+          de verdad, y dentro de un panel oculto mediría 0. */}
+      <div id={panelId('resumen')} role="tabpanel" aria-labelledby="tab-resumen" hidden={section !== 'resumen'}>
+        {section === 'resumen' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <Card>
+              <div style={{ marginBottom: '16px' }}>
+                <SectionLabel>Qué jugó · esta semana</SectionLabel>
+                {/* El rango explícito evita cualquier duda sobre qué período
+                    cubren estos cuatro números. */}
+                <p style={{ margin: '-10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+                  {weekRange}
+                </p>
               </div>
-            ))}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+                <StatTile value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
+                <StatTile value={(week.minutes ?? 0) > 0 ? `~${week.minutes}` : '—'} label="minutos" />
+                <StatTile value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
+                <StatTile value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
+              </div>
+
+              {(accuracyLine || week.streak > 0 || porArea.placesVisited.length > 0) && (
+                <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {accuracyLine && <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>{accuracyLine}</p>}
+                  {week.streak > 0 && <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Racha actual: {week.streak} {week.streak === 1 ? 'día' : 'días'} seguidos.</p>}
+                  {porArea.placesVisited.length > 0 && (
+                    <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={15} weight="duotone" color={DT.azul} /> Lugares: {porArea.placesVisited.join(', ')}.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Evolución semanal */}
+              <p style={{ margin: '22px 0 2px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+                Evolución · % de aciertos por semana
+              </p>
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+                Últimas 4 semanas. La última columna es la semana en curso, el mismo número que “aciertos”, arriba.
+              </p>
+              {chartHasData ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  {/* `left: 0` + YAxis ancho: con margen negativo los "100%"/"75%"
+                      quedaban recortados y se leían como ")0%". */}
+                  <AreaChart data={chartRows} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="deskScoreGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={DT.azul} stopOpacity={0.16} />
+                        <stop offset="95%" stopColor={DT.azul} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="0" stroke={DT.line} vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 12, fontFamily: DT.body }} />
+                    <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => v + '%'} axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 11, fontFamily: DT.body }} width={52} tickMargin={6} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ stroke: DT.arena, strokeWidth: 1 }} />
+                    <Area type="monotone" dataKey="value" stroke={DT.azul} strokeWidth={2} fill="url(#deskScoreGrad)" activeDot={{ r: 5, fill: DT.azul, stroke: DT.white, strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
+                  Todavía no hay suficientes partidas para trazar la evolución.
+                </p>
+              )}
+
+              {/* Últimas sesiones */}
+              {recentSessions.length > 0 && (
+                <>
+                  <p style={{ margin: '22px 0 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>Últimas partidas</p>
+                  {/* En móvil la tabla no cabe: se desplaza dentro de su caja y
+                      la página nunca scrollea en horizontal. */}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: '360px', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          {['Fecha', 'Duración', 'Juegos', 'Aciertos'].map((c, i) => (
+                            <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11px', fontWeight: 700, color: DT.faint, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: DT.body, padding: '0 8px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentSessions.map((s, i) => (
+                          <tr key={i} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
+                            <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{s.date}</td>
+                            <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration ? `${s.duration} min` : '—'}</td>
+                            <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.exercises}</td>
+                            <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center' }}>{s.accuracy}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </Card>
+
+            {/* Por área */}
+            <Card>
+              <SectionLabel>Por área</SectionLabel>
+              {!isReal ? (
+                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
+                  {p.localWeek
+                    ? 'El historial de este navegador guarda partidas, no áreas. La distribución por área aparece con una cuenta real.'
+                    : 'La distribución por área aparece con los datos reales de juego del paciente.'}
+                </p>
+              ) : porArea.loading ? (
+                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
+              ) : !porArea.hasTags ? (
+                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
+                  Aún estamos recogiendo datos por área. Cuando {firstName} juegue más y los juegos estén clasificados, verás aquí en qué áreas se apoya y cuáles evita.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {porArea.distribution.map(a => (
+                    <div key={a.slug}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
+                      </div>
+                      <div style={{ height: '8px', background: DT.arena, borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${a.pct}%`, background: DT.azul, borderRadius: '4px', transition: 'width 0.6s ease' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* ── Enfocar el mundo (personalización) ────────────────────── */}
-      <EnfocarMundo childName={firstName} isReal={isReal} storeId={(isReal ? supabasePatientId : p.id) as string} />
+      {/* ── Plan ──────────────────────────────────────────────────── */}
+      {/* Plan, Notas y Familia se quedan montados y solo se ocultan: así una
+          nota a medio escribir no se pierde al mirar otra sección. */}
+      <div id={panelId('plan')} role="tabpanel" aria-labelledby="tab-plan" hidden={section !== 'plan'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <EnfocarMundo childName={firstName} isReal={isReal} storeId={(isReal ? supabasePatientId : p.id) as string} />
+          <AjusteDificultad
+            childName={firstName}
+            isReal={isReal}
+            storeId={(isReal ? supabasePatientId : p.id) as string}
+            userId={user?.id}
+            initial={p.level ?? null}
+            onLevel={setLevel}
+          />
+        </div>
+      </div>
 
       {/* ── Notas clínicas (privadas) ─────────────────────────────── */}
-      {isReal && (
-        <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
-          <SectionLabel>Notas clínicas · privadas</SectionLabel>
-          <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <Lock size={15} weight="fill" color={DT.topo} /> Solo visible para ti. La familia no ve estas notas.
-          </p>
+      <div id={panelId('notas')} role="tabpanel" aria-labelledby="tab-notas" hidden={section !== 'notas'}>
+        {isReal ? (
+          <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
+            <SectionLabel>Notas clínicas · privadas</SectionLabel>
+            <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <Lock size={15} weight="fill" color={DT.topo} /> Solo visible para ti. La familia no ve estas notas.
+            </p>
+            <textarea
+              value={clinicalNotes}
+              onChange={e => setClinicalNotes(e.target.value)}
+              placeholder="Historial, evolución y observaciones para tu propio registro."
+              rows={4}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
+                border: `1.5px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px',
+                fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleSaveClinicalNotes}
+                disabled={savingClinical}
+                style={{
+                  padding: '10px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostaza}`,
+                  background: DT.white, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+                  cursor: savingClinical ? 'default' : 'pointer', opacity: savingClinical ? 0.5 : 1,
+                }}
+              >
+                {savingClinical ? 'Guardando…' : 'Guardar notas'}
+              </button>
+            </div>
+          </Card>
+        ) : (
+          <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
+            <SectionLabel>Notas clínicas · privadas</SectionLabel>
+            <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <Lock size={16} weight="fill" color={DT.topo} style={{ flexShrink: 0, marginTop: '2px' }} />
+              Con una cuenta de logopeda escribes aquí tu registro de {firstName} y lo
+              guardas en tu cuenta. Solo lo ves tú: la familia nunca ve estas notas.
+            </p>
+          </Card>
+        )}
+      </div>
+
+      {/* ── Comentario para la familia ────────────────────────────── */}
+      <div id={panelId('familia')} role="tabpanel" aria-labelledby="tab-familia" hidden={section !== 'familia'}>
+        <Card>
+          <SectionLabel>Comentario para la familia</SectionLabel>
           <textarea
-            value={clinicalNotes}
-            onChange={e => setClinicalNotes(e.target.value)}
-            placeholder="Historial, evolución y observaciones para tu propio registro."
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            placeholder="Escribe aquí tu observación de la semana para la familia."
             rows={4}
             style={{
               width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
@@ -434,54 +538,25 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
-              onClick={handleSaveClinicalNotes}
-              disabled={savingClinical}
+              onClick={handlePublish}
+              disabled={!comment.trim()}
               style={{
-                padding: '10px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostaza}`,
-                background: DT.white, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
-                cursor: savingClinical ? 'default' : 'pointer', opacity: savingClinical ? 0.5 : 1,
+                display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', borderRadius: DT.radiusSm,
+                border: 'none', background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+                cursor: comment.trim() ? 'pointer' : 'default', opacity: comment.trim() ? 1 : 0.5,
               }}
             >
-              {savingClinical ? 'Guardando…' : 'Guardar notas'}
+              <PaperPlaneTilt size={15} weight="fill" /> Publicar
             </button>
           </div>
+          {published && (
+            <div style={{ marginTop: '16px', borderLeft: `3px solid ${DT.azul}`, background: DT.cream, borderRadius: `0 ${DT.radiusSm} ${DT.radiusSm} 0`, padding: '12px 16px' }}>
+              <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 800, color: DT.azul, fontFamily: DT.body }}>Publicado · {therapistDisplayName}</p>
+              <p style={{ margin: 0, fontSize: '13px', color: DT.ink, fontFamily: DT.body, lineHeight: 1.6 }}>{published.text}</p>
+            </div>
+          )}
         </Card>
-      )}
-
-      {/* ── Comentario para la familia ────────────────────────────── */}
-      <Card>
-        <SectionLabel>Comentario para la familia</SectionLabel>
-        <textarea
-          value={comment}
-          onChange={e => setComment(e.target.value)}
-          placeholder="Escribe aquí tu observación de la semana para la familia."
-          rows={4}
-          style={{
-            width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-            border: `1.5px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px',
-            fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
-          }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={handlePublish}
-            disabled={!comment.trim()}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', borderRadius: DT.radiusSm,
-              border: 'none', background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
-              cursor: comment.trim() ? 'pointer' : 'default', opacity: comment.trim() ? 1 : 0.5,
-            }}
-          >
-            <PaperPlaneTilt size={15} weight="fill" /> Publicar
-          </button>
-        </div>
-        {published && (
-          <div style={{ marginTop: '16px', borderLeft: `3px solid ${DT.azul}`, background: DT.cream, borderRadius: `0 ${DT.radiusSm} ${DT.radiusSm} 0`, padding: '12px 16px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 800, color: DT.azul, fontFamily: DT.body }}>Publicado · {therapistDisplayName}</p>
-            <p style={{ margin: 0, fontSize: '13px', color: DT.ink, fontFamily: DT.body, lineHeight: 1.6 }}>{published.text}</p>
-          </div>
-        )}
-      </Card>
+      </div>
     </div>
   )
 }
