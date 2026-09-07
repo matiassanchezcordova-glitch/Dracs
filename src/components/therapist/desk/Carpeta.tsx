@@ -16,7 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { CaretLeft, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil, House, Plus } from '@phosphor-icons/react'
+import { CaretLeft, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil, House, Plus, FileText } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
@@ -34,6 +34,8 @@ import { EXAMPLE_AREAS } from './areaExample'
 import {
   loadClinicalNotes, saveClinicalNotes, newNoteId, noteDate, type ClinicalNote,
 } from './clinicalNotes'
+import Informe from './Informe'
+import { fromDbSessions } from './informeData'
 
 interface Props {
   patient: Patient
@@ -48,6 +50,7 @@ const SECTIONS: ModuleDef[] = [
   { id: 'plan', label: 'Plan', Icon: Target },
   { id: 'notas', label: 'Notas', Icon: NotePencil },
   { id: 'familia', label: 'Familia', Icon: House },
+  { id: 'informe', label: 'Informe', Icon: FileText },
 ]
 
 const panelId = (id: string) => `carpeta-panel-${id}`
@@ -655,6 +658,25 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             </div>
           )}
         </Card>
+      </div>
+
+      {/* ── Informe del período ───────────────────────────────────── */}
+      {/* Montado siempre: el borrador del comentario no se pierde al cambiar de
+          sección, igual que en Notas y Familia. */}
+      <div id={panelId('informe')} role="tabpanel" aria-labelledby="tab-informe" hidden={section !== 'informe'}>
+        <Informe
+          childName={firstName}
+          fullName={p.name}
+          age={p.age}
+          isReal={isReal}
+          storeId={notesStoreId}
+          therapistId={user?.id}
+          therapistName={therapistDisplayName}
+          isExample={!!p.isExample}
+          realSessions={isReal && sbLoaded ? fromDbSessions(sbSessions) : []}
+          areas={isReal && porArea.hasTags ? porArea.distribution.map(a => ({ label: a.label, pct: a.pct })) : []}
+          onToast={msg => { setToast(msg); setTimeout(() => setToast(null), 3000) }}
+        />
       </div>
     </div>
   )

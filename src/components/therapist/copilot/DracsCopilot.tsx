@@ -668,22 +668,25 @@ export default function DracsCopilot() {
     deliver(raw, route(raw))
   }, [deliver])
 
-  // Enganche con "Tu día": la banda del escritorio pide preparar una sesión.
-  // Si el guion de la vista previa no cubre a ese niño, se responde el límite
-  // honesto en vez de contar lo de otro paciente.
+  // Enganches del escritorio: "Tu día" pide preparar una sesión, y el informe de
+  // la Carpeta pide un borrador. Si el guion de la vista previa no cubre a ese
+  // niño, se responde el límite honesto en vez de contar lo de otro paciente.
   useEffect(() => {
     const onAsk = (e: Event) => {
       const detail = (e as CustomEvent).detail as { intent?: string; childName?: string } | null
-      if (!detail || detail.intent !== 'prep') return
-      const child = (detail.childName ?? '').trim()
-      const prep = ANSWERS.find(a => a.id === 'prep')
-      if (!prep) return
-      const covered = child !== '' && normalize(prep.text).includes(normalize(child))
+      const intent = detail?.intent
+      if (intent !== 'prep' && intent !== 'redacta') return
+      const child = (detail?.childName ?? '').trim()
+      const answer = ANSWERS.find(a => a.id === intent)
+      if (!answer) return
+      const covered = child !== '' && normalize(answer.text + ' ' + (answer.draft ?? '')).includes(normalize(child))
+      const ask = child
+        ? intent === 'prep'
+          ? `Prepárame la sesión de ${child}`
+          : `Redacta el informe de ${child}`
+        : answer.chip
       setView(v => v === 'min' ? 'panel' : v)
-      deliver(
-        child ? `Prepárame la sesión de ${child}` : prep.chip,
-        covered ? prep : FALLBACK,
-      )
+      deliver(ask, covered ? answer : FALLBACK)
     }
     window.addEventListener('dracs-copilot-open', onAsk)
     return () => window.removeEventListener('dracs-copilot-open', onAsk)

@@ -5,9 +5,13 @@ import type { CSSProperties, ReactNode } from 'react'
 import { DT, initials } from './deskTokens'
 
 // Tarjeta base — blanca sobre crema, borde cálido, sombra suave.
-export function Card({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+export function Card({ children, style, className }: {
+  children: ReactNode
+  style?: CSSProperties
+  className?: string
+}) {
   return (
-    <div style={{
+    <div className={className} style={{
       background: DT.white, border: `1px solid ${DT.line}`, borderRadius: DT.radius,
       padding: '22px', boxShadow: DT.shadow, ...style,
     }}>
