@@ -441,7 +441,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px',
             height: '38px', padding: '0 15px', borderRadius: '13px',
-            border: `1px dashed ${DT.line}`, background: DT.white,
+            border: `1px dashed ${DT.line}`, background: DT.cream,
             color: DT.muted, fontSize: '13.5px', fontWeight: 700, fontFamily: DT.display,
             cursor: 'default',
           }}

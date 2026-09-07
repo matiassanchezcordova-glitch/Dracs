@@ -72,7 +72,7 @@ function LinkRequestBanner({ req, onAccept, onReject }: {
       </button>
       <button onClick={() => run(onReject)} disabled={busy} style={{
         display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: DT.radiusSm,
-        border: `1px solid ${DT.line}`, background: DT.white, color: DT.muted, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+        border: `1px solid ${DT.line}`, background: DT.cream, color: DT.muted, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
         cursor: 'pointer', opacity: busy ? 0.6 : 1,
       }}>
         <X size={13} weight="regular" /> Rechazar

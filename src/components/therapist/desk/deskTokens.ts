@@ -9,7 +9,7 @@ export const DT = {
   cream: '#FAF5E8',       // fondo de la superficie
   white: '#FFFFFF',       // tarjetas (lectura clínica nítida)
   arena: '#EDE4D1',       // rellenos suaves (chips, avatares, filas)
-  line: '#E7DECB',        // hairlines cálidas sobre blanco
+  line: '#DED2BA',        // borde cálido, un punto más marcado que la hairline
   ink: '#33302A',         // texto principal (Tinta)
   muted: 'rgba(51,48,42,0.60)',   // texto secundario (Tinta 60% ≈ AA)
   faint: 'rgba(51,48,42,0.42)',   // etiquetas/uppercase discretas
@@ -30,8 +30,12 @@ export const DT = {
 
   radius: '18px',
   radiusSm: '12px',
-  shadow: '0 4px 18px rgba(51,48,42,0.06)',
-  shadowSoft: '0 2px 10px rgba(51,48,42,0.05)',
+
+  // Sombras en capas: una de contacto muy corta y una difusa larga. Con una
+  // sola capa suave las tarjetas se leían recortadas sobre la crema, como papel
+  // pegado; con las dos se levantan sin endurecerse.
+  shadow: '0 1px 2px rgba(51,48,42,0.06), 0 10px 26px rgba(51,48,42,0.10)',
+  shadowSoft: '0 1px 2px rgba(51,48,42,0.05), 0 5px 16px rgba(51,48,42,0.07)',
 } as const
 
 export function initials(name: string): string {

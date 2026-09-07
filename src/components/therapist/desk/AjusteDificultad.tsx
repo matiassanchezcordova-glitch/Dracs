@@ -26,7 +26,7 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
 }) {
   const btn = (enabled: boolean): React.CSSProperties => ({
     width: '34px', height: '34px', borderRadius: DT.radiusSm, flexShrink: 0,
-    border: `1px solid ${DT.line}`, background: DT.white, color: enabled ? DT.ink : DT.faint,
+    border: `1px solid ${DT.line}`, background: DT.cream, color: enabled ? DT.ink : DT.faint,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: enabled ? 'pointer' : 'default', opacity: enabled ? 1 : 0.5,
   })

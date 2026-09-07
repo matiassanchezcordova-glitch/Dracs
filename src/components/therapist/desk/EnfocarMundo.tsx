@@ -110,7 +110,9 @@ export default function EnfocarMundo({
               style={{
                 padding: '8px 13px', minHeight: '40px', borderRadius: '999px', cursor: 'pointer',
                 border: on ? `1px solid ${DT.azul}` : `1px solid ${DT.line}`,
-                background: on ? DT.azul : DT.white,
+                // Sin seleccionar va en crema: blanco sobre la card blanca no
+                // se leería como botón.
+                background: on ? DT.azul : DT.cream,
                 color: on ? DT.cream : DT.ink,
                 fontSize: '13px', fontWeight: 700, fontFamily: DT.body, transition: 'all 0.14s ease',
               }}
@@ -130,7 +132,7 @@ export default function EnfocarMundo({
         rows={3}
         style={{
           width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-          border: `1.5px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px',
+          border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink, fontSize: '14px',
           fontFamily: DT.body, resize: 'vertical', maxHeight: '200px', outline: 'none', lineHeight: 1.6, marginBottom: '20px',
         }}
       />

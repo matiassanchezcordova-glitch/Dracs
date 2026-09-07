@@ -16,7 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { CaretLeft, Lock, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil, House } from '@phosphor-icons/react'
+import { CaretLeft, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil, House, Plus } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
@@ -30,6 +30,10 @@ import EnfocarMundo from './EnfocarMundo'
 import AjusteDificultad from './AjusteDificultad'
 import ModuleTabs, { type ModuleDef } from './ModuleTabs'
 import type { ChildLevel } from './childLevel'
+import { EXAMPLE_AREAS } from './areaExample'
+import {
+  loadClinicalNotes, saveClinicalNotes, newNoteId, noteDate, type ClinicalNote,
+} from './clinicalNotes'
 
 interface Props {
   patient: Patient
@@ -47,6 +51,13 @@ const SECTIONS: ModuleDef[] = [
 ]
 
 const panelId = (id: string) => `carpeta-panel-${id}`
+
+const MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+function shortDate(iso?: string | null): string {
+  const d = iso ? new Date(iso) : new Date()
+  return Number.isNaN(d.getTime()) ? '' : `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`
+}
 
 function slugify(name: string): string {
   return name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
@@ -126,10 +137,26 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
   // Carpeta se monta fresca por paciente, así que no hace falta resetear en el
   // efecto (evita setState síncrono en el cuerpo del efecto).
   const [sbLoaded, setSbLoaded] = useState(!isReal)
-  const [clinicalNotes, setClinicalNotes] = useState('')
+  // Notas: varias, cada una con su fecha. Se guardan siempre, con cuenta o sin
+  // ella; lo único que cambia es dónde (base o navegador).
+  const [notes, setNotes] = useState<ClinicalNote[]>([])
+  const [notesLoaded, setNotesLoaded] = useState(false)
+  const [draftNote, setDraftNote] = useState('')
   const [savingClinical, setSavingClinical] = useState(false)
   const [comment, setComment] = useState('')
-  const [published, setPublished] = useState<{ text: string; date: string } | null>(null)
+  // Lo ya publicado esta semana. En demo sale del navegador (lectura síncrona,
+  // así que va en el estado inicial); en real lo trae el efecto de abajo.
+  const [published, setPublished] = useState<{ text: string; date: string } | null>(() => {
+    if (isReal) return null
+    try {
+      const raw = localStorage.getItem(`dracs_comment_${slugify(p.name)}_${getWeekCode()}`)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as { texto?: string; fecha?: string }
+      return parsed.texto ? { text: parsed.texto, date: parsed.fecha ?? '' } : null
+    } catch {
+      return null
+    }
+  })
   const [toast, setToast] = useState<string | null>(null)
   const [section, setSection] = useState('resumen')
   // El nivel vive aquí y no en la tarjeta de identidad: al guardarlo en Plan, el
@@ -141,17 +168,43 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
   useEffect(() => {
     if (!isReal) return
     let cancelled = false
-    Promise.all([
-      supabase.from('sessions').select('*').eq('child_id', supabasePatientId!).order('started_at', { ascending: false }).limit(50),
-      supabase.from('children').select('clinical_notes').eq('id', supabasePatientId!).maybeSingle(),
-    ]).then(([sessRes, childRes]) => {
-      if (cancelled) return
-      setSbSessions((sessRes.data ?? []) as DbSession[])
-      setClinicalNotes((childRes.data?.clinical_notes as string | null) ?? '')
-      setSbLoaded(true)
-    })
+    supabase.from('sessions').select('*').eq('child_id', supabasePatientId!)
+      .order('started_at', { ascending: false }).limit(50)
+      .then(sessRes => {
+        if (cancelled) return
+        setSbSessions((sessRes.data ?? []) as DbSession[])
+        setSbLoaded(true)
+      })
     return () => { cancelled = true }
   }, [isReal, supabasePatientId])
+
+  const notesStoreId = (isReal ? supabasePatientId : p.id) as string
+
+  // En cuenta real el comentario de la semana llega de la base, en asíncrono.
+  useEffect(() => {
+    if (!isReal) return
+    let cancelled = false
+    supabase.from('therapist_comments')
+      .select('comment_text, created_at')
+      .eq('patient_id', supabasePatientId!)
+      .eq('week_code', getWeekCode())
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data?.comment_text) return
+        setPublished({ text: data.comment_text as string, date: shortDate(data.created_at as string | null) })
+      })
+    return () => { cancelled = true }
+  }, [isReal, supabasePatientId])
+
+  useEffect(() => {
+    let cancelled = false
+    loadClinicalNotes(isReal, notesStoreId).then(list => {
+      if (cancelled) return
+      setNotes(list)
+      setNotesLoaded(true)
+    })
+    return () => { cancelled = true }
+  }, [isReal, notesStoreId])
 
   // ── Datos de la semana (reales en modo Supabase; ejemplo en demo) ──────────
   const week = useMemo(() => {
@@ -244,20 +297,27 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
     return `${start.getDate()} ${M[start.getMonth()]} – ${end.getDate()} ${M[end.getMonth()]}`
   }, [])
 
-  async function handleSaveClinicalNotes() {
-    if (!isReal) return
+  async function handleAddNote() {
+    const text = draftNote.trim()
+    if (!text || savingClinical) return
+    const next = [{ id: newNoteId(), text, createdAt: new Date().toISOString() }, ...notes]
     setSavingClinical(true)
-    const { error } = await supabase.from('children').update({ clinical_notes: clinicalNotes.trim() || null }).eq('id', supabasePatientId!)
+    const res = await saveClinicalNotes(isReal, notesStoreId, next)
     setSavingClinical(false)
-    setToast(error ? 'No se pudieron guardar las notas. Prueba otra vez.' : 'Notas clínicas guardadas.')
+    if (!res.ok) {
+      setToast('No se pudo guardar la nota. Prueba otra vez.')
+      setTimeout(() => setToast(null), 3000)
+      return
+    }
+    setNotes(next)
+    setDraftNote('')
+    setToast('Nota guardada.')
     setTimeout(() => setToast(null), 3000)
   }
 
   async function handlePublish() {
     if (!comment.trim()) return
-    const now = new Date()
-    const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-    const date = `${now.getDate()} ${months[now.getMonth()]}`
+    const date = shortDate()
     if (isReal) {
       const { error } = await supabase.from('therapist_comments').upsert({
         therapist_id: user!.id, patient_id: supabasePatientId!, week_code: getWeekCode(), comment_text: comment.trim(),
@@ -269,7 +329,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
     }
     setPublished({ text: comment.trim(), date })
     setComment('')
-    setToast('Comentario publicado. La familia ya puede verlo.')
+    setToast('Listo, tu comentario ya está disponible para la familia.')
     setTimeout(() => setToast(null), 3000)
   }
 
@@ -425,30 +485,29 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             </Card>
 
             {/* Por área */}
+            {/* En demo se enseña la función con una distribución de ejemplo, no
+                con un párrafo diciendo qué se vería. Va marcada como tal. */}
             <Card>
-              <SectionLabel>Por área</SectionLabel>
-              {!isReal ? (
-                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-                  {p.localWeek
-                    ? 'El historial de este navegador guarda partidas, no áreas. La distribución por área aparece con una cuenta real.'
-                    : 'La distribución por área aparece con los datos reales de juego del paciente.'}
-                </p>
-              ) : porArea.loading ? (
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                <SectionLabel>Por área</SectionLabel>
+                {!isReal && <EjemploTag />}
+              </div>
+              {isReal && porArea.loading ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
-              ) : !porArea.hasTags ? (
+              ) : isReal && !porArea.hasTags ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
                   Aún estamos recogiendo datos por área. Cuando {firstName} juegue más y los juegos estén clasificados, verás aquí en qué áreas se apoya y cuáles evita.
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {porArea.distribution.map(a => (
+                  {(isReal ? porArea.distribution : EXAMPLE_AREAS).map(a => (
                     <div key={a.slug}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '5px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
                       </div>
-                      <div style={{ height: '8px', background: DT.arena, borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${a.pct}%`, background: DT.azul, borderRadius: '4px', transition: 'width 0.6s ease' }} />
+                      <div style={{ height: '8px', background: DT.arena, borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${a.pct}%`, background: DT.azul, borderRadius: '999px', transition: 'width 0.6s ease' }} />
                       </div>
                     </div>
                   ))}
@@ -477,48 +536,76 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
       </div>
 
       {/* ── Notas clínicas (privadas) ─────────────────────────────── */}
+      {/* Bloc de notas de verdad, con o sin cuenta: escribes, se guarda con su
+          fecha y se apila con las anteriores. */}
       <div id={panelId('notas')} role="tabpanel" aria-labelledby="tab-notas" hidden={section !== 'notas'}>
-        {isReal ? (
-          <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
-            <SectionLabel>Notas clínicas · privadas</SectionLabel>
-            <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <Lock size={15} weight="fill" color={DT.topo} /> Solo visible para ti. La familia no ve estas notas.
-            </p>
-            <textarea
-              value={clinicalNotes}
-              onChange={e => setClinicalNotes(e.target.value)}
-              placeholder="Historial, evolución y observaciones para tu propio registro."
-              rows={4}
+        <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
+          <SectionLabel>Notas clínicas · privadas</SectionLabel>
+          <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.5 }}>
+            Solo para ti. La familia no ve estas notas.
+          </p>
+          <textarea
+            value={draftNote}
+            onChange={e => setDraftNote(e.target.value)}
+            placeholder={`Qué observaste hoy de ${firstName}, para tu propio registro.`}
+            rows={4}
+            style={{
+              width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
+              border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink, fontSize: '14px',
+              fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={handleAddNote}
+              disabled={!draftNote.trim() || savingClinical || !notesLoaded}
               style={{
-                width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-                border: `1.5px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px',
-                fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                padding: '10px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostaza}`,
+                background: DT.cream, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+                cursor: !draftNote.trim() || savingClinical ? 'default' : 'pointer',
+                opacity: !draftNote.trim() || savingClinical || !notesLoaded ? 0.5 : 1,
               }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                onClick={handleSaveClinicalNotes}
-                disabled={savingClinical}
-                style={{
-                  padding: '10px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostaza}`,
-                  background: DT.white, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
-                  cursor: savingClinical ? 'default' : 'pointer', opacity: savingClinical ? 0.5 : 1,
-                }}
-              >
-                {savingClinical ? 'Guardando…' : 'Guardar notas'}
-              </button>
+            >
+              <Plus size={15} weight="regular" />
+              {savingClinical ? 'Guardando…' : 'Guardar nota'}
+            </button>
+          </div>
+
+          {/* Las notas guardadas. Cada una en crema sobre la tarjeta blanca,
+              para que se lean como fichas y no como otra card encima. */}
+          {notes.length > 0 && (
+            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <p style={{
+                margin: 0, fontSize: '11px', fontWeight: 800, letterSpacing: '0.06em',
+                textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+              }}>
+                {notes.length} {notes.length === 1 ? 'nota guardada' : 'notas guardadas'}
+              </p>
+              {notes.map(n => (
+                <div key={n.id} style={{
+                  background: DT.cream, border: `1px solid ${DT.line}`, borderRadius: DT.radiusSm,
+                  padding: '12px 14px',
+                }}>
+                  {noteDate(n.createdAt) && (
+                    <p style={{
+                      margin: '0 0 5px', fontSize: '11.5px', fontWeight: 800, color: DT.mostaza,
+                      fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
+                    }}>
+                      {noteDate(n.createdAt)}
+                    </p>
+                  )}
+                  <p style={{
+                    margin: 0, fontSize: '14px', color: DT.ink, fontFamily: DT.body,
+                    lineHeight: 1.6, whiteSpace: 'pre-wrap',
+                  }}>
+                    {n.text}
+                  </p>
+                </div>
+              ))}
             </div>
-          </Card>
-        ) : (
-          <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
-            <SectionLabel>Notas clínicas · privadas</SectionLabel>
-            <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-              <Lock size={16} weight="fill" color={DT.topo} style={{ flexShrink: 0, marginTop: '2px' }} />
-              Con una cuenta de logopeda escribes aquí tu registro de {firstName} y lo
-              guardas en tu cuenta. Solo lo ves tú: la familia nunca ve estas notas.
-            </p>
-          </Card>
-        )}
+          )}
+        </Card>
       </div>
 
       {/* ── Comentario para la familia ────────────────────────────── */}
@@ -528,15 +615,23 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
+            onKeyDown={e => {
+              // Enter publica, como en el composer del copiloto. Mayúsculas y
+              // Enter salta de línea.
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePublish() }
+            }}
             placeholder="Escribe aquí tu observación de la semana para la familia."
             rows={4}
             style={{
               width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-              border: `1.5px solid ${DT.line}`, background: DT.white, color: DT.ink, fontSize: '14px',
+              border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink, fontSize: '14px',
               fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
             }}
           />
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+              Enter publica. Mayúsculas y Enter para saltar de línea.
+            </span>
             <button
               onClick={handlePublish}
               disabled={!comment.trim()}
@@ -550,7 +645,11 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             </button>
           </div>
           {published && (
-            <div style={{ marginTop: '16px', borderLeft: `3px solid ${DT.azul}`, background: DT.cream, borderRadius: `0 ${DT.radiusSm} ${DT.radiusSm} 0`, padding: '12px 16px' }}>
+            <div style={{
+              marginTop: '16px', padding: '12px 16px', background: DT.cream,
+              border: `1px solid ${DT.line}`, borderLeft: `3px solid ${DT.azul}`,
+              borderRadius: `0 ${DT.radiusSm} ${DT.radiusSm} 0`,
+            }}>
               <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 800, color: DT.azul, fontFamily: DT.body }}>Publicado · {therapistDisplayName}</p>
               <p style={{ margin: 0, fontSize: '13px', color: DT.ink, fontFamily: DT.body, lineHeight: 1.6 }}>{published.text}</p>
             </div>
