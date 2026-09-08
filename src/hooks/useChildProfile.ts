@@ -79,29 +79,45 @@ function getToday(): string {
 //
 // Sin esto, quien entra por la puerta del logopeda abre a Pol y ve una carpeta
 // vacía. Se siembran 7 semanas con el mismo generador que usan las demás
-// carpetas del escritorio, con detalle por ejercicio (lugar y área), y lo que
-// el visitante juegue se apila encima: aquí no se pisa nada si ya hay historial.
+// carpetas del escritorio, con detalle por ejercicio (lugar y área).
+//
+// Lo que el visitante juega NUNCA se toca: se apila sobre la base y sobrevive a
+// cualquier resiembra. Lo único que se reemplaza es una base anterior que se
+// quedó sin ese detalle, para que "por área" no salga vacía en un navegador que
+// ya había entrado antes. Las partidas de la base se reconocen porque traen
+// minutos; las jugadas en vivo no los traen todavía.
+function isSeeded(s: SessionResult): boolean {
+  return s.minutes != null
+}
+
 export function seedDemoHistory(): void {
   try {
-    if (localStorage.getItem(HISTORY_KEY)) return
+    const stored = loadHistory()
+    const played = stored.filter(s => !isSeeded(s))
+    const baseIsCurrent = stored.some(s => (s.items?.length ?? 0) > 0)
+    if (stored.length > 0 && baseIsCurrent) return
 
-    const sessions = buildDemoHistory(DEMO_SEED_KEY, 7) as SessionResult[]
-    if (sessions.length === 0) return
+    const base = buildDemoHistory(DEMO_SEED_KEY, 7) as SessionResult[]
+    if (base.length === 0) return
+
+    const sessions = [...base, ...played].sort((a, b) => (a.date < b.date ? -1 : 1))
     saveHistory(sessions)
 
     // La racha del niño sale de su perfil, y la de la familia y el escritorio
     // del historial. Si no se alinean, el niño vería 0 días seguidos mientras
-    // las otras dos vistas cuentan varios. Solo se toca un perfil sin estrenar.
+    // las otras dos vistas cuentan varios.
     const profile = loadProfile()
-    if (profile && !profile.lastSessionDate) {
-      const played = new Set(sessions.map(s => s.date))
+    if (profile) {
+      const days = new Set(sessions.map(s => s.date))
       const cursor = new Date()
+      if (!days.has(localIso(cursor))) cursor.setDate(cursor.getDate() - 1)
       let streak = 0
-      while (played.has(localIso(cursor))) {
+      while (days.has(localIso(cursor))) {
         streak++
         cursor.setDate(cursor.getDate() - 1)
       }
-      saveProfile({ ...profile, streak, lastSessionDate: localIso(new Date()) })
+      const last = sessions[sessions.length - 1]?.date ?? null
+      saveProfile({ ...profile, streak, lastSessionDate: last })
     }
   } catch { /* ignore */ }
 }
