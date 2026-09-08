@@ -10,8 +10,8 @@
 //   - lo único que sigue siendo mockup es el pulido con el copiloto, que es
 //     opcional y no bloquea nada.
 
-import { useEffect, useMemo, useState } from 'react'
-import { Printer, Copy, FloppyDisk, Sparkle } from '@phosphor-icons/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Printer, Copy, FloppyDisk, Sparkle, Check } from '@phosphor-icons/react'
 import { loadHistory } from '../../../hooks/useChildProfile'
 import { DT } from './deskTokens'
 import { Card, SectionLabel } from './deskUI'
@@ -85,31 +85,49 @@ function Chip({ on, children, onClick }: { on: boolean; children: React.ReactNod
   )
 }
 
-function ActionButton({ Icon, label, onClick, primary, disabled }: {
+// Acción del informe. Van las cuatro juntas arriba del documento, como los
+// botones de copiar de un bloque de código: icono, nombre y confirmación en el
+// mismo sitio, para que se vea sobre qué actúan.
+function DocAction({ Icon, label, done, onRun, primary }: {
   Icon: typeof Printer
   label: string
-  onClick: () => void
+  done?: string
+  onRun: () => void | Promise<void>
   primary?: boolean
-  disabled?: boolean
 }) {
+  const [flash, setFlash] = useState(false)
+  const timer = useRef<number | null>(null)
+
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  async function run() {
+    await onRun()
+    if (!done) return
+    setFlash(true)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => setFlash(false), 1600)
+  }
+
   return (
     <button
       type="button"
-      onClick={onClick}
-      disabled={disabled}
+      onClick={run}
+      aria-label={label}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        padding: '11px 18px', borderRadius: DT.radiusSm,
+        display: 'inline-flex', alignItems: 'center', gap: '7px',
+        height: '36px', padding: '0 13px', borderRadius: DT.radiusSm,
         border: primary ? 'none' : `1px solid ${DT.line}`,
-        background: primary ? DT.yellow : DT.cream,
-        color: DT.ink, fontSize: '13.5px', fontWeight: 700, fontFamily: DT.body,
-        cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.55 : 1,
+        background: flash ? DT.azulTint : primary ? DT.yellow : DT.cream,
+        color: DT.ink, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+        cursor: 'pointer', whiteSpace: 'nowrap',
       }}
     >
-      <Icon size={16} weight="regular" /> {label}
+      {flash ? <Check size={16} weight="regular" /> : <Icon size={16} weight="regular" />}
+      {flash ? done : label}
     </button>
   )
 }
+
 
 interface Props {
   childName: string          // nombre de pila, para el texto
@@ -200,6 +218,9 @@ export default function Informe({
   const signature = `${therapistName} · ${longDate(new Date())}`
 
   async function handleSave() {
+    // Antes de que termine de cargar lo guardado, guardar escribiría el
+    // borrador derivado encima del comentario que ya había.
+    if (!loaded || saving) return
     setSaving(true)
     const res = await saveInforme(isReal, storeId, {
       periodId, from: range.from, to: range.to, version, comment,
@@ -224,8 +245,14 @@ export default function Informe({
   // Enganche opcional con el copiloto. Sigue siendo un mockup y no bloquea
   // nada: el informe ya está redactado sin él.
   function handleAskDracs() {
+    // Le pasamos las líneas ya derivadas del período abierto: el copiloto no
+    // tiene acceso a este paciente, así que sin esto hablaría de memoria.
+    const summary = blocks
+      .flatMap(b => b.lines)
+      .filter(l => !/^\d/.test(l))
+      .slice(0, 3)
     window.dispatchEvent(new CustomEvent('dracs-copilot-open', {
-      detail: { intent: 'redacta', childName },
+      detail: { intent: 'redacta', childName, summary },
     }))
   }
 
@@ -278,8 +305,7 @@ export default function Informe({
       <Card className="no-print">
         <SectionLabel>Tu comentario</SectionLabel>
         <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-          El borrador cuenta lo que pasó, sin valorarlo. La valoración es tuya:
-          escríbela con tus palabras, que es lo que firmas.
+          Ajústalo con tus palabras.
         </p>
         <textarea
           value={comment}
@@ -292,36 +318,22 @@ export default function Informe({
             fontFamily: DT.body, resize: 'vertical', maxHeight: '320px', outline: 'none', lineHeight: 1.6,
           }}
         />
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '14px' }}>
-          <ActionButton
-            Icon={Sparkle}
-            label="Pídele a Dracs que lo redacte"
-            onClick={handleAskDracs}
-          />
-          <ActionButton
-            Icon={FloppyDisk}
-            label={saving ? 'Guardando…' : 'Guardar informe'}
-            onClick={handleSave}
-            disabled={!loaded || saving}
-          />
-        </div>
-        {savedAt && (
-          <p style={{ margin: '10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-            Guardado el {longDate(new Date(savedAt))}.
-          </p>
-        )}
       </Card>
-
-      {/* ── Exportar ────────────────────────────────────────────── */}
-      <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        <ActionButton Icon={Printer} label="Imprimir o guardar como PDF" onClick={() => window.print()} primary />
-        <ActionButton Icon={Copy} label="Copiar texto" onClick={handleCopy} />
-      </div>
 
       {/* ── El documento ────────────────────────────────────────── */}
       {/* Esto es lo que se imprime y lo que se copia: encabezado del niño,
-          cuerpo desde los datos, comentario firmado y el aviso al pie. */}
+          cuerpo desde los datos, comentario firmado y el aviso al pie. Las
+          cuatro acciones viven aquí arriba, sobre el documento al que aplican. */}
       <Card className="inf-doc">
+        <div className="no-print" style={{
+          display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '14px',
+        }}>
+          <DocAction Icon={Sparkle} label="Redactar con Dracs" done="Se lo pedí" onRun={handleAskDracs} />
+          <DocAction Icon={Copy} label="Copiar" done="Copiado" onRun={handleCopy} />
+          <DocAction Icon={Printer} label="Imprimir" onRun={() => window.print()} />
+          <DocAction Icon={FloppyDisk} label={saving ? 'Guardando…' : 'Guardar'} done="Guardado" onRun={handleSave} primary />
+        </div>
+
         <header style={{ borderBottom: `1px solid ${DT.line}`, paddingBottom: '14px', marginBottom: '18px' }}>
           <p style={{
             margin: 0, fontSize: '20px', fontWeight: 700, color: DT.ink,
@@ -405,6 +417,11 @@ export default function Informe({
           <p style={{ margin: '10px 0 0', fontSize: '11px', fontWeight: 600, lineHeight: 1.5, color: DT.faint, fontFamily: DT.body }}>
             {LEGAL}
           </p>
+          {savedAt && (
+            <p className="no-print" style={{ margin: '10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+              Guardado el {longDate(new Date(savedAt))}.
+            </p>
+          )}
         </footer>
       </Card>
     </div>

@@ -27,8 +27,13 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import { DEMO_CHILD_NAME } from '../../../lib/demo'
+import { loadHistory } from '../../../hooks/useChildProfile'
 import { DT } from '../desk/deskTokens'
-import { ANSWERS, FALLBACK, GREETING, normalize, route, type AnswerGroup, type CopilotAnswer } from './copilotData'
+import { fromLocalHistory, rangeFor, statsFor } from '../desk/informeData'
+import {
+  ANSWERS, FALLBACK, GREETING, NO_OFFER, REPEATED, isAffirmative, normalize, route,
+  type AnswerGroup, type CopilotAnswer,
+} from './copilotData'
 
 const ONLINE = '#10B981'          // mismo verde de "en línea" que usa la familia
 const FAVICON = '/brand/dracs-favicon-cut.png'
@@ -247,7 +252,6 @@ function DistBars({ dist }: { dist: [string, number][] }) {
 // ── Tarjeta de borrador: el terapeuta lo revisa y lo firma ───────────────────
 function DraftCard({ text }: { text: string }) {
   const [useDone, setUseDone] = useState(false)
-  const [editDone, setEditDone] = useState(false)
   return (
     <div style={{
       position: 'relative', marginTop: '13px', padding: '14px 15px 15px 17px',
@@ -272,6 +276,8 @@ function DraftCard({ text }: { text: string }) {
       }}>
         {text}
       </p>
+      {/* Una sola acción. Antes había "Usar borrador" y "Editar", y las dos
+          contestaban lo mismo: dos botones para el mismo callejón. */}
       <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
         <button
           type="button"
@@ -286,20 +292,6 @@ function DraftCard({ text }: { text: string }) {
         >
           {useDone && <CheckCircle size={15} weight="regular" />}
           {useDone ? INERT_FEEDBACK : 'Usar borrador'}
-        </button>
-        <button
-          type="button"
-          className="dc-btn"
-          onClick={() => setEditDone(true)}
-          style={{
-            height: '38px', padding: '0 15px', borderRadius: R_CHIP,
-            border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink,
-            fontSize: '13.5px', fontWeight: 700, fontFamily: DT.display, cursor: 'pointer',
-            display: 'inline-flex', alignItems: 'center', gap: '7px',
-          }}
-        >
-          {editDone && <CheckCircle size={15} weight="regular" />}
-          {editDone ? INERT_FEEDBACK : 'Editar'}
         </button>
       </div>
     </div>
@@ -469,6 +461,47 @@ function Suggestion({ answer, disabled, nowrap, onPick }: {
   )
 }
 
+// ── Borrador de informe, armado con las partidas del niño ────────────────────
+// Las líneas llegan hechas desde la sección Informe cuando el botón sale de
+// ahí (que es quien tiene los datos reales del paciente abierto). Si el
+// terapeuta lo pide escribiendo, se arma con el historial del niño de la demo.
+// Sin partidas detrás no se inventa un borrador: se dice que no las hay.
+//
+// Ninguna línea empieza por una cifra: MessageBody lee "12 ..." como ítem
+// numerado y la partiría en dos.
+function informeLinesFor(name: string): string[] {
+  if (normalize(name) !== normalize(DEMO_CHILD_NAME)) return []
+  const stats = statsFor(fromLocalHistory(loadHistory()), rangeFor('cuatro'))
+  if (!stats.hasData) return []
+  const lines = [
+    `Jugó ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} de las últimas 4 semanas.`,
+  ]
+  if (stats.accuracy != null) lines.push(`Sus aciertos del período están en ${stats.accuracy}%.`)
+  if (stats.firstHalf != null && stats.secondHalf != null) {
+    lines.push(`Primera mitad del período ${stats.firstHalf}%, segunda mitad ${stats.secondHalf}%.`)
+  }
+  return lines
+}
+
+function informeAnswer(rawName: string | undefined, given?: string[]): CopilotAnswer {
+  const name = (rawName ?? '').trim() || DEMO_CHILD_NAME
+  const lines = given && given.length > 0 ? given : informeLinesFor(name)
+
+  if (lines.length === 0) {
+    return {
+      id: 'informe', chip: '', keys: [],
+      text: `No tengo partidas de ${name} en Dracs, así que no puedo armarte el borrador. El informe vive en la sección Informe de su carpeta.`,
+    }
+  }
+
+  const numbered = lines.map((l, i) => `${i + 1}.  ${l}`).join('\n')
+  return {
+    id: 'informe', chip: '', keys: [],
+    text: `Borrador para ${name}:\n\n${numbered}\n\nLo tienes completo en la sección Informe de su carpeta.`,
+    src: 'Según sus partidas de las últimas 4 semanas.',
+  }
+}
+
 // ── Acción de vista previa: dice qué es, y que todavía no está ───────────────
 // Inerte de verdad: al pulsar no pasa nada. Solo al pasar el cursor o al
 // enfocar con teclado sale el nombre de la función y un candado pequeño. Antes
@@ -554,6 +587,10 @@ export default function DracsCopilot() {
   const launcherRef = useRef<HTMLButtonElement>(null)
   const fullRef = useRef<HTMLDivElement>(null)
   const wasOpen = useRef(false)
+  // Lo último que dijo Dracs y la acción que dejó ofrecida, para no repetirse
+  // palabra por palabra y para poder cumplir un "sí".
+  const lastSaid = useRef(GREETING)
+  const offered = useRef<string | null>(null)
 
   useEffect(() => () => { timers.current.forEach(clearTimeout) }, [])
 
@@ -615,9 +652,15 @@ export default function DracsCopilot() {
 
   // Entrega una respuesta CONCRETA para un texto de usuario dado. `send` la usa
   // con lo que devuelve route(); el enganche de "Tu día" la usa directamente.
-  const deliver = useCallback((raw: string, answer: CopilotAnswer) => {
+  const deliver = useCallback((raw: string, incoming: CopilotAnswer) => {
     const text = raw.trim()
     if (!text || busy) return
+
+    // Nunca la misma respuesta dos veces seguidas: si toca repetir, se dice que
+    // ya está arriba en vez de soltar el mismo párrafo otra vez.
+    const answer = incoming.text === lastSaid.current ? REPEATED : incoming
+    lastSaid.current = answer.text
+    offered.current = answer.offers ?? null
 
     setMessages(prev => [
       ...prev,
@@ -665,7 +708,19 @@ export default function DracsCopilot() {
   }, [busy, reduced])
 
   const send = useCallback((raw: string) => {
-    deliver(raw, route(raw))
+    const text = raw.trim()
+    if (!text) return
+
+    // "sí", "dale", "ok": se ejecuta lo que Dracs dejó ofrecido. Si no había
+    // nada ofrecido, se pregunta corto en vez de repetir la respuesta anterior.
+    if (isAffirmative(text)) {
+      const pending = offered.current ? ANSWERS.find(a => a.id === offered.current) : null
+      deliver(text, pending ?? NO_OFFER)
+      return
+    }
+
+    const routed = route(text)
+    deliver(text, routed.id === 'informe' ? informeAnswer(undefined) : routed)
   }, [deliver])
 
   // Enganches del escritorio: "Tu día" pide preparar una sesión, y el informe de
@@ -673,20 +728,28 @@ export default function DracsCopilot() {
   // niño, se responde el límite honesto en vez de contar lo de otro paciente.
   useEffect(() => {
     const onAsk = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { intent?: string; childName?: string } | null
+      const detail = (e as CustomEvent).detail as
+        { intent?: string; childName?: string; summary?: string[] } | null
       const intent = detail?.intent
       if (intent !== 'prep' && intent !== 'redacta') return
       const child = (detail?.childName ?? '').trim()
-      const answer = ANSWERS.find(a => a.id === intent)
+      const answer = ANSWERS.find(a => a.id === 'prep')
       if (!answer) return
-      const covered = child !== '' && normalize(answer.text + ' ' + (answer.draft ?? '')).includes(normalize(child))
-      const ask = child
-        ? intent === 'prep'
-          ? `Prepárame la sesión de ${child}`
-          : `Redacta el informe de ${child}`
-        : answer.chip
       setView(v => v === 'min' ? 'panel' : v)
-      deliver(ask, covered ? answer : FALLBACK)
+
+      // El informe se arma con los datos que manda la carpeta abierta: son los
+      // del paciente real, no los del guion.
+      if (intent === 'redacta') {
+        const lines = Array.isArray(detail?.summary) ? detail!.summary : undefined
+        deliver(
+          child ? `Redacta el informe de ${child}` : 'Redacta el informe',
+          informeAnswer(child, lines),
+        )
+        return
+      }
+
+      const covered = child !== '' && normalize(answer.text).includes(normalize(child))
+      deliver(child ? `Prepárame la sesión de ${child}` : answer.chip, covered ? answer : FALLBACK)
     }
     window.addEventListener('dracs-copilot-open', onAsk)
     return () => window.removeEventListener('dracs-copilot-open', onAsk)

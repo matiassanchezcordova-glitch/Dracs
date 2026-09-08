@@ -31,6 +31,10 @@ export interface CopilotAnswer {
   groups?: AnswerGroup[]
   dist?: [string, number][]
   draft?: string
+  // Acción que esta respuesta deja ofrecida. Si el terapeuta contesta "sí", se
+  // ejecuta. Regla: solo se pregunta lo que se puede cumplir, así que este
+  // campo apunta siempre a una respuesta que existe.
+  offers?: string
 }
 
 export const ANSWERS: CopilotAnswer[] = [
@@ -48,17 +52,51 @@ export const ANSWERS: CopilotAnswer[] = [
     dist: [['Lenguaje receptivo',46],['Atención',22],['Cognición',18],['Motricidad fina',14]],
     src: "Según 12 partidas de Pol." },
   { id: 'redacta', chip: 'Redacta el comentario para la familia de Mateo',
-    keys: ['redacta','comentario','familia','informe','escrib','mensaje','carta'],
+    keys: ['redacta','comentario','familia','escrib','mensaje','carta'],
     text: "Te dejo un borrador con lo que pasó esta semana, sin afirmar mejoras:",
     draft: "Esta semana Mateo jugó tres veces por su cuenta, siempre en el mar. Le costó uno de los juegos de ordenar y lo repitió varias veces, que es justo lo que queremos: que insista. La semana que viene le propongo empezar por ahí. Gracias por acompañarlo en casa." },
+  { id: 'informe', chip: 'Redacta el informe de Pol',
+    keys: ['informe','redacta el informe','informe de','reporte'],
+    // El cuerpo se arma en caliente con las partidas del niño: este texto es
+    // solo el respaldo si no hay datos detrás.
+    text: "Para armarte el borrador necesito partidas suyas en Dracs, y todavía no hay ninguna. En cuanto juegue en casa, lo tienes en la sección Informe de su carpeta.",
+  },
   { id: 'prep', chip: 'Prepárame la sesión de las 17:30',
     keys: ['prepar','sesion','17:30','briefing','proxima','mateo hoy'],
     text: "Mateo, hoy 17:30. Tres cosas cambiaron desde que lo viste:\n\n1.  Jugó 3 veces solo, siempre en el mar.\n2.  Se atascó en \"ordena la escena\" (2 de 5, lo repitió 3 veces).\n3.  No tocó los juegos de casa que fijaste.\n\nPunto de partida cómodo: el mar. Punto a mirar con la familia: por qué lo de casa no arrancó." },
 ]
 
+// Límite honesto: dice qué sabe hacer y NO pregunta nada. Antes remataba con
+// "¿Empezamos por la sesión de Mateo?" y, al contestar que sí, repetía el mismo
+// texto: una pregunta que no se podía cumplir.
 export const FALLBACK: CopilotAnswer = {
   id: 'fallback', chip: '', keys: [],
-  text: "Por ahora trabajo solo con lo que los niños jugaron en Dracs, así que puedo contarte quién jugó, en qué áreas se apoyó cada uno, prepararte una sesión o redactar un borrador para la familia. ¿Empezamos por la sesión de Mateo?",
+  text: "Trabajo con lo que los niños jugaron en Dracs: quién jugó y quién no, en qué áreas se apoya cada uno, preparar una sesión o redactar un borrador.",
+}
+
+// El terapeuta dice que sí a algo que nadie ofreció.
+export const NO_OFFER: CopilotAnswer = {
+  id: 'no_offer', chip: '', keys: [],
+  text: "Dime qué hago y voy.",
+}
+
+// La misma respuesta dos veces seguidas no se repite palabra por palabra.
+export const REPEATED: CopilotAnswer = {
+  id: 'repeated', chip: '', keys: [],
+  text: "Eso es justo lo que te acabo de contar, lo tienes aquí arriba.",
+}
+
+// "sí", "dale", "ok" y compañía. Corto y sin más texto alrededor: si el
+// terapeuta escribe una frase, se enruta por palabras clave como siempre.
+const AFFIRMATIVE = new Set([
+  'si', 'sip', 'claro', 'ok', 'oka', 'okey', 'vale', 'dale', 'venga', 'genial',
+  'perfecto', 'adelante', 'hazlo', 'porfa', 'bien', 'eso', 'exacto', 'correcto',
+])
+
+export function isAffirmative(text: string): boolean {
+  const words = normalize(text).replace(/[^a-z\s]/g, ' ').trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0 || words.length > 3) return false
+  return words.every(w => AFFIRMATIVE.has(w) || w === 'por' || w === 'favor' || w === 'gracias')
 }
 
 // Minúsculas y sin acentos, para que "sesión" y "sesion" enruten igual.

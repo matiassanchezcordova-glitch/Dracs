@@ -88,17 +88,20 @@ export function buildDemoChildPatient(history: SessionResult[]): Patient {
     weeklyProgress.push({ week: `Sem ${4 - w}`, score: accuracyOf(inWeek) ?? 0 })
   }
 
-  // El historial local no registra duración: va en 0 y la carpeta lo pinta "—".
+  // La duración solo la traen las partidas de la base demo. Sin ella va 0 y la
+  // carpeta lo pinta "—": nunca se estima un tiempo que no se midió.
   const recentSessions: RecentSession[] = sortedDesc.slice(0, 5).map(s => ({
     date: formatDay(s.date),
-    duration: 0,
+    duration: s.minutes ?? 0,
     exercises: s.total,
     accuracy: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
   }))
 
+  const weekMinutes = thisWeek.filter(s => s.minutes != null)
+
   const localWeek: LocalWeek = {
     sessions: thisWeek.length,
-    minutes: null,
+    minutes: weekMinutes.length > 0 ? weekMinutes.reduce((a, s) => a + (s.minutes ?? 0), 0) : null,
     exercises: thisWeek.reduce((a, s) => a + s.total, 0),
     accuracy: accuracyOf(thisWeek),
     prevAccuracy: accuracyOf(prevWeek),

@@ -72,9 +72,8 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
 }
 
 export default function AjusteDificultad({
-  childName, isReal, storeId, userId, initial, onLevel,
+  isReal, storeId, userId, initial, onLevel,
 }: {
-  childName: string
   isReal: boolean
   storeId: string
   userId?: string
@@ -132,8 +131,7 @@ export default function AjusteDificultad({
         </h3>
       </div>
       <p style={{ margin: '0 0 18px', fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-        El rango de nivel con el que trabajas con {childName}. Súbelo si se le queda
-        corto, bájalo si se atasca.
+        Súbelo si se le queda corto, bájalo si se atasca.
       </p>
 
       <SectionLabel>Nivel del 1 al 5</SectionLabel>
@@ -188,8 +186,8 @@ export default function AjusteDificultad({
         margin: '14px 0 0', fontSize: '12px', fontWeight: 600, lineHeight: 1.5,
         color: DT.faint, fontFamily: DT.body,
       }}>
-        Queda guardado como el nivel de {childName}: es el que ves arriba y el que
-        ve la familia. Todavía no elige por sí solo los juegos de su sesión.
+        Es el nivel que ves arriba y el que ve la familia. Todavía no elige por sí
+        solo los juegos de su sesión.
       </p>
     </Card>
   )

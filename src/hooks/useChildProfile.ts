@@ -19,6 +19,10 @@ export interface SessionResult {
   // guardadas antes de registrarlo no lo tienen, y el recorrido de la familia
   // degrada con gracia cuando falta.
   place?: string
+  // Minutos de la partida. Opcional: el juego en vivo todavía no cronometra,
+  // así que solo lo traen las partidas de la base demo. Sin este dato, las
+  // vistas muestran "—" en vez de estimar.
+  minutes?: number
 }
 
 const PROFILE_KEY = 'dracs_child_profile'
@@ -64,50 +68,107 @@ function getToday(): string {
   return localIso(new Date())
 }
 
-// Siembra la cuenta demo/invitado con partidas de ejemplo de ESTA semana, para
-// que el dashboard y el informe muestren datos reales y coincidan entre sí.
-// No pisa un historial ya existente (si el niño demo ya jugó, se respeta).
+// Lunes 00:00 de la semana de `d`.
+function mondayOf(d: Date): Date {
+  const dow = d.getDay()
+  const m = new Date(d)
+  m.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1))
+  m.setHours(0, 0, 0, 0)
+  return m
+}
+
+// La base de la demo: 4 semanas de partidas para el niño del showroom.
+//
+// Sin esto, quien entra por la puerta del logopeda abre a Pol y ve una carpeta
+// vacía. Estas partidas son el PISO de la demo, igual que las carpetas de
+// ejemplo del escritorio: lo que el visitante juegue se apila encima, porque
+// `completeSession` añade al historial y aquí no se pisa nada si ya hay algo.
+//
+// Reparto: 4 días por semana (lunes, miércoles, viernes y domingo) durante 4
+// semanas, más hoy y ayer para que la racha esté viva. `place` son ids de
+// hotspot (map_hotspots.id), no `exercises.place`: pulpo es el mar, castillo la
+// playa, sol el cielo y casa la casa. Los aciertos van entre 60% y 90%, que es
+// el rango en el que un juego se siente exigente sin frustrar.
+const DEMO_PLAN = [
+  { total: 7, correct: 5, minutes: 14, place: 'pulpo' },
+  { total: 6, correct: 5, minutes: 11, place: 'casa' },
+  { total: 8, correct: 6, minutes: 18, place: 'castillo' },
+  { total: 5, correct: 4, minutes: 9, place: 'sol' },
+  { total: 7, correct: 6, minutes: 16, place: 'pulpo' },
+  { total: 6, correct: 4, minutes: 12, place: 'casa' },
+  { total: 9, correct: 7, minutes: 21, place: 'castillo' },
+  { total: 5, correct: 3, minutes: 8, place: 'faro' },
+  { total: 8, correct: 7, minutes: 19, place: 'pulpo' },
+  { total: 7, correct: 5, minutes: 13, place: 'sol' },
+  { total: 6, correct: 5, minutes: 15, place: 'casa' },
+  { total: 8, correct: 6, minutes: 17, place: 'castillo' },
+  { total: 7, correct: 6, minutes: 12, place: 'pulpo' },
+  { total: 6, correct: 4, minutes: 10, place: 'casa' },
+  { total: 9, correct: 8, minutes: 22, place: 'sol' },
+  { total: 7, correct: 5, minutes: 14, place: 'castillo' },
+  { total: 6, correct: 5, minutes: 13, place: 'pulpo' },
+  { total: 5, correct: 4, minutes: 9, place: 'casa' },
+]
+
 export function seedDemoHistory(): void {
   try {
     if (localStorage.getItem(HISTORY_KEY)) return
+
     const today = new Date()
-    const dow = today.getDay()
-    const monday = new Date(today)
-    monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1))
-    // Días transcurridos de ESTA semana (lunes → hoy).
-    const dates: string[] = []
-    for (let i = 0; ; i++) {
-      const d = new Date(monday)
-      d.setDate(monday.getDate() + i)
-      if (d > today) break
-      dates.push(localIso(d))
+    today.setHours(0, 0, 0, 0)
+    const monday = mondayOf(today)
+
+    const days: string[] = []
+    for (let w = 3; w >= 0; w--) {
+      const weekStart = new Date(monday)
+      weekStart.setDate(monday.getDate() - w * 7)
+      for (const offset of [0, 2, 4, 6]) {
+        const d = new Date(weekStart)
+        d.setDate(weekStart.getDate() + offset)
+        if (d > today) continue
+        days.push(localIso(d))
+      }
     }
-    if (dates.length === 0) return
-    // 5 partidas realistas repartidas hacia atrás desde HOY (round-robin sobre
-    // los días disponibles, del más reciente al más antiguo). Repartir desde hoy
-    // —y no desde el lunes— garantiza que la racha que deriva el dashboard sea
-    // coherente con las sesiones de la semana: si sembráramos lunes→viernes, un
-    // domingo el dashboard mostraría "5 sesiones" junto a "racha 0".
-    // `place` es el id del hotspot (map_hotspots.id), no el `exercises.place`.
-    // Se siembran 3 de los 5 lugares para que el recorrido muestre sellos
-    // encendidos y sellos pendientes: una colección empezada invita a volver,
-    // una completa no.
-    const plan = [
-      { total: 7, correct: 6, place: 'pulpo' },
-      { total: 6, correct: 4, place: 'casa' },
-      { total: 7, correct: 6, place: 'pulpo' },
-      { total: 5, correct: 5, place: 'castillo' },
-      { total: 7, correct: 5, place: 'casa' },
-    ]
-    const sessions: SessionResult[] = plan.map((p, i) => ({
-      date: dates[dates.length - 1 - (i % dates.length)],
-      total: p.total,
-      correct: p.correct,
-      level: 2,
-      place: p.place,
-    }))
-    sessions.sort((a, b) => (a.date < b.date ? -1 : 1))
+
+    // Hoy y ayer siempre tienen partida: la racha de la familia y el "jugó esta
+    // semana" del escritorio se apoyan en eso.
+    const yesterday = new Date(today)
+    yesterday.setDate(today.getDate() - 1)
+    for (const d of [yesterday, today]) {
+      const iso = localIso(d)
+      if (!days.includes(iso)) days.push(iso)
+    }
+    if (days.length === 0) return
+
+    // Un lunes por la mañana la semana en curso solo tendría una partida y el
+    // escritorio se vería vacío justo al entrar. Se completa hasta 3 partidas en
+    // la semana, apilando en hoy: dos ratos el mismo día es lo que pasa de
+    // verdad con un niño de 6 años.
+    const weekKey = localIso(monday)
+    const todayKey = localIso(today)
+    while (days.filter(d => d >= weekKey).length < 3) days.push(todayKey)
+
+    days.sort()
+    const sessions: SessionResult[] = days.map((date, i) => {
+      const shape = DEMO_PLAN[i % DEMO_PLAN.length]
+      return { date, total: shape.total, correct: shape.correct, level: 2, place: shape.place, minutes: shape.minutes }
+    })
     saveHistory(sessions)
+
+    // La racha del niño sale del perfil, y la de la familia y el escritorio del
+    // historial. Si no se alinean aquí, el niño vería 0 días seguidos mientras
+    // las otras dos vistas cuentan varios. Solo se toca un perfil sin estrenar.
+    const profile = loadProfile()
+    if (profile && !profile.lastSessionDate) {
+      const played = new Set(days)
+      const cursor = new Date(today)
+      let streak = 0
+      while (played.has(localIso(cursor))) {
+        streak++
+        cursor.setDate(cursor.getDate() - 1)
+      }
+      saveProfile({ ...profile, streak, lastSessionDate: todayKey })
+    }
   } catch { /* ignore */ }
 }
 

@@ -9,6 +9,7 @@
 
 import type { Role } from '../components/RoleSelector'
 import { ageToLevel } from '../data/exercises'
+import { seedDemoHistory } from '../hooks/useChildProfile'
 import { clearAllDracsStorage } from './role'
 
 // Identidad fija del niño del showroom. Nunca se le pide el nombre a nadie.
@@ -18,18 +19,23 @@ export const DEMO_CHILD_AGE = 6
 
 const PROFILE_KEY = 'dracs_child_profile'
 
-// Crea el niño demo una sola vez. Nunca pisa un perfil existente: si el
-// visitante ya jugó, su racha y su nivel adaptado se respetan.
+// Crea el niño demo una sola vez, con su base de partidas. Nunca pisa lo que
+// ya hay: si el visitante ya jugó, su racha, su nivel y su historial se
+// respetan, y lo jugado se apila sobre la base en vez de reemplazarla.
 export function ensureDemoChild(): void {
   try {
-    if (localStorage.getItem(PROFILE_KEY)) return
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({
-      name: DEMO_CHILD_NAME,
-      age: DEMO_CHILD_AGE,
-      level: ageToLevel(DEMO_CHILD_AGE),
-      streak: 0,
-      lastSessionDate: null,
-    }))
+    if (!localStorage.getItem(PROFILE_KEY)) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify({
+        name: DEMO_CHILD_NAME,
+        age: DEMO_CHILD_AGE,
+        level: ageToLevel(DEMO_CHILD_AGE),
+        streak: 0,
+        lastSessionDate: null,
+      }))
+    }
+    // Va fuera del if del perfil: un navegador que ya entró antes de que
+    // existiera la base también la recibe.
+    seedDemoHistory()
   } catch { /* localStorage bloqueado: la app sigue, sin persistencia */ }
 }
 

@@ -430,7 +430,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                 Evolución · % de aciertos por semana
               </p>
               <p style={{ margin: '0 0 8px', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-                Últimas 4 semanas. La última columna es la semana en curso, el mismo número que “aciertos”, arriba.
+                La última columna es la semana en curso, el mismo número que “aciertos”.
               </p>
               {chartHasData ? (
                 <ResponsiveContainer width="100%" height={170}>
@@ -499,7 +499,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
               ) : isReal && !porArea.hasTags ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-                  Aún estamos recogiendo datos por área. Cuando {firstName} juegue más y los juegos estén clasificados, verás aquí en qué áreas se apoya y cuáles evita.
+                  Todavía no hay juegos suyos clasificados por área. Aparece en cuanto los haya.
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -528,7 +528,6 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <EnfocarMundo childName={firstName} isReal={isReal} storeId={(isReal ? supabasePatientId : p.id) as string} />
           <AjusteDificultad
-            childName={firstName}
             isReal={isReal}
             storeId={(isReal ? supabasePatientId : p.id) as string}
             userId={user?.id}
@@ -545,7 +544,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
         <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
           <SectionLabel>Notas clínicas · privadas</SectionLabel>
           <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.5 }}>
-            Solo para ti. La familia no ve estas notas.
+            Solo para ti, la familia no las ve.
           </p>
           <textarea
             value={draftNote}

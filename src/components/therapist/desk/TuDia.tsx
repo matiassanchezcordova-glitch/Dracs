@@ -378,9 +378,8 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
           background: DT.cream, border: `1px solid ${DT.line}`,
           fontSize: '13px', fontWeight: 600, lineHeight: 1.55, color: DT.muted, fontFamily: DT.body,
         }}>
-          Dracs va a leer tu calendario (Google o Outlook) para ordenarte el día y
-          poner cada briefing antes de su cita. No cambia tu agenda: solo añade las
-          videollamadas que tú crees.
+          Dracs leerá tu calendario para poner cada briefing antes de su cita. No
+          toca tus citas: solo añade las videollamadas que tú crees.
         </p>
       )}
 

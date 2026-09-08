@@ -164,10 +164,18 @@ export function fromDbSessions(rows: DbLike[]): InformeSession[] {
     .filter((s): s is InformeSession => s !== null)
 }
 
-// El historial del navegador guarda fecha, total y aciertos. No guarda duración,
-// así que el informe de la demo no habla de minutos en vez de inventarlos.
-export function fromLocalHistory(rows: { date: string; total: number; correct: number }[]): InformeSession[] {
+// El historial del navegador guarda fecha, total, aciertos y, en las partidas
+// de la base demo, los minutos. Las partidas jugadas en vivo no traen duración
+// todavía: van sin minutos y el informe no habla de tiempo por ellas.
+export function fromLocalHistory(
+  rows: { date: string; total: number; correct: number; minutes?: number }[],
+): InformeSession[] {
   return rows
     .filter(s => typeof s.date === 'string' && s.date.length >= 10)
-    .map(s => ({ day: s.date.slice(0, 10), exercises: s.total, correct: s.correct, minutes: null }))
+    .map(s => ({
+      day: s.date.slice(0, 10),
+      exercises: s.total,
+      correct: s.correct,
+      minutes: s.minutes ?? null,
+    }))
 }

@@ -95,7 +95,7 @@ export default function EnfocarMundo({
         </h3>
       </div>
       <p style={{ margin: '0 0 18px', fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-        Elige las áreas a priorizar y, si quieres, deja una nota de contexto.
+        Elige áreas y, si quieres, deja una nota.
       </p>
 
       {/* Áreas de foco */}
@@ -141,7 +141,7 @@ export default function EnfocarMundo({
       <SectionLabel>Juegos sugeridos</SectionLabel>
       {areas.length === 0 ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-          Elige una o más áreas arriba para ver juegos sugeridos para {childName}.
+          Elige un área arriba y aparecen los juegos.
         </p>
       ) : recLoading ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Buscando juegos…</p>
