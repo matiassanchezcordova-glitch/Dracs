@@ -22,7 +22,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
-  Lock, PaperPlaneTilt, X, FileText, CheckCircle, Lightbulb, ArrowsOut, ArrowsIn,
+  Lock, PaperPlaneTilt, X, FileText, CheckCircle, Copy, Lightbulb, ArrowsOut, ArrowsIn,
   Paperclip, Microphone, Waveform, UserCircle, ChartBar, UsersThree, CalendarBlank,
   type Icon,
 } from '@phosphor-icons/react'
@@ -37,7 +37,6 @@ import {
 
 const ONLINE = '#10B981'          // mismo verde de "en línea" que usa la familia
 const FAVICON = '/brand/dracs-favicon-cut.png'
-const INERT_FEEDBACK = 'Llega muy pronto'
 
 // Radios del sistema: tarjetas 20, panel 26, chips e inputs 13.
 const R_CARD = '20px'
@@ -251,7 +250,15 @@ function DistBars({ dist }: { dist: [string, number][] }) {
 
 // ── Tarjeta de borrador: el terapeuta lo revisa y lo firma ───────────────────
 function DraftCard({ text }: { text: string }) {
-  const [useDone, setUseDone] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch { /* el navegador no dejó copiar: el texto está a la vista */ }
+  }
   return (
     <div style={{
       position: 'relative', marginTop: '13px', padding: '14px 15px 15px 17px',
@@ -276,13 +283,13 @@ function DraftCard({ text }: { text: string }) {
       }}>
         {text}
       </p>
-      {/* Una sola acción. Antes había "Usar borrador" y "Editar", y las dos
-          contestaban lo mismo: dos botones para el mismo callejón. */}
+      {/* Una sola acción, y hace algo: se lleva el borrador al portapapeles.
+          Antes eran dos botones que solo decían "muy pronto". */}
       <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
         <button
           type="button"
           className="dc-btn"
-          onClick={() => setUseDone(true)}
+          onClick={copy}
           style={{
             height: '38px', padding: '0 15px', borderRadius: R_CHIP, border: 'none',
             background: DT.yellow, color: DT.ink, fontSize: '13.5px', fontWeight: 700,
@@ -290,8 +297,8 @@ function DraftCard({ text }: { text: string }) {
             display: 'inline-flex', alignItems: 'center', gap: '7px',
           }}
         >
-          {useDone && <CheckCircle size={15} weight="regular" />}
-          {useDone ? INERT_FEEDBACK : 'Usar borrador'}
+          {copied ? <CheckCircle size={15} weight="regular" /> : <Copy size={15} weight="regular" />}
+          {copied ? 'Copiado' : 'Copiar borrador'}
         </button>
       </div>
     </div>

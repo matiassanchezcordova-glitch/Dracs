@@ -14,28 +14,31 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import { CaretLeft, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil, House, Plus, FileText } from '@phosphor-icons/react'
+  CaretLeft, CaretRight, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil,
+  House, Plus, FileText,
+} from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { getWeekCode } from '../../../lib/utils'
 import type { DbSession } from '../../../lib/types'
-import { getDurationMinutes, getStreakDays, getAccuracyPercent } from '../../../lib/derived'
 import { DT } from './deskTokens'
-import { Card, SectionLabel, Avatar, EjemploTag } from './deskUI'
+import { Card, SectionLabel, Avatar } from './deskUI'
 import { usePorArea } from './usePorArea'
 import EnfocarMundo from './EnfocarMundo'
 import AjusteDificultad from './AjusteDificultad'
 import ModuleTabs, { type ModuleDef } from './ModuleTabs'
 import type { ChildLevel } from './childLevel'
-import { EXAMPLE_AREAS } from './areaExample'
 import {
   loadClinicalNotes, saveClinicalNotes, newNoteId, noteDate, type ClinicalNote,
 } from './clinicalNotes'
 import Informe from './Informe'
-import { fromDbSessions } from './informeData'
+import {
+  dayLabel, fromDbSessions, fromLocalHistory, localIso, parseDay, statsFor,
+  type DayRange, type InformeSession,
+} from './informeData'
+import { localAreas, localPlaces } from '../../../data/demoAreas'
+import { useScrollTop } from './useScrollTop'
 
 interface Props {
   patient: Patient
@@ -60,6 +63,25 @@ const MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
 function shortDate(iso?: string | null): string {
   const d = iso ? new Date(iso) : new Date()
   return Number.isNaN(d.getTime()) ? '' : `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`
+}
+
+const DAY_INITIALS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+const DAY_NAMES = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
+
+// "mié 10 sep", para la tabla de partidas.
+function longDayLabel(day: string): string {
+  const d = parseDay(day)
+  return `${DAY_NAMES[(d.getDay() + 6) % 7]} ${dayLabel(day)}`
+}
+
+function navBtn(enabled: boolean): React.CSSProperties {
+  return {
+    width: '34px', height: '34px', borderRadius: DT.radiusSm,
+    border: `1px solid ${DT.line}`, background: DT.cream,
+    color: enabled ? DT.ink : DT.faint,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: enabled ? 'pointer' : 'default', opacity: enabled ? 1 : 0.5,
+  }
 }
 
 function slugify(name: string): string {
@@ -120,17 +142,6 @@ function Chip({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ChartTooltip(props: Record<string, unknown>) {
-  const { active, payload, label } = props as { active?: boolean; payload?: { value: number }[]; label?: string }
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ background: DT.white, border: `1px solid ${DT.line}`, borderRadius: '10px', padding: '8px 14px', boxShadow: DT.shadowSoft }}>
-      <p style={{ margin: 0, fontSize: '11px', color: DT.muted, fontWeight: 700 }}>{label}</p>
-      <p style={{ margin: '2px 0 0', fontSize: '16px', color: DT.azul, fontWeight: 800, fontFamily: DT.body }}>{payload[0].value}%</p>
-    </div>
-  )
-}
-
 export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props) {
   const { user, profile } = useAuth()
   const isReal = !!(user && supabasePatientId)
@@ -162,6 +173,9 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
   })
   const [toast, setToast] = useState<string | null>(null)
   const [section, setSection] = useState('resumen')
+  // Abrir una carpeta o cambiar de sección empieza arriba del todo, no donde
+  // se hubiera quedado el scroll de la pantalla anterior.
+  const rootRef = useRef<HTMLDivElement>(null)
   // El nivel vive aquí y no en la tarjeta de identidad: al guardarlo en Plan, el
   // chip de arriba tiene que decir lo mismo sin recargar la Carpeta.
   const [level, setLevel] = useState<ChildLevel | null>(p.level ?? null)
@@ -209,96 +223,88 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
     return () => { cancelled = true }
   }, [isReal, notesStoreId])
 
-  // ── Datos de la semana (reales en modo Supabase; ejemplo en demo) ──────────
-  const week = useMemo(() => {
-    if (isReal && sbLoaded) {
-      const now = new Date(), dow = now.getDay()
-      const wk = new Date(now); wk.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1)); wk.setHours(0, 0, 0, 0)
-      const prev = new Date(wk); prev.setDate(wk.getDate() - 7)
-      const t = (s: DbSession) => new Date(s.ended_at ?? s.started_at)
-      const thisWeek = sbSessions.filter(s => t(s) >= wk)
-      const prevWeek = sbSessions.filter(s => t(s) >= prev && t(s) < wk)
-      const acc = (arr: DbSession[]) => {
-        const tot = arr.reduce((a, s) => a + s.total_exercises, 0)
-        const cor = arr.reduce((a, s) => a + s.correct_count, 0)
-        return tot > 0 ? Math.round((cor / tot) * 100) : null
-      }
+  // ── Las partidas, normalizadas ────────────────────────────────────────────
+  // Una sola forma para los dos modos: Supabase en cuenta real, historial de la
+  // carpeta en la demo. Todo lo de abajo (semana elegida, barras, tabla) sale
+  // de aquí, así que ningún número puede contradecir a otro.
+  const allSessions = useMemo<InformeSession[]>(
+    () => (isReal ? (sbLoaded ? fromDbSessions(sbSessions) : []) : fromLocalHistory(p.history ?? [])),
+    [isReal, sbLoaded, sbSessions, p.history],
+  )
+
+  // Semana elegida. 0 es la semana en curso; hacia atrás, negativo.
+  const [weekOffset, setWeekOffset] = useState(0)
+
+  const weekRange = useMemo<DayRange>(() => {
+    const monday = new Date()
+    const dow = monday.getDay()
+    monday.setDate(monday.getDate() - (dow === 0 ? 6 : dow - 1) + weekOffset * 7)
+    monday.setHours(0, 0, 0, 0)
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+    return { from: localIso(monday), to: localIso(sunday) }
+  }, [weekOffset])
+
+  const week = useMemo(() => statsFor(allSessions, weekRange), [allSessions, weekRange])
+
+  const weekTitle = weekOffset === 0
+    ? `Esta semana · ${dayLabel(weekRange.from)} a ${dayLabel(weekRange.to)}`
+    : weekOffset === -1
+      ? `Semana pasada · ${dayLabel(weekRange.from)} a ${dayLabel(weekRange.to)}`
+      : `${dayLabel(weekRange.from)} a ${dayLabel(weekRange.to)}`
+
+  // Partidas por día de la semana elegida, de lunes a domingo.
+  const dayBars = useMemo(() => {
+    const monday = parseDay(weekRange.from)
+    const todayIso = localIso(new Date())
+    return DAY_INITIALS.map((initial, i) => {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
+      const iso = localIso(d)
+      const list = allSessions.filter(s => s.day === iso)
       return {
-        sessions: thisWeek.length,
-        // Nunca inventamos duración: las sesiones sin duration_seconds no suman
-        // (se muestran como "—" en la tabla y quedan fuera del total).
-        minutes: thisWeek.reduce((a, s) => a + (getDurationMinutes(s) ?? 0), 0),
-        exercises: thisWeek.reduce((a, s) => a + s.total_exercises, 0),
-        accuracy: acc(thisWeek),
-        prevAccuracy: acc(prevWeek),
-        streak: getStreakDays(sbSessions),
+        iso,
+        initial,
+        label: dayLabel(iso),
+        sessions: list.length,
+        minutes: list.reduce((a, s) => a + (s.minutes ?? 0), 0),
+        isToday: iso === todayIso,
+        isFuture: iso > todayIso,
       }
-    }
-    // Showroom, niño vivo: las métricas ya vienen derivadas del historial del
-    // navegador. Se usan tal cual — nada se estima.
-    if (p.localWeek) return { ...p.localWeek }
+    })
+  }, [allSessions, weekRange])
 
-    // Carpeta de ejemplo: derivar de sus datos ilustrativos. El % de "esta
-    // semana" es el ÚLTIMO punto de su propia curva (y el previo, el anterior),
-    // para que el tile y el gráfico no se contradigan entre sí.
-    const curve = p.weeklyProgress
-    return {
-      sessions: p.metrics.sessionsThisWeek,
-      minutes: (p.metrics.sessionsThisWeek * p.metrics.avgDuration) as number | null,
-      exercises: p.metrics.sessionsThisWeek * 7,
-      accuracy: curve.at(-1)?.score ?? null,
-      prevAccuracy: (curve.length > 1 ? curve.at(-2)?.score : null) ?? null,
-      streak: 0,
-    }
-  }, [isReal, sbLoaded, sbSessions, p])
+  const maxSessions = Math.max(1, ...dayBars.map(d => d.sessions))
 
-  // Evolución semanal (reales o ejemplo). Nunca datos por nombre inventados.
-  const chartData = useMemo(() => {
-    if (isReal && sbLoaded) {
-      const now = new Date(), dow = now.getDay()
-      const wkStart = new Date(now); wkStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1)); wkStart.setHours(0, 0, 0, 0)
-      const out: { name: string; value: number }[] = []
-      for (let w = 3; w >= 0; w--) {
-        const s = new Date(wkStart); s.setDate(wkStart.getDate() - w * 7)
-        const e = new Date(s); e.setDate(s.getDate() + 7)
-        const arr = sbSessions.filter(x => { const d = new Date(x.ended_at ?? x.started_at); return d >= s && d < e })
-        const tot = arr.reduce((a, x) => a + x.total_exercises, 0)
-        const cor = arr.reduce((a, x) => a + x.correct_count, 0)
-        out.push({ name: `Sem ${4 - w}`, value: tot > 0 ? Math.round((cor / tot) * 100) : 0 })
-      }
-      return out
-    }
-    return p.weeklyProgress.map(d => ({ name: d.week, value: d.score }))
-  }, [isReal, sbLoaded, sbSessions, p])
+  // Las partidas de la semana elegida, de la más reciente a la más antigua.
+  const weekSessions = useMemo(
+    () => allSessions
+      .filter(s => s.day >= weekRange.from && s.day <= weekRange.to)
+      .sort((a, b) => (a.day < b.day ? 1 : -1)),
+    [allSessions, weekRange],
+  )
 
-  // La última columna SIEMPRE es la semana en curso. Etiquetarla explícitamente
-  // hace obvio que ese punto es el MISMO número que el tile de aciertos de
-  // arriba, y que las otras tres son historia.
-  const chartRows = chartData.map((d, i) => (
-    i === chartData.length - 1 ? { ...d, name: 'Esta sem.' } : d
-  ))
-  const chartHasData = chartData.some(d => d.value > 0)
-  const recentSessions = isReal && sbLoaded
-    ? sbSessions.slice(0, 5).map(s => ({
-        date: new Date(s.ended_at ?? s.started_at).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }),
-        duration: getDurationMinutes(s), exercises: s.total_exercises, accuracy: getAccuracyPercent(s),
-      }))
-    : p.recentSessions
+  // Racha y lugares: datos de ahora, no de la semana que se esté mirando.
+  const streak = useMemo(() => {
+    const played = new Set(allSessions.map(s => s.day))
+    const cursor = new Date()
+    if (!played.has(localIso(cursor))) cursor.setDate(cursor.getDate() - 1)
+    let n = 0
+    while (played.has(localIso(cursor))) { n++; cursor.setDate(cursor.getDate() - 1) }
+    return n
+  }, [allSessions])
+
+  // Por área: de Supabase en cuenta real, del detalle por ejercicio en la demo.
+  const areas = useMemo(
+    () => (isReal ? porArea.distribution.map(a => ({ slug: a.slug, label: a.label, pct: a.pct })) : localAreas(p.history ?? [])),
+    [isReal, porArea.distribution, p.history],
+  )
+  const places = isReal ? porArea.placesVisited : localPlaces(p.history ?? [])
 
   const firstName = p.name.split(' ')[0]
   const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
 
   const kSessions = useCountUp(week.sessions)
-
-  // Rango de la semana en curso (lunes → domingo), para que "esta semana" sea
-  // literal y no una etiqueta vaga.
-  const weekRange = useMemo(() => {
-    const now = new Date(), dow = now.getDay()
-    const start = new Date(now); start.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
-    const end = new Date(start); end.setDate(start.getDate() + 6)
-    const M = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-    return `${start.getDate()} ${M[start.getMonth()]} – ${end.getDate()} ${M[end.getMonth()]}`
-  }, [])
 
   async function handleAddNote() {
     const text = draftNote.trim()
@@ -336,14 +342,10 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
     setTimeout(() => setToast(null), 3000)
   }
 
-  const accuracyLine = week.accuracy == null
-    ? null
-    : week.prevAccuracy == null
-      ? `${week.accuracy}% de aciertos`
-      : `${week.accuracy}% de aciertos · semana previa ${week.prevAccuracy}%`
+  useScrollTop(section, rootRef)
 
   return (
-    <div style={{
+    <div ref={rootRef} style={{
       display: 'flex', flexDirection: 'column', gap: '18px',
       padding: '20px 20px 40px', maxWidth: '760px', margin: '0 auto', width: '100%',
       fontFamily: DT.body, boxSizing: 'border-box',
@@ -375,9 +377,6 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             {level && <Chip>Nivel {level.min}-{level.max}</Chip>}
           </div>
         </div>
-        {/* La marca de carpeta ilustrativa va aquí y solo aquí: como la
-            identidad queda fija, se ve desde cualquier sección. */}
-        {p.isExample && <EjemploTag />}
       </Card>
 
       {/* ── Sub-barra de secciones ────────────────────────────────── */}
@@ -397,113 +396,148 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
         {section === 'resumen' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <Card>
-              <div style={{ marginBottom: '16px' }}>
-                <SectionLabel>Qué jugó · esta semana</SectionLabel>
-                {/* El rango explícito evita cualquier duda sobre qué período
-                    cubren estos cuatro números. */}
-                <p style={{ margin: '-10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-                  {weekRange}
-                </p>
+              {/* Navegador de semanas: flechas y el rango de la semana que se
+                  está mirando. Todo lo de esta tarjeta habla de ESA semana. */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '10px', marginBottom: '16px',
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <SectionLabel>Qué jugó</SectionLabel>
+                  <p style={{ margin: '-10px 0 0', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+                    {weekTitle}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <button type="button" onClick={() => setWeekOffset(o => o - 1)} aria-label="Semana anterior" style={navBtn(true)}>
+                    <CaretLeft size={16} weight="regular" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWeekOffset(o => Math.min(0, o + 1))}
+                    disabled={weekOffset >= 0}
+                    aria-label="Semana siguiente"
+                    style={navBtn(weekOffset < 0)}
+                  >
+                    <CaretRight size={16} weight="regular" />
+                  </button>
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
                 <StatTile value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
-                <StatTile value={(week.minutes ?? 0) > 0 ? `~${week.minutes}` : '—'} label="minutos" />
+                <StatTile value={(week.minutes ?? 0) > 0 ? `${week.minutes}` : '—'} label="minutos" />
                 <StatTile value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
                 <StatTile value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
               </div>
 
-              {(accuracyLine || week.streak > 0 || porArea.placesVisited.length > 0) && (
-                <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {accuracyLine && <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>{accuracyLine}</p>}
-                  {week.streak > 0 && <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Racha actual: {week.streak} {week.streak === 1 ? 'día' : 'días'} seguidos.</p>}
-                  {porArea.placesVisited.length > 0 && (
+              {/* Barras por día de la semana elegida: un solo gráfico, el que
+                  acompaña al navegador. */}
+              <div style={{ marginTop: '20px' }}>
+                <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+                  Partidas por día
+                </p>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
+                  {dayBars.map(d => (
+                    <div key={d.iso} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                      <span style={{
+                        height: '15px', fontSize: '11px', fontWeight: 700,
+                        color: d.sessions > 0 ? DT.ink : DT.faint,
+                        fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
+                      }}>
+                        {d.sessions > 0 ? d.sessions : ''}
+                      </span>
+                      {/* El riel arena se ve siempre: un día sin partidas se lee
+                          como un día sin partidas, no como un hueco. */}
+                      <div
+                        title={`${d.label}: ${d.sessions} ${d.sessions === 1 ? 'partida' : 'partidas'}`}
+                        style={{
+                          width: '100%', height: '62px', borderRadius: '8px', background: DT.arena,
+                          display: 'flex', alignItems: 'flex-end', overflow: 'hidden',
+                          opacity: d.isFuture ? 0.45 : 1,
+                        }}
+                      >
+                        <div style={{
+                          width: '100%',
+                          height: `${d.sessions > 0 ? Math.max(14, (d.sessions / maxSessions) * 100) : 0}%`,
+                          borderRadius: '8px',
+                          background: d.isToday ? DT.azulInk : DT.azul,
+                        }} />
+                      </div>
+                      <span style={{
+                        fontSize: '11px', fontWeight: d.isToday ? 800 : 600,
+                        color: d.isToday ? DT.azulInk : DT.muted, fontFamily: DT.body,
+                      }}>
+                        {d.initial}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Racha y lugares hablan de ahora, no de la semana que se mira. */}
+              {weekOffset === 0 && (streak > 0 || places.length > 0) && (
+                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {streak > 0 && (
+                    <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
+                      Racha actual: {streak} {streak === 1 ? 'día' : 'días'} seguidos.
+                    </p>
+                  )}
+                  {places.length > 0 && (
                     <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <MapPin size={15} weight="duotone" color={DT.azul} /> Lugares: {porArea.placesVisited.join(', ')}.
+                      <MapPin size={15} weight="regular" color={DT.azul} /> Lugares: {places.join(', ')}.
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Evolución semanal */}
-              <p style={{ margin: '22px 0 2px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
-                Evolución · % de aciertos por semana
+              <p style={{ margin: '22px 0 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+                Sus partidas
               </p>
-              <p style={{ margin: '0 0 8px', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-                La última columna es la semana en curso, el mismo número que “aciertos”.
-              </p>
-              {chartHasData ? (
-                <ResponsiveContainer width="100%" height={170}>
-                  {/* `left: 0` + YAxis ancho: con margen negativo los "100%"/"75%"
-                      quedaban recortados y se leían como ")0%". */}
-                  <AreaChart data={chartRows} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="deskScoreGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={DT.azul} stopOpacity={0.16} />
-                        <stop offset="95%" stopColor={DT.azul} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="0" stroke={DT.line} vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 12, fontFamily: DT.body }} />
-                    <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => v + '%'} axisLine={false} tickLine={false} tick={{ fill: DT.muted, fontSize: 11, fontFamily: DT.body }} width={52} tickMargin={6} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ stroke: DT.arena, strokeWidth: 1 }} />
-                    <Area type="monotone" dataKey="value" stroke={DT.azul} strokeWidth={2} fill="url(#deskScoreGrad)" activeDot={{ r: 5, fill: DT.azul, stroke: DT.white, strokeWidth: 2 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
+              {weekSessions.length === 0 ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-                  Todavía no hay suficientes partidas para trazar la evolución.
+                  Esa semana no jugó ninguna partida.
                 </p>
-              )}
-
-              {/* Últimas sesiones */}
-              {recentSessions.length > 0 && (
-                <>
-                  <p style={{ margin: '22px 0 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>Últimas partidas</p>
-                  {/* En móvil la tabla no cabe: se desplaza dentro de su caja y
-                      la página nunca scrollea en horizontal. */}
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', minWidth: '360px', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          {['Fecha', 'Duración', 'Juegos', 'Aciertos'].map((c, i) => (
-                            <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11px', fontWeight: 700, color: DT.faint, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: DT.body, padding: '0 8px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recentSessions.map((s, i) => (
-                          <tr key={i} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
-                            <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{s.date}</td>
-                            <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.duration ? `${s.duration} min` : '—'}</td>
-                            <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center' }}>{s.exercises}</td>
-                            <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center' }}>{s.accuracy}%</td>
-                          </tr>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', minWidth: '360px', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        {['Fecha', 'Duración', 'Juegos', 'Aciertos'].map((c, i) => (
+                          <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11px', fontWeight: 700, color: DT.faint, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: DT.body, padding: '0 8px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {weekSessions.map((s, i) => (
+                        <tr key={`${s.day}-${i}`} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
+                          <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{longDayLabel(s.day)}</td>
+                          <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.minutes ? `${s.minutes} min` : '—'}</td>
+                          <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.exercises}</td>
+                          <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>
+                            {s.exercises > 0 ? `${Math.round((s.correct / s.exercises) * 100)}%` : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </Card>
 
-            {/* Por área */}
-            {/* En demo se enseña la función con una distribución de ejemplo, no
-                con un párrafo diciendo qué se vería. Va marcada como tal. */}
+            {/* Por área: en cuenta real de Supabase, en la demo del detalle
+                por ejercicio del historial. Nunca una ilustración. */}
             <Card>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                <SectionLabel>Por área</SectionLabel>
-                {!isReal && <EjemploTag />}
-              </div>
+              <SectionLabel>Por área</SectionLabel>
               {isReal && porArea.loading ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
-              ) : isReal && !porArea.hasTags ? (
+              ) : areas.length === 0 ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
                   Todavía no hay juegos suyos clasificados por área. Aparece en cuanto los haya.
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {(isReal ? porArea.distribution : EXAMPLE_AREAS).map(a => (
+                  {areas.map(a => (
                     <div key={a.slug}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '5px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
@@ -671,9 +705,9 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           storeId={notesStoreId}
           therapistId={user?.id}
           therapistName={therapistDisplayName}
-          isExample={!!p.isExample}
           realSessions={isReal && sbLoaded ? fromDbSessions(sbSessions) : []}
-          areas={isReal && porArea.hasTags ? porArea.distribution.map(a => ({ label: a.label, pct: a.pct })) : []}
+          demoHistory={p.history ?? []}
+          areas={areas.map(a => ({ label: a.label, pct: a.pct }))}
           onToast={msg => { setToast(msg); setTimeout(() => setToast(null), 3000) }}
         />
       </div>

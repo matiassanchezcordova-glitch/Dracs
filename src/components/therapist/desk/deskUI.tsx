@@ -49,17 +49,3 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
     </span>
   )
 }
-
-// Etiqueta "ejemplo" — para datos ilustrativos del modo demo (nunca sobre datos
-// reales). El terapeuta debe distinguir de un vistazo qué es real.
-export function EjemploTag() {
-  return (
-    <span style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: '6px',
-      background: DT.arena, color: DT.muted, fontSize: '10px', fontWeight: 800,
-      letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: DT.body,
-    }}>
-      ejemplo
-    </span>
-  )
-}

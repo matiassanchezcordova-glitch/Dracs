@@ -12,7 +12,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Printer, Copy, FloppyDisk, Sparkle, Check } from '@phosphor-icons/react'
-import { loadHistory } from '../../../hooks/useChildProfile'
 import { DT } from './deskTokens'
 import { Card, SectionLabel } from './deskUI'
 import { loadChildFocus } from './childFocus'
@@ -137,9 +136,10 @@ interface Props {
   storeId: string
   therapistId?: string
   therapistName: string
-  isExample: boolean
-  // Partidas con fecha en cuenta real. En demo se leen del navegador aquí.
+  // Partidas con fecha en cuenta real.
   realSessions: InformeSession[]
+  // Historial de la carpeta abierta en la demo.
+  demoHistory: { date: string; total: number; correct: number; minutes?: number }[]
   // Distribución por área solo cuando hay juegos etiquetados de verdad.
   areas: { label: string; pct: number }[]
   onToast: (msg: string) => void
@@ -147,7 +147,7 @@ interface Props {
 
 export default function Informe({
   childName, fullName, age, isReal, storeId, therapistId, therapistName,
-  isExample, realSessions, areas, onToast,
+  realSessions, demoHistory, areas, onToast,
 }: Props) {
   const [periodId, setPeriodId] = useState<PeriodId>('mes')
   const [custom, setCustom] = useState<DayRange>(() => rangeFor('cuatro'))
@@ -162,15 +162,12 @@ export default function Informe({
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState('')
 
-  // En demo las partidas del niño vivo salen del historial del navegador, el
-  // mismo que alimenta el escritorio. Las carpetas de ejemplo no tienen
-  // partidas con fecha, así que el informe dirá que no hay datos.
-  const sessions: InformeSession[] = useMemo(() => {
-    if (isReal) return realSessions
-    if (isExample) return []
-    // El mismo historial que lee el escritorio y la casa de la familia.
-    return fromLocalHistory(loadHistory())
-  }, [isReal, isExample, realSessions])
+  // Las partidas del período: de Supabase en cuenta real, y del historial de
+  // la carpeta abierta en la demo.
+  const sessions: InformeSession[] = useMemo(
+    () => (isReal ? realSessions : fromLocalHistory(demoHistory)),
+    [isReal, realSessions, demoHistory],
+  )
 
   const range = useMemo(() => rangeFor(periodId, custom), [periodId, custom])
   const stats = useMemo(() => statsFor(sessions, range), [sessions, range])

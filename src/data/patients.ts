@@ -1,3 +1,5 @@
+import type { DemoSession } from './demoHistory'
+
 /** Types ------------------------------------------------------------------- */
 
 export type PatientStatus = 'completed' | 'pending' | 'overdue'
@@ -47,11 +49,11 @@ export interface Patient {
   // Escritorio: datos crudos para el estado humano de la carpeta (§Phase 2).
   lastPlayedISO?: string | null
   totalSessions?: number
-  // Showroom: carpeta ilustrativa (la UI la marca "ejemplo"). El niño vivo del
-  // visitante nunca lleva esta bandera.
-  isExample?: boolean
-  // Showroom: semana real del niño del navegador, ya derivada.
+  // Showroom: semana ya derivada del historial.
   localWeek?: LocalWeek
+  // Showroom: el historial con fechas y detalle por ejercicio del que sale todo
+  // lo demás. En cuenta real no viaja: allí los datos salen de Supabase.
+  history?: DemoSession[]
 }
 
 /** Static patient records -------------------------------------------------- */

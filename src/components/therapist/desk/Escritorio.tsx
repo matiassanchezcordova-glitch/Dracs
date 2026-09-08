@@ -3,15 +3,16 @@
 // humana desde datos reales. Se toca y se abre la carpeta. Sobrio, espacioso,
 // sin tabla densa.
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { MagnifyingGlass, Bell, Check, X, CaretRight, CheckCircle, Clock, MoonStars, CalendarBlank, UsersThree } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import type { LinkRequestWithPatient } from '../../../lib/types'
 import { DT } from './deskTokens'
-import { Avatar, EjemploTag } from './deskUI'
+import { Avatar } from './deskUI'
 import { deskStatus, type StatusTone } from './patientStatus'
 import TuDia from './TuDia'
 import ModuleTabs, { type ModuleDef } from './ModuleTabs'
+import { useScrollTop } from './useScrollTop'
 
 interface Props {
   patients: Patient[]
@@ -131,9 +132,6 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <tone.Icon size={16} weight="regular" color={tone.color} style={{ flexShrink: 0 }} />
         <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
-        {/* Sólo las carpetas ilustrativas llevan el tag. El niño vivo del
-            visitante (Pol) no: su línea de estado sale de lo que jugó. */}
-        {p.isExample && <span style={{ marginLeft: 'auto' }}><EjemploTag /></span>}
       </div>
 
       {/* Objetivo: pegado abajo con margin-top auto, para que quede en la misma
@@ -175,26 +173,25 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
 
 export default function Escritorio({ patients, onOpen, linkRequests, onAccept, onReject, loading, isDemo, therapistName }: Props) {
   const [module, setModule] = useState('hoy')
+  const rootRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
   const filtered = query.trim() ? patients.filter(p => p.name.toLowerCase().includes(query.toLowerCase())) : patients
-  // La única carpeta viva del showroom: el niño demo de este navegador.
-  const liveName = isDemo ? patients.find(p => !p.isExample)?.name ?? null : null
+  // El niño de este navegador: el que juega el visitante.
+  const liveName = isDemo ? patients[0]?.name ?? null : null
+
+  useScrollTop(module, rootRef)
 
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 48px', fontFamily: DT.body }}>
+    <div ref={rootRef} style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 48px', fontFamily: DT.body }}>
       {/* Encabezado */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>Escritorio</h1>
         </div>
-        {/* En el showroom no decimos "hola, {nombre}" (no hay terapeuta real) y
-            distinguimos de entrada qué carpeta es viva y cuáles ilustrativas.
-            Esta es la ÚNICA explicación de la demo en el escritorio: antes había
-            además un aviso descartable que decía lo mismo. */}
+        {/* En el showroom no decimos "hola, {nombre}": no hay terapeuta real. */}
         {isDemo ? (
           <p style={{ margin: '6px 0 0', fontSize: '15px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-            {liveName ? <><strong style={{ color: DT.ink }}>{liveName}</strong> es el niño de esta demo: lo que juegue aparece en su carpeta. </> : null}
-            Las carpetas marcadas <EjemploTag /> son ilustrativas.
+            {liveName ? <><strong style={{ color: DT.ink }}>{liveName}</strong> es el niño de esta demo: lo que juegue aparece en su carpeta.</> : null}
           </p>
         ) : (
           <p style={{ margin: '6px 0 0', fontSize: '15px', color: DT.muted, fontFamily: DT.body }}>
@@ -218,7 +215,7 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
         <ModuleTabs modules={MODULES} active={module} onChange={setModule} panelId={panelId} />
       </div>
 
-      {/* Módulo Hoy: la agenda y el briefing de la próxima sesión. */}
+      {/* Módulo Hoy: la agenda del día, con su tira de fechas. */}
       <div
         id={panelId('hoy')}
         role="tabpanel"

@@ -1,19 +1,20 @@
-// El caseload del showroom: Pol (vivo) + tres carpetas de ejemplo.
+// Los pacientes del showroom: el niño del navegador y los tres que lo acompañan.
 //
-// Pol se construye desde el MISMO historial de localStorage que escribe el niño
-// al jugar y que lee la casa de la familia. Es el niño del visitante: si jugó
-// una partida de 3 con 2 aciertos, acá se ve esa partida al 67%. Si no jugó
-// nada, la carpeta lo dice — nunca se rellena con datos inventados.
+// El niño del navegador se construye desde el MISMO historial de localStorage
+// que escribe al jugar y que lee la casa de la familia: si jugó una partida de
+// 3 con 2 aciertos, aquí se ve esa partida al 67%.
 //
-// Las otras carpetas son ilustrativas y van marcadas "ejemplo", para que el
-// escritorio se lea como un caseload real sin mentir sobre el dato.
+// Los otros tres salen del generador de la demo, anclado a hoy y determinista
+// por niño. Todos pasan por el mismo derivador, así que las cuatro carpetas
+// cuentan sus números igual y ninguna arrastra fechas viejas.
 
 import { PATIENTS, type LocalWeek, type Patient, type RecentSession, type WeekData } from './patients'
 import type { SessionResult } from '../hooks/useChildProfile'
+import { buildDemoHistory } from './demoHistory'
 import { DEMO_CHILD_ID, loadDemoChild } from '../lib/demo'
 
-// Ids de las carpetas de ejemplo que acompañan a Pol en el escritorio.
-const EXAMPLE_IDS = ['lucia', 'mateo', 'valentina']
+// Los pacientes que acompañan al niño del navegador en el escritorio.
+const DEMO_IDS = ['lucia', 'mateo', 'valentina']
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
@@ -64,9 +65,14 @@ function streakOf(history: SessionResult[]): number {
   return streak
 }
 
-// Pol como carpeta del escritorio, derivado del historial del navegador.
-export function buildDemoChildPatient(history: SessionResult[]): Patient {
-  const child = loadDemoChild()
+// Deriva una carpeta del escritorio desde un historial con fechas reales.
+// Lo usan las cuatro carpetas de la demo: el niño del navegador y los tres
+// pacientes que lo acompañan. Misma función, mismos números, cero datos
+// escritos a mano con fechas que se quedan viejas.
+function buildPatient(
+  base: Pick<Patient, 'id' | 'name' | 'age' | 'condition' | 'area' | 'avatar' | 'level'>,
+  history: SessionResult[],
+): Patient {
   const weekStart = mondayOf(new Date())
   const prevStart = new Date(weekStart)
   prevStart.setDate(weekStart.getDate() - 7)
@@ -88,16 +94,19 @@ export function buildDemoChildPatient(history: SessionResult[]): Patient {
     weeklyProgress.push({ week: `Sem ${4 - w}`, score: accuracyOf(inWeek) ?? 0 })
   }
 
-  // La duración solo la traen las partidas de la base demo. Sin ella va 0 y la
-  // carpeta lo pinta "—": nunca se estima un tiempo que no se midió.
   const recentSessions: RecentSession[] = sortedDesc.slice(0, 5).map(s => ({
     date: formatDay(s.date),
+    // La duración solo la traen las partidas de la base. Sin ella va 0 y la
+    // carpeta lo pinta "—": nunca se estima un tiempo que no se midió.
     duration: s.minutes ?? 0,
     exercises: s.total,
     accuracy: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
   }))
 
   const weekMinutes = thisWeek.filter(s => s.minutes != null)
+  const avgDuration = history.length > 0
+    ? Math.round(history.reduce((a, s) => a + (s.minutes ?? 0), 0) / history.length)
+    : 0
 
   const localWeek: LocalWeek = {
     sessions: thisWeek.length,
@@ -109,37 +118,54 @@ export function buildDemoChildPatient(history: SessionResult[]): Patient {
   }
 
   return {
+    ...base,
+    status: thisWeek.length >= 5 ? 'completed' : thisWeek.length > 0 ? 'pending' : 'overdue',
+    metrics: {
+      sessionsThisWeek: thisWeek.length,
+      sessionsTarget: 5,
+      avgDuration,
+      progressPct: 0,
+    },
+    weeklyProgress,
+    recentSessions,
+    lastPlayedISO: sortedDesc[0] ? parseDay(sortedDesc[0].date).toISOString() : null,
+    totalSessions: history.length,
+    localWeek,
+    history,
+  }
+}
+
+// Pol como carpeta del escritorio, derivado del historial del navegador.
+export function buildDemoChildPatient(history: SessionResult[]): Patient {
+  const child = loadDemoChild()
+  return buildPatient({
     id: DEMO_CHILD_ID,
     name: child.name,
     age: child.age,
     condition: '',            // no inventamos diagnóstico
     area: 'Logopedia',
     avatar: '',
-    status: thisWeek.length >= 5 ? 'completed' : thisWeek.length > 0 ? 'pending' : 'overdue',
-    metrics: {
-      sessionsThisWeek: thisWeek.length,
-      sessionsTarget: 5,
-      avgDuration: 0,
-      progressPct: 0,
-    },
-    weeklyProgress,
-    recentSessions,
     level: { min: child.level, max: child.level },
-    lastPlayedISO: sortedDesc[0] ? parseDay(sortedDesc[0].date).toISOString() : null,
-    totalSessions: history.length,
-    isExample: false,
-    localWeek,
-  }
+  }, history)
 }
 
-// Carpetas ilustrativas que acompañan a Pol. Siempre marcadas "ejemplo".
-export function getExamplePatients(): Patient[] {
+// Los pacientes que acompañan a Pol en el escritorio. Su historial se genera
+// con el mismo motor, anclado a hoy y determinista por niño.
+export function getDemoPatients(): Patient[] {
   return PATIENTS
-    .filter(p => EXAMPLE_IDS.includes(p.id))
-    .map(p => ({ ...p, isExample: true }))
+    .filter(p => DEMO_IDS.includes(p.id))
+    .map(p => buildPatient({
+      id: p.id,
+      name: p.name,
+      age: p.age,
+      condition: p.condition,
+      area: p.area,
+      avatar: p.avatar,
+      level: p.level ?? null,
+    }, buildDemoHistory(p.id, 7) as SessionResult[]))
 }
 
-// El escritorio del showroom completo: el niño vivo primero, los ejemplos debajo.
+// El escritorio del showroom completo: el niño del navegador primero.
 export function buildDemoCaseload(history: SessionResult[]): Patient[] {
-  return [buildDemoChildPatient(history), ...getExamplePatients()]
+  return [buildDemoChildPatient(history), ...getDemoPatients()]
 }
