@@ -5,13 +5,15 @@
 // primaria y foco), pero la vista no es monocroma: el azul, la mostaza y la
 // arena entran como acentos suaves y cada sección abre con el suyo.
 //
-// Tres reglas de profundidad que mandan sobre cualquier estilo suelto:
-//   1. El fondo NO es un crema plano: lleva grano casi imperceptible y un
-//      resplandor cálido arriba (SURFACE).
-//   2. El color de una tarjeta NUNCA es el del fondo. La tarjeta va en blanco
+// Dos reglas de profundidad que mandan sobre cualquier estilo suelto:
+//   1. El color de una tarjeta NUNCA es el del fondo. La tarjeta va en blanco
 //      cálido, un punto por encima de la crema.
-//   3. Las tarjetas flotan: borde 1px cálido y sombra en dos capas (contacto
-//      corta y difusa larga).
+//   2. Las tarjetas flotan: borde 1px cálido y sombra en capas. El fondo, en
+//      cambio, es crema lisa: la profundidad la ponen las tarjetas, no la
+//      textura.
+//
+// El color entra sólo donde codifica algo (el estado de un paciente, lo privado
+// de una nota). Donde no codifica nada, todo va en azul y punto.
 
 import type { CSSProperties } from 'react'
 
@@ -77,36 +79,15 @@ export const ACCENT: Record<Accent, { solid: string; tint: string; line: string;
 }
 
 // ── La superficie ────────────────────────────────────────────────────────────
-// Grano: ruido gris tejido, al 5% y en mosaico de 170px. A esa opacidad no se
-// ve como textura, se nota como papel. Va en el propio background del
-// contenedor (no en una capa absoluta) para que cubra todo el alto del scroll.
-const GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E" +
-  "%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E" +
-  "%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E" +
-  "%3Crect width='170' height='170' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E\")"
-
-// Resplandor cálido arriba: amarillo al 5,5% y arena al 5%. Da temperatura a la
-// cabecera sin que se lea como una franja de color.
-const GLOW_YELLOW = 'radial-gradient(780px 320px at 50% -70px, rgba(247,195,28,0.055), rgba(247,195,28,0) 72%)'
-const GLOW_SAND = 'radial-gradient(560px 280px at 8% -30px, rgba(199,162,79,0.05), rgba(199,162,79,0) 70%)'
-
+// Crema lisa. Nada de textura ni de resplandores: la profundidad la ponen las
+// tarjetas (blanco cálido, borde fino, sombra en capas), no el fondo.
 export const SURFACE: CSSProperties = {
   backgroundColor: DT.cream,
-  backgroundImage: `${GRAIN}, ${GLOW_YELLOW}, ${GLOW_SAND}`,
-  backgroundRepeat: 'repeat, no-repeat, no-repeat',
-  backgroundSize: '170px 170px, 100% 390px, 100% 330px',
-  backgroundPosition: '0 0, 50% 0, 0 0',
 }
 
-// La misma superficie para paneles que no son la página (el copiloto), con el
-// resplandor recortado al ancho del panel.
+// La misma superficie para paneles que no son la página (el copiloto).
 export const SURFACE_PANEL: CSSProperties = {
   backgroundColor: DT.cream,
-  backgroundImage: `${GRAIN}, radial-gradient(420px 200px at 50% -40px, rgba(247,195,28,0.07), rgba(247,195,28,0) 72%)`,
-  backgroundRepeat: 'repeat, no-repeat',
-  backgroundSize: '170px 170px, 100% 240px',
-  backgroundPosition: '0 0, 50% 0',
 }
 
 export function initials(name: string): string {

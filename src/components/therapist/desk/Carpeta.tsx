@@ -15,18 +15,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   CaretLeft, CaretRight, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil,
-  House, Plus, FileText, GameController, Timer, Confetti, PuzzlePiece, Flame,
-  CalendarBlank, ChartPieSlice,
+  House, Plus, FileText, GameController, Timer, Confetti, Flame, ChartPieSlice,
 } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { getWeekCode } from '../../../lib/utils'
 import type { DbSession } from '../../../lib/types'
-import { ACCENT, DT, type Accent } from './deskTokens'
-import { Card, SectionTitle, FieldLabel, StatTile, Chip, Avatar, DragonWatermark, EmptyState } from './deskUI'
-import { deskStatus, type StatusTone } from './patientStatus'
-import { proximaCita } from './agenda'
+import { DT } from './deskTokens'
+import { Card, SectionTitle, FieldLabel, StatTile, Chip, Avatar, EmptyState } from './deskUI'
 import { usePorArea } from './usePorArea'
 import EnfocarMundo from './EnfocarMundo'
 import AjusteDificultad from './AjusteDificultad'
@@ -46,10 +43,6 @@ import { useScrollTop } from './useScrollTop'
 interface Props {
   patient: Patient
   supabasePatientId?: string
-  // En la demo, los ids de todas las carpetas: con ellos se sabe cuándo cae la
-  // próxima cita de este niño. En cuenta real la agenda todavía no existe, así
-  // que llega vacío y esa línea no se dibuja.
-  allPatientIds?: string[]
   onBack: () => void
 }
 
@@ -73,13 +66,6 @@ function shortDate(iso?: string | null): string {
 }
 
 const DAY_INITIALS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-const DAY_NAMES = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
-
-// "mié 10 sep", para la tabla de partidas.
-function longDayLabel(day: string): string {
-  const d = parseDay(day)
-  return `${DAY_NAMES[(d.getDay() + 6) % 7]} ${dayLabel(day)}`
-}
 
 function navBtn(enabled: boolean): React.CSSProperties {
   return {
@@ -92,44 +78,8 @@ function navBtn(enabled: boolean): React.CSSProperties {
   }
 }
 
-// Los tres acentos rotan en la lista de áreas, en este orden.
-const AREA_ACCENTS: Accent[] = ['azul', 'mostaza', 'arena']
-
-// El acento visual de la carpeta sale del mismo tono que usa el escritorio.
-const TONE_ACCENT: Record<StatusTone, Accent> = {
-  played: 'azul',
-  attention: 'mostaza',
-  idle: 'arena',
-}
-
-// "mar 16 sep a las 12:15", para la línea de estado de la identidad.
-function citaLabel(cita: { day: string; time: string } | null): string | null {
-  if (!cita) return null
-  const d = parseDay(cita.day)
-  return `${DAY_NAMES[(d.getDay() + 6) % 7]} ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} a las ${cita.time}`
-}
-
 function slugify(name: string): string {
   return name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-}
-
-function useCountUp(target: number, duration = 700) {
-  const [val, setVal] = useState(0)
-  const raf = useRef<number>(0)
-  useEffect(() => {
-    // El primer frame (progreso 0) ya fija el valor a 0; no reseteamos de forma
-    // síncrona en el cuerpo del efecto (regla react-hooks/set-state-in-effect).
-    let start: number | null = null
-    const step = (ts: number) => {
-      if (!start) start = ts
-      const p = Math.min((ts - start) / duration, 1)
-      setVal(Math.round((1 - Math.pow(1 - p, 3)) * target))
-      if (p < 1) raf.current = requestAnimationFrame(step)
-    }
-    raf.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf.current)
-  }, [target, duration])
-  return val
 }
 
 function Toast({ message }: { message: string }) {
@@ -146,76 +96,38 @@ function Toast({ message }: { message: string }) {
 }
 
 // ── La tarjeta de identidad ──────────────────────────────────────────────────
-// Alta como lo que tiene que decir y ni un píxel más: avatar con el aro de su
-// estado, nombre, chips de dato y una línea compacta con lo que hace falta
-// saber antes de abrir nada. La filigrana del dragón pone la marca en la
-// esquina, al 7%. Antes era un rectángulo blanco enorme con un nombre arriba a
-// la izquierda y un vacío gigante debajo.
-function IdentidadCard({ patient, level, accent, estado, proxima }: {
+// Sólo identidad: quién es. Nada de agenda (eso es de Hoy) y nada de resultados
+// (eso es del Resumen, dos dedos más abajo). Alta como lo que tiene que decir y
+// ni un píxel más.
+function IdentidadCard({ patient, level }: {
   patient: Patient
   level: ChildLevel | null
-  accent: Accent
-  estado: string
-  proxima: string | null
 }) {
-  const a = ACCENT[accent]
   return (
     <div style={{
-      position: 'relative', overflow: 'hidden', boxSizing: 'border-box',
-      background: DT.white, border: `1px solid ${DT.line}`, borderLeft: `3px solid ${a.solid}`,
+      boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap',
+      background: DT.white, border: `1px solid ${DT.line}`,
       borderRadius: DT.radius, boxShadow: DT.shadow, padding: '18px 20px',
     }}>
-      {/* Tinte de marca muy suave detrás del nombre, para que la tarjeta no sea
-          un plano blanco. */}
-      <span aria-hidden style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(420px 150px at 0% 0%, ${a.tint}, transparent 72%)`,
-        opacity: 0.85,
-      }} />
-      <DragonWatermark size={140} opacity={0.07} bottom="-34px" right="-22px" rotate={12} />
-
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-        <Avatar name={patient.name} size={58} accent={accent} />
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <h2 style={{
-            margin: '0 0 8px', fontSize: '23px', fontWeight: 600, color: DT.ink,
-            fontFamily: DT.display, lineHeight: 1.1,
-          }}>
-            {patient.name}
-          </h2>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <Chip accent="arena">{patient.age} años</Chip>
-            {patient.condition && <Chip accent="arena">{patient.condition}</Chip>}
-            {level && <Chip accent="azul" Icon={Target}>Nivel {level.min} a {level.max}</Chip>}
-          </div>
+      <Avatar name={patient.name} size={54} />
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <h2 style={{
+          margin: '0 0 8px', fontSize: '23px', fontWeight: 600, color: DT.ink,
+          fontFamily: DT.display, lineHeight: 1.1,
+        }}>
+          {patient.name}
+        </h2>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <Chip>{patient.age} años</Chip>
+          {patient.condition && <Chip>{patient.condition}</Chip>}
+          {level && <Chip Icon={Target}>Nivel {level.min} a {level.max}</Chip>}
         </div>
-      </div>
-
-      {/* Línea de estado: una sola fila, lo justo para saber cómo llega. */}
-      <div style={{
-        position: 'relative', display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap',
-        marginTop: '14px', paddingTop: '13px', borderTop: `1px solid ${DT.lineSoft}`,
-        fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body,
-      }}>
-        <span aria-hidden style={{
-          width: '8px', height: '8px', borderRadius: '50%', background: a.solid, flexShrink: 0,
-        }} />
-        <span>{estado}</span>
-        {proxima && (
-          <>
-            <span aria-hidden style={{ color: DT.faint }}>·</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: DT.muted }}>
-              <CalendarBlank size={14} weight="regular" color={DT.azulInk} />
-              Próxima sesión: {proxima}
-            </span>
-          </>
-        )}
       </div>
     </div>
   )
 }
 
-export default function Carpeta({ patient: p, supabasePatientId, allPatientIds = [], onBack }: Props) {
+export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props) {
   const { user, profile } = useAuth()
   const isReal = !!(user && supabasePatientId)
 
@@ -349,14 +261,6 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
 
   const maxSessions = Math.max(1, ...dayBars.map(d => d.sessions))
 
-  // Las partidas de la semana elegida, de la más reciente a la más antigua.
-  const weekSessions = useMemo(
-    () => allSessions
-      .filter(s => s.day >= weekRange.from && s.day <= weekRange.to)
-      .sort((a, b) => (a.day < b.day ? 1 : -1)),
-    [allSessions, weekRange],
-  )
-
   // Racha y lugares: datos de ahora, no de la semana que se esté mirando.
   const streak = useMemo(() => {
     const played = new Set(allSessions.map(s => s.day))
@@ -376,21 +280,6 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
 
   const firstName = p.name.split(' ')[0]
   const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
-
-  // Identidad: el estado humano y el acento salen de los mismos datos que en el
-  // escritorio, así que la carpeta no puede decir otra cosa que su tarjeta.
-  const estado = deskStatus({
-    sessionsThisWeek: p.metrics.sessionsThisWeek,
-    lastPlayedISO: p.lastPlayedISO,
-    totalSessions: p.totalSessions,
-  })
-  const toneAccent = TONE_ACCENT[estado.tone]
-  const proximaLabel = useMemo(
-    () => (allPatientIds.length > 0 ? citaLabel(proximaCita(p.id, allPatientIds)) : null),
-    [p.id, allPatientIds],
-  )
-
-  const kSessions = useCountUp(week.sessions)
 
   async function handleAddNote() {
     const text = draftNote.trim()
@@ -454,13 +343,7 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
       </button>
 
       {/* ── Identidad: fija, fuera de las secciones ───────────────── */}
-      <IdentidadCard
-        patient={p}
-        level={level}
-        accent={toneAccent}
-        estado={estado.text}
-        proxima={proximaLabel}
-      />
+      <IdentidadCard patient={p} level={level} />
 
       {/* ── Sub-barra de secciones ────────────────────────────────── */}
       <ModuleTabs
@@ -483,9 +366,7 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
                   está mirando. Todo lo de esta tarjeta habla de ESA semana. */}
               <SectionTitle
                 Icon={ChartLine}
-                accent="azul"
                 size="lg"
-                hint={weekTitle}
                 right={
                   <>
                     <button type="button" className="dk-press dk-focus" onClick={() => setWeekOffset(o => o - 1)} aria-label="Semana anterior" style={navBtn(true)}>
@@ -504,16 +385,28 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
                   </>
                 }
               >
-                Qué jugó
+                Cómo le fue
               </SectionTitle>
 
-              {/* Cuatro métricas, cada una con su ícono y su filo de color. No es
-                  un muro de KPIs: son las cuatro que se miran de verdad. */}
+              {/* La semana que se está mirando, dicha una vez. */}
+              <FieldLabel>{weekTitle}</FieldLabel>
+
+              {/* Si esa semana no jugó, se dice una vez y ya. Sin tiles en
+                  guiones ni un gráfico de rieles vacíos diciendo lo mismo. */}
+              {week.sessions === 0 ? (
+                <EmptyState Icon={GameController} title="Esa semana no jugó" compact>
+                  No hay ninguna partida entre {dayLabel(weekRange.from)} y {dayLabel(weekRange.to)}.
+                  Prueba con otra semana con las flechas de arriba.
+                </EmptyState>
+              ) : (
+                <>
+
+              {/* Dos métricas, y ninguna repite lo que dice el gráfico. Las
+                  partidas se cuentan abajo, día a día; aquí va lo que el gráfico
+                  no puede decir. */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '10px' }}>
-                <StatTile Icon={GameController} accent="azul" value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
-                <StatTile Icon={Timer} accent="mostaza" value={(week.minutes ?? 0) > 0 ? `${week.minutes}` : '—'} label="minutos" />
-                <StatTile Icon={PuzzlePiece} accent="arena" value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
-                <StatTile Icon={Confetti} accent="amarillo" value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
+                <StatTile Icon={Timer} value={(week.minutes ?? 0) > 0 ? `${week.minutes}` : '—'} label="minutos jugados" />
+                <StatTile Icon={Confetti} value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
               </div>
 
               {/* Barras por día de la semana elegida: un solo gráfico, el que
@@ -522,7 +415,7 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
                 marginTop: '20px', padding: '15px 16px 13px', borderRadius: DT.radiusSm,
                 background: DT.cream, border: `1px solid ${DT.line}`,
               }}>
-                <FieldLabel accent="azul">Partidas por día</FieldLabel>
+                <FieldLabel>Partidas por día</FieldLabel>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
                   {dayBars.map(d => (
                     <div key={d.iso} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
@@ -534,13 +427,12 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
                         {d.sessions > 0 ? d.sessions : ''}
                       </span>
                       {/* El riel arena se ve siempre: un día sin partidas se lee
-                          como un día sin partidas, no como un hueco. El de hoy
-                          va en amarillo, que es el pop de la marca. */}
+                          como un día sin partidas, no como un hueco. */}
                       <div
                         title={`${d.label}: ${d.sessions} ${d.sessions === 1 ? 'partida' : 'partidas'}`}
                         style={{
                           width: '100%', height: '64px', borderRadius: '9px', background: DT.arenaDeep,
-                          border: `1px solid ${d.isToday ? DT.yellowTintLine : 'transparent'}`,
+                          border: `1px solid ${d.isToday ? DT.azulTintLine : 'transparent'}`,
                           boxSizing: 'border-box',
                           display: 'flex', alignItems: 'flex-end', overflow: 'hidden',
                           opacity: d.isFuture ? 0.45 : 1,
@@ -550,15 +442,13 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
                           width: '100%',
                           height: `${d.sessions > 0 ? Math.max(14, (d.sessions / maxSessions) * 100) : 0}%`,
                           borderRadius: '8px',
-                          background: d.isToday
-                            ? `linear-gradient(180deg, ${DT.yellow} 0%, ${DT.mostaza} 100%)`
-                            : `linear-gradient(180deg, ${DT.azul} 0%, ${DT.azulInk} 100%)`,
+                          background: d.isToday ? DT.azulInk : DT.azul,
                           transition: 'height 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
                         }} />
                       </div>
                       <span style={{
                         fontSize: '11px', fontWeight: d.isToday ? 800 : 600,
-                        color: d.isToday ? DT.mostazaInk : DT.muted, fontFamily: DT.body,
+                        color: d.isToday ? DT.azulInk : DT.muted, fontFamily: DT.body,
                       }}>
                         {d.initial}
                       </span>
@@ -573,79 +463,45 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
               {weekOffset === 0 && (streak > 0 || places.length > 0) && (
                 <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {streak > 0 && (
-                    <Chip accent="amarillo" Icon={Flame}>
+                    <Chip Icon={Flame}>
                       Racha de {streak} {streak === 1 ? 'día' : 'días'}
                     </Chip>
                   )}
                   {places.map(place => (
-                    <Chip key={place} accent="azul" Icon={MapPin}>{place}</Chip>
+                    <Chip key={place} Icon={MapPin}>{place}</Chip>
                   ))}
                 </div>
               )}
 
-              <div style={{ marginTop: '22px' }}>
-                <FieldLabel accent="mostaza">Sus partidas</FieldLabel>
-              </div>
-              {weekSessions.length === 0 ? (
-                <EmptyState title="Esa semana no jugó" accent="arena" compact>
-                  No hay ninguna partida entre {dayLabel(weekRange.from)} y {dayLabel(weekRange.to)}.
-                  Prueba con otra semana usando las flechas de arriba.
-                </EmptyState>
-              ) : (
-                <div className="dk-scroll" style={{ borderRadius: DT.radiusSm, border: `1px solid ${DT.line}`, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', minWidth: '360px', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: DT.cream }}>
-                        {['Fecha', 'Duración', 'Juegos', 'Aciertos'].map((c, i) => (
-                          <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11.5px', fontWeight: 800, color: DT.topoInk, fontFamily: DT.body, padding: '9px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {weekSessions.map((s, i) => (
-                        <tr key={`${s.day}-${i}`} style={{ background: i % 2 === 1 ? DT.cream : DT.white }}>
-                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{longDayLabel(s.day)}</td>
-                          <td style={{ padding: '10px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.minutes ? `${s.minutes} min` : '—'}</td>
-                          <td style={{ padding: '10px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.exercises}</td>
-                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 800, color: DT.azulInk, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>
-                            {s.exercises > 0 ? `${Math.round((s.correct / s.exercises) * 100)}%` : '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                </>
               )}
             </Card>
 
             {/* Por área: en cuenta real de Supabase, en la demo del detalle
                 por ejercicio del historial. Nunca una ilustración. */}
             <Card>
-              <SectionTitle Icon={ChartPieSlice} accent="mostaza">Por área</SectionTitle>
+              <SectionTitle Icon={ChartPieSlice}>Por área</SectionTitle>
               {isReal && porArea.loading ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
               ) : areas.length === 0 ? (
-                <EmptyState title="Todavía sin áreas" accent="mostaza" compact>
+                <EmptyState Icon={ChartPieSlice} title="Todavía sin áreas" compact>
                   Aún no hay juegos suyos clasificados por área. Aparece aquí en cuanto los haya.
                 </EmptyState>
               ) : (
+                // Todas las barras en azul: aquí el color no codifica nada, así
+                // que ponerle uno distinto a cada área sería ruido.
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {areas.map((a, i) => {
-                    // El color rota entre los tres acentos: la lista se lee de un
-                    // vistazo y no es un muro de barras del mismo azul.
-                    const tone = ACCENT[AREA_ACCENTS[i % AREA_ACCENTS.length]]
-                    return (
-                      <div key={a.slug}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: tone.ink, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
-                        </div>
-                        <div style={{ height: '9px', background: DT.arenaDeep, borderRadius: '999px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${a.pct}%`, background: tone.solid, borderRadius: '999px', transition: 'width 0.6s cubic-bezier(0.22, 1, 0.36, 1)' }} />
-                        </div>
+                  {areas.map(a => (
+                    <div key={a.slug}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: DT.azulInk, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
                       </div>
-                    )
-                  })}
+                      <div style={{ height: '9px', background: DT.arenaDeep, borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${a.pct}%`, background: DT.azul, borderRadius: '999px', transition: 'width 0.6s cubic-bezier(0.22, 1, 0.36, 1)' }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </Card>
@@ -674,9 +530,7 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
           fecha y se apila con las anteriores. */}
       <div id={panelId('notas')} role="tabpanel" aria-labelledby="tab-notas" hidden={section !== 'notas'}>
         <Card edge="mostaza">
-          <SectionTitle Icon={NotePencil} accent="mostaza" hint="Solo para ti, la familia no las ve.">
-            Notas clínicas
-          </SectionTitle>
+          <SectionTitle Icon={NotePencil}>Notas clínicas, privadas</SectionTitle>
           <textarea
             value={draftNote}
             onChange={e => setDraftNote(e.target.value)}
@@ -709,14 +563,14 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
               para que se lean como fichas y no como otra card encima. */}
           {notesLoaded && notes.length === 0 && (
             <div style={{ marginTop: '18px' }}>
-              <EmptyState title="Tu bloc está en blanco" accent="mostaza" compact>
-                Lo que escribas aquí se guarda con su fecha y se queda contigo.
+              <EmptyState Icon={NotePencil} title="Tu bloc está en blanco" compact>
+                Lo que escribas aquí se guarda con su fecha y no lo ve la familia.
               </EmptyState>
             </div>
           )}
           {notes.length > 0 && (
             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <FieldLabel accent="mostaza" style={{ marginBottom: 0 }}>
+              <FieldLabel style={{ marginBottom: 0 }}>
                 {notes.length} {notes.length === 1 ? 'nota guardada' : 'notas guardadas'}
               </FieldLabel>
               {notes.map(n => (
@@ -749,9 +603,7 @@ export default function Carpeta({ patient: p, supabasePatientId, allPatientIds =
       {/* ── Comentario para la familia ────────────────────────────── */}
       <div id={panelId('familia')} role="tabpanel" aria-labelledby="tab-familia" hidden={section !== 'familia'}>
         <Card>
-          <SectionTitle Icon={House} accent="azul" hint="Lo verán en su Casa, con tu nombre.">
-            Comentario para la familia
-          </SectionTitle>
+          <SectionTitle Icon={House}>Comentario para la familia</SectionTitle>
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}

@@ -88,12 +88,10 @@ export default function EnfocarMundo({
 
   return (
     <Card>
-      <SectionTitle Icon={Target} accent="azul" hint="Elige áreas y, si quieres, deja una nota.">
-        Enfocar el mundo de {childName}
-      </SectionTitle>
+      <SectionTitle Icon={Target}>Enfocar el mundo de {childName}</SectionTitle>
 
       {/* Áreas de foco */}
-      <FieldLabel accent="azul">Áreas de foco</FieldLabel>
+      <FieldLabel>Áreas de foco</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
         {SKILL_ORDER.map(slug => {
           const on = areas.includes(slug)
@@ -120,7 +118,7 @@ export default function EnfocarMundo({
       </div>
 
       {/* Nota de contexto */}
-      <FieldLabel accent="arena">Nota de contexto (opcional)</FieldLabel>
+      <FieldLabel>Nota de contexto (opcional)</FieldLabel>
       <textarea
         value={note}
         onChange={e => setNote(e.target.value)}
@@ -134,16 +132,16 @@ export default function EnfocarMundo({
       />
 
       {/* Juegos sugeridos */}
-      <FieldLabel accent="amarillo">Juegos sugeridos</FieldLabel>
+      <FieldLabel>Juegos sugeridos</FieldLabel>
       {areas.length === 0 ? (
-        <EmptyState title="Elige un área y verás juegos" accent="azul" compact>
+        <EmptyState Icon={Target} title="Elige un área y verás juegos" compact>
           En cuanto marques una arriba, aquí salen los juegos que la trabajan, cada
           uno con el lugar donde pasa.
         </EmptyState>
       ) : recLoading ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Buscando juegos…</p>
       ) : items.length === 0 ? (
-        <EmptyState title="Sin juegos para esas áreas" accent="arena" compact>
+        <EmptyState Icon={GameController} title="Sin juegos para esas áreas" compact>
           Prueba a marcar otra área: el catálogo crece con cada mundo nuevo.
         </EmptyState>
       ) : (

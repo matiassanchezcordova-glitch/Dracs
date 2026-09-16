@@ -153,9 +153,6 @@ export default function TherapistTab() {
   }
 
   const patients = isReal ? realPatients : demoPatients
-  // Los ids de la demo, estables entre renders: la Carpeta los usa para saber
-  // cuándo cae la próxima cita del niño que tiene abierto.
-  const demoIds = useMemo(() => (isReal ? [] : patients.map(x => x.id)), [isReal, patients])
   const openPatient = openId ? patients.find(p => p.id === openId) ?? null : null
 
   function openCarpeta(id: string) {
@@ -173,7 +170,6 @@ export default function TherapistTab() {
         <Carpeta
           patient={openPatient}
           supabasePatientId={isReal ? openPatient.id : undefined}
-          allPatientIds={demoIds}
           onBack={() => setOpenId(null)}
         />
       ) : (
@@ -193,22 +189,14 @@ export default function TherapistTab() {
           los módulos. Antes se repetía dentro del briefing, del borrador y del
           pie del copiloto; decirlo una vez y bien vale más que decirlo cuatro. */}
       <footer style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 88px' }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '12px',
-          paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
+        <p style={{
+          margin: 0, paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
+          fontSize: '11.5px', fontWeight: 600, lineHeight: 1.5,
+          color: DT.muted, fontFamily: DT.body,
         }}>
-          <img
-            src="/brand/dracs-favicon-cut.png" alt="" aria-hidden
-            style={{ width: '26px', height: '26px', objectFit: 'contain', flexShrink: 0, opacity: 0.85 }}
-          />
-          <p style={{
-            margin: 0, fontSize: '11.5px', fontWeight: 600, lineHeight: 1.5,
-            color: DT.muted, fontFamily: DT.body,
-          }}>
-            Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda
-            revisa y firma todo.
-          </p>
-        </div>
+          Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda
+          revisa y firma todo.
+        </p>
       </footer>
 
       {/* Copiloto clínico: flota sobre el Escritorio y sobre la Carpeta. */}

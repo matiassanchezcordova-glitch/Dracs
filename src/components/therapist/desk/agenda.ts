@@ -54,26 +54,6 @@ export function citasDe(day: string, patientIds: string[]): Cita[] {
   return citas.sort((a, b) => (a.time < b.time ? -1 : 1))
 }
 
-// La próxima cita de UN paciente, mirando hacia delante desde hoy. La usa la
-// tarjeta de identidad de la Carpeta; si en el horizonte no hay ninguna,
-// devuelve null y esa línea no se dibuja.
-export function proximaCita(
-  patientId: string,
-  patientIds: string[],
-  horizonDays = 21,
-): { day: string; time: string } | null {
-  const cursor = new Date()
-  cursor.setHours(0, 0, 0, 0)
-  for (let i = 0; i < horizonDays; i++) {
-    const d = new Date(cursor)
-    d.setDate(cursor.getDate() + i)
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    const cita = citasDe(iso, patientIds).find(c => c.patientId === patientId)
-    if (cita) return { day: iso, time: cita.time }
-  }
-  return null
-}
-
 export function loadVideollamadas(): Videollamada[] {
   try {
     const raw = localStorage.getItem(CALLS_KEY)

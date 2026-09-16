@@ -1,7 +1,10 @@
 // El Escritorio — la superficie de aterrizaje del terapeuta (§Phase 2).
-// Cada paciente es una carpeta a mano: nombre, avatar con el aro de su estado y
-// una línea humana desde datos reales. Se toca y se abre la carpeta. Sobrio,
-// espacioso, con marca y sin tabla densa.
+// Cada paciente es una carpeta a mano: nombre, avatar y una línea de estado
+// humana desde datos reales. Se toca y se abre la carpeta.
+//
+// La tarjeta no repite un dato dos veces: el estado se dice UNA vez, con
+// palabras, y el único color que entra es el filo del tono. Sin nada detrás del
+// nombre, que ahí sólo estorba.
 
 import { useRef, useState } from 'react'
 import {
@@ -11,7 +14,7 @@ import {
 import { type Patient } from '../../../data/patients'
 import type { LinkRequestWithPatient } from '../../../lib/types'
 import { ACCENT, DT, type Accent } from './deskTokens'
-import { Avatar, DragonWatermark, EmptyState, IconBadge, SectionTitle } from './deskUI'
+import { Avatar, DragonWatermark, EmptyState, SectionTitle } from './deskUI'
 import { deskStatus, type StatusTone } from './patientStatus'
 import TuDia from './TuDia'
 import ModuleTabs, { type ModuleDef } from './ModuleTabs'
@@ -28,8 +31,8 @@ interface Props {
   therapistName: string
 }
 
-// El tono del estado manda sobre el color de la carpeta: el aro del avatar, el
-// ícono de la línea y la barra de objetivo salen todos del mismo acento.
+// El tono del estado entra UNA vez por tarjeta: el filo de la izquierda y el
+// ícono de la línea de estado. El avatar no lo repite.
 const TONE: Record<StatusTone, { accent: Accent; Icon: typeof CheckCircle }> = {
   played: { accent: 'azul', Icon: CheckCircle },
   attention: { accent: 'mostaza', Icon: Clock },
@@ -60,7 +63,7 @@ function LinkRequestBanner({ req, onAccept, onReject }: {
       background: DT.white, border: `1px solid ${DT.line}`, borderLeft: `3px solid ${DT.mostaza}`,
       borderRadius: DT.radiusSm, flexWrap: 'wrap', boxShadow: DT.shadowSoft,
     }}>
-      <IconBadge Icon={Bell} accent="mostaza" size={34} />
+      <Bell size={20} weight="regular" color={DT.mostazaInk} aria-hidden style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>
           {p.child_name} ({p.child_age} años)
@@ -94,12 +97,6 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
   const tone = TONE[st.tone]
   const a = ACCENT[tone.accent]
 
-  // Seguimiento de la semana: lo hecho sobre lo acordado. El NÚMERO de partidas
-  // no se repite aquí, ya lo dice la línea de estado de arriba; esto pone el
-  // área que se sigue y cuánto lleva, sin decir lo mismo dos veces.
-  const target = Math.max(1, p.metrics.sessionsTarget)
-  const pct = Math.min(100, Math.round((p.metrics.sessionsThisWeek / target) * 100))
-
   return (
     <button
       onClick={onOpen}
@@ -121,15 +118,8 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         display: 'flex', flexDirection: 'column', gap: '14px',
       }}
     >
-      {/* Tinte de esquina del color del estado: la carpeta deja de ser un
-          rectángulo blanco y se reconoce antes de leerla. */}
-      <span aria-hidden style={{
-        position: 'absolute', right: '-40px', top: '-60px', width: '160px', height: '160px',
-        borderRadius: '50%', background: a.tint, opacity: hover ? 0.9 : 0.6, pointerEvents: 'none',
-      }} />
-
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <Avatar name={p.name} size={46} accent={tone.accent} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Avatar name={p.name} size={46} />
         <span style={{ minWidth: 0, flex: 1, display: 'block' }}>
           <span style={{
             display: 'block', fontSize: '16.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.display,
@@ -147,40 +137,26 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         <CaretRight size={16} weight="regular" color={hover ? a.ink : DT.faint} style={{ flexShrink: 0 }} />
       </div>
 
-      <span style={{
-        position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '7px',
-        alignSelf: 'flex-start', padding: '6px 12px 6px 9px', borderRadius: '999px',
-        background: a.tint, border: `1px solid ${a.line}`,
-      }}>
-        <tone.Icon size={15} weight="regular" color={a.ink} style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
+      {/* El estado, una vez y con palabras. El color va en el ícono y en el filo
+          de la izquierda, no en un relleno más. */}
+      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <tone.Icon size={16} weight="regular" color={a.ink} style={{ flexShrink: 0 }} />
+        <span style={{ fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
       </span>
 
       {/* Objetivo: pegado abajo con margin-top auto, para que quede en la misma
           línea en todas las carpetas de la fila. Sin área no se dibuja. */}
       {p.area && (
-        <span style={{ position: 'relative', display: 'block', marginTop: 'auto', paddingTop: '13px', borderTop: `1px solid ${DT.lineSoft}` }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <Target size={14} weight="regular" color={DT.topo} style={{ flexShrink: 0 }} />
-            <span style={{
-              minWidth: 0, flex: 1, fontSize: '12.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.body,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
-              {p.area}
-            </span>
-          </span>
-          {/* La barra es el seguimiento de la semana. El número vive arriba, en
-              la línea de estado, así que aquí solo va para quien lee con
-              lector de pantalla. */}
-          <span
-            role="progressbar"
-            aria-label="Seguimiento de la semana"
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            style={{ display: 'block', height: '6px', marginTop: '8px', borderRadius: '999px', background: DT.arenaDeep, overflow: 'hidden' }}
-          >
-            <span style={{ display: 'block', width: `${pct}%`, height: '100%', borderRadius: '999px', background: a.solid }} />
+        <span style={{
+          display: 'flex', alignItems: 'center', gap: '7px',
+          marginTop: 'auto', paddingTop: '13px', borderTop: `1px solid ${DT.lineSoft}`,
+        }}>
+          <Target size={14} weight="regular" color={DT.topo} style={{ flexShrink: 0 }} />
+          <span style={{
+            minWidth: 0, flex: 1, fontSize: '12.5px', fontWeight: 700, color: DT.muted, fontFamily: DT.body,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {p.area}
           </span>
         </span>
       )}
@@ -201,10 +177,10 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
 
   return (
     <div ref={rootRef} style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 48px', fontFamily: DT.body }}>
-      {/* Encabezado. El dragón entra como filigrana: marca presente, sin
-          recargar y sin robarle sitio al título. */}
+      {/* Encabezado. La ÚNICA filigrana del dragón en toda la vista, y muy
+          transparente: la marca está, pero no se le nota el esfuerzo. */}
       <header style={{ position: 'relative', overflow: 'hidden', marginBottom: '22px', paddingRight: '90px' }}>
-        <DragonWatermark size={190} opacity={0.07} top="-46px" right="-30px" rotate={10} />
+        <DragonWatermark size={170} opacity={0.035} top="-40px" right="-26px" rotate={10} />
         <h1 style={{ margin: 0, fontSize: '30px', fontWeight: 600, color: DT.ink, fontFamily: DT.display, lineHeight: 1.15 }}>
           Escritorio
         </h1>
@@ -247,9 +223,8 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
             {loading ? (
               <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando pacientes…</p>
             ) : patients.length === 0 ? (
-              <EmptyState title="Todavía no hay agenda" accent="azul">
-                Cuando tengas pacientes vinculados, sus citas del día aparecerán aquí,
-                cada una con su briefing.
+              <EmptyState Icon={CalendarBlank} title="Todavía no hay agenda">
+                Cuando tengas pacientes vinculados, sus citas aparecerán aquí.
               </EmptyState>
             ) : (
               <TuDia patients={patients} isDemo={isDemo} onOpen={onOpen} />
@@ -269,9 +244,7 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
           <div className="dk-rise">
             <SectionTitle
               Icon={UsersThree}
-              accent="azul"
               size="lg"
-              hint="Toca una carpeta para abrirla."
               right={
                 <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
                   <MagnifyingGlass size={16} weight="regular" color={searchFocus ? DT.azulInk : DT.faint} style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
@@ -297,13 +270,13 @@ export default function Escritorio({ patients, onOpen, linkRequests, onAccept, o
             {loading ? (
               <p style={{ margin: '32px 0', textAlign: 'center', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando pacientes…</p>
             ) : patients.length === 0 ? (
-              <EmptyState title="Sin pacientes aún" accent="azul">
+              <EmptyState Icon={UsersThree} title="Sin pacientes aún">
                 Las familias pueden buscarte por nombre o centro para vincularse. Sus
                 solicitudes aparecerán aquí arriba.
               </EmptyState>
             ) : filtered.length === 0 ? (
-              <EmptyState title="Ninguna carpeta encaja" accent="arena" compact>
-                No hay ninguna carpeta que encaje con “{query}”. Prueba con el nombre de pila.
+              <EmptyState Icon={MagnifyingGlass} title="Ninguna carpeta encaja" compact>
+                Nada que coincida con “{query}”. Prueba con el nombre de pila.
               </EmptyState>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', alignItems: 'stretch', gap: '14px' }}>

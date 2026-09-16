@@ -129,15 +129,12 @@ export default function AjusteDificultad({
 
   return (
     <Card>
-      <SectionTitle
-        Icon={SlidersHorizontal}
-        accent="mostaza"
-        hint="Súbelo si se le queda corto, bájalo si se atasca."
-      >
-        Ajuste de dificultad
-      </SectionTitle>
+      <SectionTitle Icon={SlidersHorizontal}>Ajuste de dificultad</SectionTitle>
+      <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
+        Súbelo si se le queda corto, bájalo si se atasca.
+      </p>
 
-      <FieldLabel accent="mostaza">Nivel del 1 al 5</FieldLabel>
+      <FieldLabel>Nivel del 1 al 5</FieldLabel>
       {/* Los 5 escalones, con el rango elegido en color: la misma cifra que los
           steppers de abajo, dibujada. */}
       <div
@@ -151,7 +148,7 @@ export default function AjusteDificultad({
             <div key={step} style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 height: '9px', borderRadius: '999px',
-                background: on ? `linear-gradient(90deg, ${DT.azul}, ${DT.azulInk})` : DT.arenaDeep,
+                background: on ? DT.azul : DT.arenaDeep,
                 transition: 'background 0.2s ease',
               }} />
               <p style={{

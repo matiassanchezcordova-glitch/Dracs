@@ -261,7 +261,7 @@ export default function Informe({
 
       {/* ── Controles ───────────────────────────────────────────── */}
       <Card className="no-print">
-        <SectionTitle Icon={CalendarBlank} accent="azul">Período</SectionTitle>
+        <SectionTitle Icon={CalendarBlank}>Período</SectionTitle>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
           {PERIODS.map(p => (
             <Chip key={p.id} on={periodId === p.id} onClick={() => setPeriodId(p.id)}>{p.label}</Chip>
@@ -289,7 +289,7 @@ export default function Informe({
           </div>
         )}
 
-        <FieldLabel accent="mostaza">Versión</FieldLabel>
+        <FieldLabel>Versión</FieldLabel>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {VERSIONS.map(v => (
             <Chip key={v.id} on={version === v.id} onClick={() => setVersion(v.id)}>{v.label}</Chip>
@@ -306,9 +306,7 @@ export default function Informe({
 
       {/* ── Comentario del logopeda ─────────────────────────────── */}
       <Card className="no-print">
-        <SectionTitle Icon={PenNib} accent="mostaza" hint="Ajústalo con tus palabras: es tu voz y tu firma.">
-          Tu comentario
-        </SectionTitle>
+        <SectionTitle Icon={PenNib}>Tu comentario</SectionTitle>
         <textarea
           value={comment}
           onChange={e => setOwnComment(e.target.value)}
