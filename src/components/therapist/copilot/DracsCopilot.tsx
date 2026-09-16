@@ -28,7 +28,7 @@ import {
 } from '@phosphor-icons/react'
 import { DEMO_CHILD_NAME } from '../../../lib/demo'
 import { loadHistory } from '../../../hooks/useChildProfile'
-import { DT } from '../desk/deskTokens'
+import { DT, SURFACE_PANEL } from '../desk/deskTokens'
 import { fromLocalHistory, rangeFor, statsFor } from '../desk/informeData'
 import {
   ANSWERS, FALLBACK, GREETING, NO_OFFER, REPEATED, isAffirmative, normalize, route,
@@ -319,8 +319,8 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
         }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
-            fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em',
-            textTransform: 'uppercase', color: DT.muted, fontFamily: DT.body,
+            fontSize: '12px', fontWeight: 800, color: GROUP_TONE[g.tone] === DT.azul ? DT.azulInk : DT.topoInk,
+            fontFamily: DT.body,
           }}>
             <span aria-hidden style={{
               width: '8px', height: '8px', borderRadius: '50%',
@@ -823,7 +823,7 @@ export default function DracsCopilot() {
     return (
       <div style={{
         flexShrink: 0,
-        background: `linear-gradient(180deg, ${DT.azulTint} 0%, ${DT.white} 100%)`,
+        background: `linear-gradient(180deg, ${DT.azulTint} 0%, rgba(223,234,238,0) 100%)`,
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '11px',
@@ -873,7 +873,7 @@ export default function DracsCopilot() {
         ref={chatRef}
         aria-live="polite"
         style={{
-          flex: 1, minHeight: 0, overflowY: 'auto', background: DT.cream,
+          flex: 1, minHeight: 0, overflowY: 'auto', background: 'transparent',
           padding: isFull ? '22px 24px' : '16px',
           display: 'flex', flexDirection: 'column', gap: '13px',
         }}
@@ -900,13 +900,12 @@ export default function DracsCopilot() {
     if (isEmptyThread) {
       return (
         <div style={{
-          flexShrink: 0, background: DT.cream,
+          flexShrink: 0, background: 'transparent',
           padding: isFull ? '0 24px 16px' : '0 14px 12px',
         }}>
           <p style={{
             margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px',
-            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em',
-            textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
+            fontSize: '12px', fontWeight: 800, color: DT.mostazaInk, fontFamily: DT.body,
           }}>
             <Lightbulb size={13} weight="regular" /> Dracs puede
           </p>
@@ -926,7 +925,7 @@ export default function DracsCopilot() {
 
     return (
       <div style={{
-        flexShrink: 0, background: DT.cream,
+        flexShrink: 0, background: 'transparent',
         padding: isFull ? '0 24px 8px' : '0 14px 8px',
       }}>
         <div
@@ -1121,7 +1120,7 @@ export default function DracsCopilot() {
             style={{
               width: '100%', maxWidth: '820px',
               display: 'flex', flexDirection: 'column',
-              background: DT.cream, borderRadius: narrow ? '20px' : R_PANEL,
+              ...SURFACE_PANEL, borderRadius: narrow ? '20px' : R_PANEL,
               border: `1px solid ${DT.line}`, boxShadow: SHADOW_PANEL, overflow: 'hidden',
             }}
           >
@@ -1152,7 +1151,7 @@ export default function DracsCopilot() {
           width: narrow ? 'auto' : 'min(440px, 100vw - 32px)',
           height: narrow ? 'calc(100vh - 32px)' : 'min(686px, 100vh - 48px)',
           display: 'flex', flexDirection: 'column',
-          background: DT.cream, borderRadius: R_PANEL, border: `1px solid ${DT.line}`,
+          ...SURFACE_PANEL, borderRadius: R_PANEL, border: `1px solid ${DT.line}`,
           boxShadow: SHADOW_PANEL, overflow: 'hidden',
         }}
       >

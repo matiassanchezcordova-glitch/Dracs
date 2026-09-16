@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react'
 import { Minus, Plus, SlidersHorizontal } from '@phosphor-icons/react'
 import { DT } from './deskTokens'
-import { Card, SectionLabel } from './deskUI'
+import { Card, FieldLabel, SectionTitle } from './deskUI'
 import { LEVEL_MAX, LEVEL_MIN, clampLevel, loadChildLevel, saveChildLevel, type ChildLevel } from './childLevel'
 
 const STEPS = [1, 2, 3, 4, 5]
@@ -25,18 +25,23 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
   max: number
 }) {
   const btn = (enabled: boolean): React.CSSProperties => ({
-    width: '34px', height: '34px', borderRadius: DT.radiusSm, flexShrink: 0,
-    border: `1px solid ${DT.line}`, background: DT.cream, color: enabled ? DT.ink : DT.faint,
+    width: '36px', height: '36px', borderRadius: '11px', flexShrink: 0,
+    border: `1px solid ${DT.line}`, background: DT.white, color: enabled ? DT.azulInk : DT.faint,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: enabled ? 'pointer' : 'default', opacity: enabled ? 1 : 0.5,
+    boxShadow: enabled ? DT.shadowSoft : 'none',
   })
   const canDown = !disabled && value > min
   const canUp = !disabled && value < max
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '10px',
+      padding: '9px 12px', borderRadius: DT.radiusSm,
+      background: DT.cream, border: `1px solid ${DT.line}`,
+    }}>
       <span style={{
-        minWidth: '62px', fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body,
+        minWidth: '62px', fontSize: '13px', fontWeight: 800, color: DT.ink, fontFamily: DT.body,
       }}>
         {label}
       </span>
@@ -124,17 +129,15 @@ export default function AjusteDificultad({
 
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '4px' }}>
-        <SlidersHorizontal size={20} weight="regular" color={DT.azul} />
-        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>
-          Ajuste de dificultad
-        </h3>
-      </div>
-      <p style={{ margin: '0 0 18px', fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-        Súbelo si se le queda corto, bájalo si se atasca.
-      </p>
+      <SectionTitle
+        Icon={SlidersHorizontal}
+        accent="mostaza"
+        hint="Súbelo si se le queda corto, bájalo si se atasca."
+      >
+        Ajuste de dificultad
+      </SectionTitle>
 
-      <SectionLabel>Nivel del 1 al 5</SectionLabel>
+      <FieldLabel accent="mostaza">Nivel del 1 al 5</FieldLabel>
       {/* Los 5 escalones, con el rango elegido en color: la misma cifra que los
           steppers de abajo, dibujada. */}
       <div
@@ -146,7 +149,11 @@ export default function AjusteDificultad({
           const on = step >= level.min && step <= level.max
           return (
             <div key={step} style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ height: '8px', borderRadius: '999px', background: on ? DT.azul : DT.arena }} />
+              <div style={{
+                height: '9px', borderRadius: '999px',
+                background: on ? `linear-gradient(90deg, ${DT.azul}, ${DT.azulInk})` : DT.arenaDeep,
+                transition: 'background 0.2s ease',
+              }} />
               <p style={{
                 margin: '5px 0 0', textAlign: 'center', fontSize: '11px', fontWeight: 700,
                 color: on ? DT.ink : DT.faint, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
@@ -169,16 +176,17 @@ export default function AjusteDificultad({
           onClick={handleSave}
           disabled={blocked || !dirty}
           style={{
-            padding: '11px 22px', borderRadius: DT.radiusSm, border: 'none',
-            background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+            padding: '12px 22px', borderRadius: DT.radiusSm, border: 'none',
+            background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
             cursor: blocked || !dirty ? 'default' : 'pointer',
             opacity: blocked || !dirty ? 0.55 : 1,
+            boxShadow: blocked || !dirty ? 'none' : '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)',
           }}
         >
           {saving ? 'Guardando…' : 'Guardar nivel'}
         </button>
         {toast && (
-          <span style={{ fontSize: '13px', fontWeight: 700, color: DT.azul, fontFamily: DT.body }}>{toast}</span>
+          <span className="dk-fade" style={{ fontSize: '13px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>
         )}
       </div>
 

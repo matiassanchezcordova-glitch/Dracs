@@ -1,49 +1,58 @@
-// "Hoy" — la agenda del día y el detalle de cada sesión.
+// "Hoy" — la agenda del terapeuta, semana a semana.
 //
 // Cómo funciona:
-//   - arriba, una tira de días para moverte por fechas. Al elegir una, se ven
-//     las sesiones de ese día;
+//   - arriba, el rango de la semana con flechas para ir a la anterior o a la
+//     siguiente, y un ícono de calendario para saltar a cualquier fecha. Debajo,
+//     los 7 días de esa semana como pastillas, con el día activo resaltado y un
+//     punto si tiene sesiones;
 //   - cada sesión es una fila plegable. Al tocarla se despliega y muestra el
 //     detalle del niño y el botón para ir a su carpeta. Tocar el nombre no
 //     navega: despliega;
-//   - la videollamada funciona: eliges día y hora, ves lo que ya tienes ese día
-//     para no pisarlo, y la convocatoria se guarda en el navegador.
+//   - la videollamada funciona: eliges día y hora, ves la franja del día como
+//     UI (no como frase suelta), se avisa si el hueco choca, y la convocatoria
+//     se guarda en el navegador.
 //
-// Un dato, un lugar: la fila da hora, nombre y un punto de color con el estado.
+// Un dato, un lugar: la fila da hora, nombre y el aro de color con el estado.
 // La frase de estado vive en la tarjeta de Pacientes, y el detalle, aquí dentro.
 // Ninguna línea sin dato detrás se dibuja.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  CalendarBlank, CaretDown, Clock, Target, MapPin, VideoCamera, FolderOpen,
-  PaperPlaneTilt, Check,
+  CalendarBlank, CaretDown, CaretLeft, CaretRight, Clock, Target, MapPin, VideoCamera,
+  FolderOpen, PaperPlaneTilt, Check, Warning, CalendarCheck,
 } from '@phosphor-icons/react'
 import type { Patient } from '../../../data/patients'
 import { localAreas, localPlaces } from '../../../data/demoAreas'
-import { DT } from './deskTokens'
+import { ACCENT, DT, type Accent } from './deskTokens'
+import { Avatar, EmptyState, FieldLabel, IconBadge, SectionTitle } from './deskUI'
 import { deskStatus, type StatusTone } from './patientStatus'
 import { loadChildFocus, EMPTY_FOCUS, type ChildFocus } from './childFocus'
 import { citasDe, loadVideollamadas, saveVideollamada, type Videollamada } from './agenda'
 
-const TONE_COLOR: Record<StatusTone, string> = {
-  played: DT.azul,
-  attention: DT.mostaza,
-  idle: DT.topo,
+// El tono del estado y el acento visual son la misma cosa: el aro del avatar,
+// el punto del día y el filo de la fila salen todos de aquí.
+const TONE_ACCENT: Record<StatusTone, Accent> = {
+  played: 'azul',
+  attention: 'mostaza',
+  idle: 'arena',
 }
 
 const DAY_NAMES = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+// De lunes a domingo, como se dibuja la semana.
+const WEEK_INITIALS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
 const CSS = `
 @keyframes tdIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .td-in   { animation: tdIn 0.2s ease-out both; }
-.td-row  { transition: background 0.15s ease; }
-.td-btn:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
-.td-strip { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
-.td-strip::-webkit-scrollbar { display: none; }
+.td-row  { transition: background 0.15s ease, border-color 0.15s ease; }
+.td-day  { transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), background 0.16s ease, border-color 0.16s ease, color 0.16s ease; }
+.td-day:hover:not([aria-pressed="true"]) { transform: translateY(-2px); }
+.td-btn:focus-visible, .td-day:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .td-in { animation: none !important; }
-  .td-row { transition: none !important; }
+  .td-row, .td-day { transition: none !important; }
+  .td-day:hover:not([aria-pressed="true"]) { transform: none; }
 }
 `
 
@@ -59,6 +68,29 @@ function parseDay(day: string): Date {
 function longDay(day: string): string {
   const d = parseDay(day)
   return `${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`
+}
+
+// El lunes de la semana a la que pertenece un día.
+function mondayOf(day: string): Date {
+  const d = parseDay(day)
+  const dow = d.getDay()
+  d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1))
+  return d
+}
+
+function shiftDays(day: string, delta: number): string {
+  const d = parseDay(day)
+  d.setDate(d.getDate() + delta)
+  return localIso(d)
+}
+
+// "15 a 21 sep", y con el mes cambiado "29 sep a 5 oct".
+function weekLabel(from: string, to: string): string {
+  const a = parseDay(from)
+  const b = parseDay(to)
+  return a.getMonth() === b.getMonth()
+    ? `${a.getDate()} a ${b.getDate()} ${MONTHS[b.getMonth()]}`
+    : `${a.getDate()} ${MONTHS[a.getMonth()]} a ${b.getDate()} ${MONTHS[b.getMonth()]}`
 }
 
 function firstName(name: string): string {
@@ -96,13 +128,14 @@ function BriefRow({ mark, children, first }: {
 }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px',
+      display: 'flex', alignItems: 'center', gap: '11px',
       padding: first ? '0 0 11px' : '11px 0',
-      borderTop: first ? 'none' : `1px solid ${DT.line}`,
+      borderTop: first ? 'none' : `1px solid ${DT.lineSoft}`,
     }}>
-      <span style={{
-        width: '20px', flexShrink: 0, display: 'flex',
-        alignItems: 'center', justifyContent: 'center', color: DT.topo,
+      <span aria-hidden style={{
+        width: '26px', height: '26px', borderRadius: '9px', flexShrink: 0,
+        background: DT.azulTint, border: `1px solid ${DT.azulTintLine}`, color: DT.azulInk,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {mark}
       </span>
@@ -137,7 +170,7 @@ function Detalle({ patient, isReal, onOpenCarpeta }: {
   if (last) {
     rows.push({
       key: 'last',
-      mark: <Clock size={15} weight="regular" />,
+      mark: <Clock size={14} weight="regular" />,
       content: (
         <>
           Última vez que jugó: {last.date}, {last.exercises} {last.exercises === 1 ? 'juego' : 'juegos'}
@@ -149,43 +182,49 @@ function Detalle({ patient, isReal, onOpenCarpeta }: {
   if (places.length > 0) {
     rows.push({
       key: 'places',
-      mark: <MapPin size={15} weight="regular" />,
+      mark: <MapPin size={14} weight="regular" />,
       content: <>Se movió sobre todo por {joinPlaces(places)}.</>,
     })
   }
   if (areas[0]) {
     rows.push({
       key: 'area',
-      mark: <Target size={15} weight="regular" />,
+      mark: <Target size={14} weight="regular" />,
       content: <>Lo que más jugó: {areas[0].label} ({areas[0].pct}%).</>,
     })
   }
   if (pinned > 0) {
     rows.push({
       key: 'pinned',
-      mark: <Target size={15} weight="regular" />,
+      mark: <Target size={14} weight="regular" />,
       content: <>Tienes {pinned} {pinned === 1 ? 'juego fijado' : 'juegos fijados'} en su énfasis.</>,
     })
   }
 
   return (
     <div className="td-in" style={{
-      margin: '4px 0 10px', padding: '14px 16px',
+      position: 'relative', margin: '4px 0 10px', padding: '15px 17px',
       borderRadius: '16px', background: DT.cream, border: `1px solid ${DT.line}`,
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
     }}>
       {rows.length === 0 ? (
-        <p style={{ margin: '0 0 14px', fontSize: '14px', fontWeight: 600, lineHeight: 1.6, color: DT.ink, fontFamily: DT.body }}>
-          {hasAnyPlay
-            ? 'Sin novedades de casa esta semana.'
-            : `Todavía no hay partidas de ${name} en casa.`}
-        </p>
+        <div style={{ marginBottom: '12px' }}>
+          <EmptyState
+            compact
+            title={hasAnyPlay ? 'Sin novedades de casa' : `${name} aún no ha jugado en casa`}
+          >
+            {hasAnyPlay
+              ? 'Esta semana no llegó ninguna partida suya. Aparecerá aquí en cuanto juegue.'
+              : 'En cuanto abra el mundo y juegue una partida, la verás aquí.'}
+          </EmptyState>
+        </div>
       ) : (
         <div style={{ marginBottom: '14px' }}>
           {rows.map((r, i) => (
             <BriefRow key={r.key} first={i === 0} mark={r.mark}>{r.content}</BriefRow>
           ))}
           {noNews && (
-            <BriefRow mark={<Clock size={15} weight="regular" />}>
+            <BriefRow mark={<Clock size={14} weight="regular" />}>
               Sin novedades de casa esta semana.
             </BriefRow>
           )}
@@ -201,6 +240,7 @@ function Detalle({ patient, isReal, onOpenCarpeta }: {
           height: '38px', padding: '0 15px', borderRadius: '13px',
           border: 'none', background: DT.yellow, color: DT.ink,
           fontSize: '13.5px', fontWeight: 700, fontFamily: DT.display, cursor: 'pointer',
+          boxShadow: '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)',
         }}
       >
         <FolderOpen size={15} weight="regular" /> Ir a la carpeta de {name}
@@ -209,10 +249,82 @@ function Detalle({ patient, isReal, onOpenCarpeta }: {
   )
 }
 
-// ── Videollamada: día, hora y lo que ya tienes ese día ───────────────────────
-function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
+// ── La franja de horas de un día ─────────────────────────────────────────────
+// Lo que ya hay ese día, dibujado. Un aviso y una franja de agenda tienen fines
+// distintos, así que no pueden ir con el mismo formato de texto plano.
+interface Ocupado {
+  time: string
+  label: string
+  kind: 'sesion' | 'llamada' | 'nueva'
+}
+
+const SLOT_STYLE: Record<Ocupado['kind'], { accent: Accent; dashed: boolean }> = {
+  sesion: { accent: 'azul', dashed: false },
+  llamada: { accent: 'mostaza', dashed: false },
+  nueva: { accent: 'amarillo', dashed: true },
+}
+
+function FranjaDelDia({ day, slots, choca }: { day: string; slots: Ocupado[]; choca: boolean }) {
+  return (
+    <div style={{
+      padding: '13px 14px', borderRadius: '15px',
+      background: DT.white, border: `1px solid ${DT.line}`, boxShadow: DT.shadowSoft,
+    }}>
+      <FieldLabel accent="azul" style={{ marginBottom: '9px' }}>
+        {longDay(day)}
+      </FieldLabel>
+
+      {slots.length === 0 ? (
+        <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: DT.muted, fontFamily: DT.body }}>
+          Ese día lo tienes libre.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+          {slots.map(s => {
+            const st = SLOT_STYLE[s.kind]
+            const a = ACCENT[st.accent]
+            return (
+              <span
+                key={`${s.time}-${s.kind}-${s.label}`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '7px',
+                  padding: '6px 11px', borderRadius: '11px',
+                  background: a.tint,
+                  border: `${st.dashed ? '1px dashed' : '1px solid'} ${a.line}`,
+                  color: DT.ink, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+                }}
+              >
+                <span style={{
+                  color: a.ink, fontVariantNumeric: 'tabular-nums', fontWeight: 800,
+                }}>
+                  {s.time}
+                </span>
+                {s.label}
+              </span>
+            )
+          })}
+        </div>
+      )}
+
+      {choca && (
+        <p style={{
+          margin: '11px 0 0', display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '9px 11px', borderRadius: '11px',
+          background: DT.mostazaTint, border: `1px solid ${DT.mostazaTintLine}`,
+          fontSize: '12.5px', fontWeight: 700, lineHeight: 1.45, color: DT.ink, fontFamily: DT.body,
+        }}>
+          <Warning size={16} weight="regular" color={DT.mostazaInk} style={{ flexShrink: 0 }} />
+          Esa hora ya está ocupada. Puedes enviarla igual o mover el hueco.
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ── Videollamada: día, hora y la franja de ese día ───────────────────────────
+function ProponerVideollamada({ patients, slotsDe, onSaved }: {
   patients: Patient[]
-  citasDeDia: (day: string) => { time: string; label: string }[]
+  slotsDe: (day: string) => Ocupado[]
   onSaved: (call: Videollamada) => void
 }) {
   const [open, setOpen] = useState(false)
@@ -221,8 +333,16 @@ function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
   const [patientId, setPatientId] = useState(patients[0]?.id ?? '')
   const [sent, setSent] = useState(false)
 
-  const ocupado = citasDeDia(day)
   const patient = patients.find(p => p.id === patientId) ?? patients[0]
+  const ocupado = slotsDe(day)
+  const choca = ocupado.some(o => o.time === time)
+
+  // La franja incluye el hueco elegido, marcado con borde punteado: se ve dónde
+  // cae la videollamada entre lo que ya hay.
+  const slots: Ocupado[] = [...ocupado, {
+    time, kind: 'nueva' as const,
+    label: patient ? `videollamada con ${firstName(patient.name)}` : 'videollamada',
+  }].sort((a, b) => (a.time < b.time ? -1 : 1))
 
   function enviar() {
     if (!patient) return
@@ -235,9 +355,9 @@ function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
   }
 
   const field: React.CSSProperties = {
-    height: '40px', padding: '0 12px', borderRadius: DT.radiusSm,
+    height: '42px', padding: '0 12px', borderRadius: DT.radiusSm,
     border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink,
-    fontSize: '14px', fontFamily: DT.body, outline: 'none',
+    fontSize: '14px', fontWeight: 600, fontFamily: DT.body, outline: 'none',
   }
 
   if (!open) {
@@ -247,73 +367,75 @@ function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
         className="td-btn"
         onClick={() => { setOpen(true); setSent(false) }}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: '7px',
-          height: '38px', padding: '0 15px', borderRadius: '13px',
-          border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink,
+          display: 'inline-flex', alignItems: 'center', gap: '8px',
+          height: '40px', padding: '0 16px', borderRadius: '13px',
+          border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink,
           fontSize: '13.5px', fontWeight: 700, fontFamily: DT.display, cursor: 'pointer',
+          boxShadow: DT.shadowSoft,
         }}
       >
-        <VideoCamera size={15} weight="regular" /> Proponer videollamada
+        <VideoCamera size={16} weight="regular" color={DT.azulInk} /> Proponer videollamada
       </button>
     )
   }
 
   return (
     <div className="td-in" style={{
-      padding: '16px', borderRadius: '16px', background: DT.cream, border: `1px solid ${DT.line}`,
+      padding: '17px', borderRadius: '18px', background: DT.cream,
+      border: `1px solid ${DT.line}`, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
     }}>
       {sent ? (
         <div>
-          <p style={{
-            margin: 0, display: 'flex', alignItems: 'center', gap: '8px',
-            fontSize: '15px', fontWeight: 700, color: DT.ink, fontFamily: DT.display,
-          }}>
-            <Check size={17} weight="regular" color={DT.azul} /> Convocatoria enviada
-          </p>
-          <p style={{ margin: '6px 0 12px', fontSize: '13.5px', color: DT.muted, fontFamily: DT.body }}>
-            {longDay(day)} a las {time}, con la familia de {firstName(patient?.name ?? '')}.
+          <SectionTitle Icon={CalendarCheck} accent="azul">Convocatoria enviada</SectionTitle>
+          <p style={{ margin: '0 0 14px', fontSize: '13.5px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
+            {longDay(day)} a las {time}, con la familia de {firstName(patient?.name ?? '')}. Ya está en la
+            agenda de ese día.
           </p>
           <button
             type="button"
             className="td-btn"
             onClick={() => { setOpen(false); setSent(false) }}
             style={{
-              height: '36px', padding: '0 14px', borderRadius: '13px',
+              height: '38px', padding: '0 15px', borderRadius: '13px',
               border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink,
               fontSize: '13px', fontWeight: 700, fontFamily: DT.body, cursor: 'pointer',
             }}
           >
-            Cerrar
+            <Check size={14} weight="regular" style={{ marginRight: '6px', verticalAlign: '-2px' }} />
+            Listo
           </button>
         </div>
       ) : (
         <>
-          <p style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>
+          <SectionTitle
+            Icon={VideoCamera}
+            accent="azul"
+            hint="Eliges el hueco y la familia lo recibe con el día y la hora."
+          >
             Proponer videollamada
-          </p>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: DT.muted, fontFamily: DT.body }}>Día</span>
+          </SectionTitle>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 800, color: DT.ink, fontFamily: DT.body }}>Día</span>
               <input type="date" value={day} onChange={e => setDay(e.target.value)} style={field} />
             </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: DT.muted, fontFamily: DT.body }}>Hora</span>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 800, color: DT.ink, fontFamily: DT.body }}>Hora</span>
               <input type="time" value={time} onChange={e => setTime(e.target.value)} style={field} />
             </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '150px', flex: 1 }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: DT.muted, fontFamily: DT.body }}>Familia</span>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: '160px', flex: 1 }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 800, color: DT.ink, fontFamily: DT.body }}>Familia</span>
               <select value={patientId} onChange={e => setPatientId(e.target.value)} style={field}>
                 {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </label>
           </div>
 
-          {/* Lo que ya hay ese día, para no pisarlo. */}
-          <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-            {ocupado.length === 0
-              ? `El ${longDay(day)} lo tienes libre.`
-              : `El ${longDay(day)} ya tienes: ${ocupado.map(c => `${c.time} ${c.label}`).join(', ')}.`}
-          </p>
+          {/* La franja del día: un elemento del panel, no una frase al pie. */}
+          <div style={{ marginBottom: '14px' }}>
+            <FranjaDelDia day={day} slots={slots} choca={choca} />
+          </div>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
@@ -323,10 +445,11 @@ function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
               disabled={!patient}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
-                height: '38px', padding: '0 15px', borderRadius: '13px',
+                height: '40px', padding: '0 16px', borderRadius: '13px',
                 border: 'none', background: DT.yellow, color: DT.ink,
                 fontSize: '13.5px', fontWeight: 700, fontFamily: DT.display,
                 cursor: patient ? 'pointer' : 'default', opacity: patient ? 1 : 0.5,
+                boxShadow: patient ? '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)' : 'none',
               }}
             >
               <PaperPlaneTilt size={15} weight="regular" /> Enviar convocatoria
@@ -336,7 +459,7 @@ function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
               className="td-btn"
               onClick={() => setOpen(false)}
               style={{
-                height: '38px', padding: '0 14px', borderRadius: '13px',
+                height: '40px', padding: '0 15px', borderRadius: '13px',
                 border: `1px solid ${DT.line}`, background: DT.white, color: DT.muted,
                 fontSize: '13px', fontWeight: 700, fontFamily: DT.body, cursor: 'pointer',
               }}
@@ -346,6 +469,169 @@ function ProponerVideollamada({ patients, citasDeDia, onSaved }: {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+// ── El calendario: rango de la semana, flechas y los 7 días ──────────────────
+function SemanaNav({ day, onDay, busyOf, today }: {
+  day: string
+  onDay: (iso: string) => void
+  busyOf: (iso: string) => boolean
+  today: string
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  const days = useMemo(() => {
+    const monday = mondayOf(day)
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
+      return localIso(d)
+    })
+  }, [day])
+
+  // El popover se cierra al tocar fuera o con Escape, como cualquier menú.
+  useEffect(() => {
+    if (!pickerOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setPickerOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPickerOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [pickerOpen])
+
+  const navBtn: React.CSSProperties = {
+    width: '34px', height: '34px', borderRadius: '11px', flexShrink: 0,
+    border: `1px solid ${DT.line}`, background: DT.white, color: DT.ink,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+    boxShadow: DT.shadowSoft,
+  }
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      {/* Rango de la semana con sus flechas. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '11px' }}>
+        <button
+          type="button" className="td-btn" style={navBtn}
+          onClick={() => onDay(shiftDays(day, -7))}
+          aria-label="Semana anterior"
+        >
+          <CaretLeft size={16} weight="regular" />
+        </button>
+        <span style={{
+          flex: 1, textAlign: 'center', fontSize: '15px', fontWeight: 600,
+          color: DT.ink, fontFamily: DT.display, fontVariantNumeric: 'tabular-nums',
+        }}>
+          {weekLabel(days[0], days[6])}
+        </span>
+        <button
+          type="button" className="td-btn" style={navBtn}
+          onClick={() => onDay(shiftDays(day, 7))}
+          aria-label="Semana siguiente"
+        >
+          <CaretRight size={16} weight="regular" />
+        </button>
+
+        {/* Salto a cualquier fecha, para no ir semana a semana hasta noviembre. */}
+        <div ref={pickerRef} style={{ position: 'relative', flexShrink: 0 }}>
+          <button
+            type="button"
+            className="td-btn"
+            onClick={() => setPickerOpen(o => !o)}
+            aria-expanded={pickerOpen}
+            aria-label="Ir a una fecha"
+            style={{
+              ...navBtn,
+              background: pickerOpen ? DT.azulTint : DT.white,
+              borderColor: pickerOpen ? DT.azulTintLine : DT.line,
+              color: pickerOpen ? DT.azulInk : DT.ink,
+            }}
+          >
+            <CalendarBlank size={16} weight="regular" />
+          </button>
+          {pickerOpen && (
+            <div className="td-in" style={{
+              position: 'absolute', right: 0, top: '42px', zIndex: 20, width: '210px',
+              padding: '13px', borderRadius: '16px', background: DT.white,
+              border: `1px solid ${DT.line}`, boxShadow: DT.shadowLift,
+            }}>
+              <FieldLabel accent="azul" style={{ marginBottom: '9px' }}>Ir a una fecha</FieldLabel>
+              <input
+                type="date"
+                value={day}
+                autoFocus
+                onChange={e => { if (e.target.value) { onDay(e.target.value); setPickerOpen(false) } }}
+                style={{
+                  width: '100%', boxSizing: 'border-box', height: '40px', padding: '0 11px',
+                  borderRadius: DT.radiusSm, border: `1px solid ${DT.line}`, background: DT.cream,
+                  color: DT.ink, fontSize: '14px', fontWeight: 600, fontFamily: DT.body, outline: 'none',
+                }}
+              />
+              <button
+                type="button"
+                className="td-btn"
+                onClick={() => { onDay(today); setPickerOpen(false) }}
+                style={{
+                  width: '100%', marginTop: '9px', height: '36px', borderRadius: DT.radiusSm,
+                  border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink,
+                  fontSize: '13px', fontWeight: 700, fontFamily: DT.body, cursor: 'pointer',
+                }}
+              >
+                Volver a hoy
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Los 7 días de la semana. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px' }}>
+        {days.map((iso, i) => {
+          const active = iso === day
+          const isToday = iso === today
+          const busy = busyOf(iso)
+          const weekend = i >= 5
+          return (
+            <button
+              key={iso}
+              type="button"
+              className="td-day"
+              onClick={() => onDay(iso)}
+              aria-pressed={active}
+              aria-label={longDay(iso)}
+              style={{
+                padding: '8px 0 7px', borderRadius: '14px', cursor: 'pointer', boxSizing: 'border-box',
+                border: `1px solid ${active ? DT.azul : isToday ? DT.azulTintLine : DT.line}`,
+                background: active ? DT.azul : isToday ? DT.azulTint : weekend ? DT.cream : DT.white,
+                color: active ? DT.cream : weekend ? DT.muted : DT.ink,
+                boxShadow: active ? '0 2px 6px rgba(91,136,150,0.30)' : 'none',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+              }}
+            >
+              <span style={{ fontSize: '10.5px', fontWeight: 800, opacity: 0.75, fontFamily: DT.body }}>
+                {WEEK_INITIALS[i]}
+              </span>
+              <span style={{
+                fontSize: '16px', fontWeight: 600, fontFamily: DT.display,
+                fontVariantNumeric: 'tabular-nums', lineHeight: 1.1,
+              }}>
+                {parseDay(iso).getDate()}
+              </span>
+              <span aria-hidden style={{
+                width: '5px', height: '5px', borderRadius: '50%',
+                background: busy ? (active ? DT.cream : DT.azul) : 'transparent',
+              }} />
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -364,22 +650,6 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
 
   const patientIds = useMemo(() => patients.map(p => p.id), [patients])
 
-  // Tira de días: una semana atrás y dos por delante, con hoy en medio.
-  const strip = useMemo(() => {
-    const base = new Date()
-    return Array.from({ length: 22 }, (_, i) => {
-      const d = new Date(base)
-      d.setDate(base.getDate() + i - 7)
-      const iso = localIso(d)
-      return {
-        iso,
-        initial: DAY_NAMES[d.getDay()],
-        number: d.getDate(),
-        busy: isDemo && citasDe(iso, patientIds).length > 0,
-      }
-    })
-  }, [isDemo, patientIds])
-
   // Sesiones del día elegido, más las videollamadas ya convocadas.
   const sesiones = useMemo(() => {
     if (!isDemo) return []
@@ -390,87 +660,85 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
 
   const llamadasDelDia = calls.filter(c => c.day === day)
 
-  // Lo que ocupa un día, para el selector de videollamada.
-  const ocupadoDe = (d: string) => [
+  // Lo que ocupa un día, para la franja del selector de videollamada.
+  const slotsDe = (d: string): Ocupado[] => [
     ...(isDemo ? citasDe(d, patientIds) : []).map(c => ({
       time: c.time,
       label: firstName(patients.find(p => p.id === c.patientId)?.name ?? ''),
+      kind: 'sesion' as const,
     })),
-    ...calls.filter(c => c.day === d).map(c => ({ time: c.time, label: `videollamada con ${firstName(c.patientName)}` })),
+    ...calls.filter(c => c.day === d).map(c => ({
+      time: c.time,
+      label: `videollamada con ${firstName(c.patientName)}`,
+      kind: 'llamada' as const,
+    })),
   ].sort((a, b) => (a.time < b.time ? -1 : 1))
+
+  const busyOf = (iso: string) =>
+    (isDemo && citasDe(iso, patientIds).length > 0) || calls.some(c => c.day === iso)
+
+  const vacio = sesiones.length === 0 && llamadasDelDia.length === 0
 
   return (
     <section
-      aria-label="Hoy, la agenda del día"
+      aria-label="Hoy, la agenda de la semana"
       style={{
-        position: 'relative', padding: '18px 20px 20px',
-        background: DT.white, border: `1px solid ${DT.line}`, borderRadius: '20px',
+        position: 'relative', padding: '20px 20px 20px',
+        background: DT.white, border: `1px solid ${DT.line}`, borderRadius: DT.radius,
         boxShadow: DT.shadow, overflow: 'hidden', fontFamily: DT.body,
       }}
     >
       <style>{CSS}</style>
+      {/* Filo azul: la agenda es estructura, y el azul es el color de la
+          estructura en toda la vista. */}
       <span aria-hidden style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
         background: `linear-gradient(180deg, ${DT.azul} 0%, ${DT.azulTint} 100%)`,
       }} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
-        <CalendarBlank size={19} weight="regular" color={DT.azulInk} style={{ flexShrink: 0 }} />
-        <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>
-          Agenda
-        </h2>
-        <span style={{ marginLeft: 'auto', fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body }}>
-          {longDay(day)}
-        </span>
-      </div>
+      <SectionTitle
+        Icon={CalendarBlank}
+        accent="azul"
+        size="lg"
+        right={
+          <span style={{
+            padding: '5px 12px', borderRadius: '999px',
+            background: DT.azulTint, border: `1px solid ${DT.azulTintLine}`,
+            fontSize: '12.5px', fontWeight: 800, color: DT.azulInk, fontFamily: DT.body,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            {day === today ? 'hoy' : longDay(day)}
+          </span>
+        }
+      >
+        Agenda
+      </SectionTitle>
 
-      {/* Tira de días */}
-      <div className="td-strip" style={{ display: 'flex', gap: '6px', paddingBottom: '4px', marginBottom: '14px' }}>
-        {strip.map(d => {
-          const active = d.iso === day
-          return (
-            <button
-              key={d.iso}
-              type="button"
-              className="td-btn"
-              onClick={() => { setDay(d.iso); setExpanded(null) }}
-              aria-pressed={active}
-              aria-label={longDay(d.iso)}
-              style={{
-                flexShrink: 0, width: '46px', padding: '7px 0', borderRadius: '13px',
-                border: `1px solid ${active ? DT.azul : DT.line}`,
-                background: active ? DT.azul : d.iso === today ? DT.azulTint : DT.cream,
-                color: active ? DT.cream : DT.ink,
-                cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-              }}
-            >
-              <span style={{ fontSize: '10.5px', fontWeight: 700, opacity: 0.8, fontFamily: DT.body }}>{d.initial}</span>
-              <span style={{ fontSize: '15px', fontWeight: 800, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>
-                {d.number}
-              </span>
-              <span aria-hidden style={{
-                width: '5px', height: '5px', borderRadius: '50%',
-                background: d.busy ? (active ? DT.cream : DT.azul) : 'transparent',
-              }} />
-            </button>
-          )
-        })}
-      </div>
+      <SemanaNav day={day} onDay={iso => { setDay(iso); setExpanded(null) }} busyOf={busyOf} today={today} />
 
       {/* Sesiones del día, plegables */}
       {!isDemo ? (
-        <p style={{
-          margin: '0 0 16px', padding: '11px 13px', borderRadius: '13px',
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: '11px', margin: '0 0 16px',
+          padding: '13px 14px', borderRadius: '15px',
           background: DT.cream, border: `1px solid ${DT.line}`,
-          fontSize: '13px', fontWeight: 600, lineHeight: 1.55, color: DT.muted, fontFamily: DT.body,
         }}>
-          Dracs leerá tu calendario para poner cada briefing antes de su cita. No
-          toca tus citas: solo añade las videollamadas que tú crees.
-        </p>
-      ) : sesiones.length === 0 && llamadasDelDia.length === 0 ? (
-        <p style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 600, color: DT.muted, fontFamily: DT.body }}>
-          Ese día no tienes sesiones.
-        </p>
+          <IconBadge Icon={CalendarCheck} accent="mostaza" size={32} />
+          <p style={{
+            margin: 0, flex: 1, fontSize: '13px', fontWeight: 600, lineHeight: 1.55,
+            color: DT.ink, fontFamily: DT.body,
+          }}>
+            Dracs leerá tu calendario para poner cada briefing antes de su cita. No
+            toca tus citas: solo añade las videollamadas que tú crees.
+          </p>
+        </div>
+      ) : vacio ? (
+        <div style={{ marginBottom: '8px' }}>
+          <EmptyState title="Día libre" accent="arena">
+            No tienes sesiones el {longDay(day)}. Si quieres, propón una videollamada
+            aquí abajo.
+          </EmptyState>
+        </div>
       ) : (
         <div style={{ marginBottom: '16px' }}>
           {sesiones.map(s => {
@@ -479,6 +747,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
               lastPlayedISO: s.patient.lastPlayedISO,
               totalSessions: s.patient.totalSessions,
             })
+            const accent = TONE_ACCENT[st.tone]
             const isOpen = expanded === s.patient.id
             return (
               <div key={`${s.time}-${s.patient.id}`}>
@@ -487,25 +756,27 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
                   className="td-btn td-row"
                   onClick={() => setExpanded(isOpen ? null : s.patient.id)}
                   aria-expanded={isOpen}
+                  aria-label={`${s.time}, ${s.patient.name}. ${st.text}`}
                   style={{
                     width: '100%', textAlign: 'left', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: '12px',
-                    padding: '10px 12px', borderRadius: '13px',
-                    border: 'none', background: isOpen ? DT.cream : 'transparent',
+                    padding: '10px 12px', borderRadius: '15px',
+                    border: `1px solid ${isOpen ? DT.line : 'transparent'}`,
+                    background: isOpen ? DT.cream : 'transparent',
                   }}
                   onMouseEnter={e => { if (!isOpen) e.currentTarget.style.background = DT.cream }}
                   onMouseLeave={e => { if (!isOpen) e.currentTarget.style.background = 'transparent' }}
                 >
+                  {/* La hora en su pastilla: es el dato por el que se busca. */}
                   <span style={{
-                    flexShrink: 0, fontSize: '14px', fontWeight: 800, color: DT.azulInk,
+                    flexShrink: 0, padding: '5px 9px', borderRadius: '10px',
+                    background: DT.azulTint, border: `1px solid ${DT.azulTintLine}`,
+                    fontSize: '13px', fontWeight: 800, color: DT.azulInk,
                     fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
                   }}>
                     {s.time}
                   </span>
-                  <span aria-hidden style={{
-                    width: '9px', height: '9px', borderRadius: '50%', flexShrink: 0,
-                    background: TONE_COLOR[st.tone],
-                  }} />
+                  <Avatar name={s.patient.name} size={34} accent={accent} />
                   <span style={{
                     flex: 1, minWidth: 0, fontSize: '14.5px', fontWeight: 700, color: DT.ink,
                     fontFamily: DT.display, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -534,16 +805,18 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
           {llamadasDelDia.map(c => (
             <div key={c.id} style={{
               display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '10px 12px', borderRadius: '13px', background: DT.azulTint,
-              border: `1px solid ${DT.azulTintLine}`, marginTop: '6px',
+              padding: '10px 12px', borderRadius: '15px', background: DT.mostazaTint,
+              border: `1px solid ${DT.mostazaTintLine}`, marginTop: '6px',
             }}>
               <span style={{
-                flexShrink: 0, fontSize: '14px', fontWeight: 800, color: DT.azulInk,
+                flexShrink: 0, padding: '5px 9px', borderRadius: '10px',
+                background: DT.white, border: `1px solid ${DT.mostazaTintLine}`,
+                fontSize: '13px', fontWeight: 800, color: DT.mostazaInk,
                 fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
               }}>
                 {c.time}
               </span>
-              <VideoCamera size={16} weight="regular" color={DT.azulInk} style={{ flexShrink: 0 }} />
+              <VideoCamera size={17} weight="regular" color={DT.mostazaInk} style={{ flexShrink: 0 }} />
               <span style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
                 Videollamada con la familia de {firstName(c.patientName)}
               </span>
@@ -552,10 +825,10 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
         </div>
       )}
 
-      <div style={{ paddingTop: '14px', borderTop: `1px solid ${DT.line}` }}>
+      <div style={{ paddingTop: '16px', borderTop: `1px solid ${DT.lineSoft}` }}>
         <ProponerVideollamada
           patients={patients}
-          citasDeDia={ocupadoDe}
+          slotsDe={slotsDe}
           onSaved={call => { setCalls(saveVideollamada(call)); setDay(call.day) }}
         />
       </div>

@@ -11,9 +11,11 @@
 //     opcional y no bloquea nada.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Printer, Copy, FloppyDisk, Sparkle, Check } from '@phosphor-icons/react'
+import {
+  Printer, Copy, FloppyDisk, Sparkle, Check, CalendarBlank, Users, PenNib,
+} from '@phosphor-icons/react'
 import { DT } from './deskTokens'
-import { Card, SectionLabel } from './deskUI'
+import { Card, FieldLabel, SectionTitle } from './deskUI'
 import { loadChildFocus } from './childFocus'
 import {
   fromLocalHistory, rangeFor, rangeLabel, statsFor, localIso,
@@ -259,7 +261,7 @@ export default function Informe({
 
       {/* ── Controles ───────────────────────────────────────────── */}
       <Card className="no-print">
-        <SectionLabel>Período</SectionLabel>
+        <SectionTitle Icon={CalendarBlank} accent="azul">Período</SectionTitle>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
           {PERIODS.map(p => (
             <Chip key={p.id} on={periodId === p.id} onClick={() => setPeriodId(p.id)}>{p.label}</Chip>
@@ -270,7 +272,7 @@ export default function Informe({
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
             {([['from', 'Desde'], ['to', 'Hasta']] as const).map(([field, label]) => (
               <label key={field} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: DT.muted, fontFamily: DT.body }}>{label}</span>
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: DT.ink, fontFamily: DT.body }}>{label}</span>
                 <input
                   type="date"
                   value={custom[field]}
@@ -287,23 +289,26 @@ export default function Informe({
           </div>
         )}
 
-        <SectionLabel>Versión</SectionLabel>
+        <FieldLabel accent="mostaza">Versión</FieldLabel>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {VERSIONS.map(v => (
             <Chip key={v.id} on={version === v.id} onClick={() => setVersion(v.id)}>{v.label}</Chip>
           ))}
         </div>
-        <p style={{ margin: '10px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
+        <p style={{
+          margin: '11px 0 0', display: 'flex', alignItems: 'center', gap: '7px',
+          fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55,
+        }}>
+          <Users size={15} weight="regular" color={DT.mostazaInk} style={{ flexShrink: 0 }} />
           {VERSIONS.find(v => v.id === version)?.hint}
         </p>
       </Card>
 
       {/* ── Comentario del logopeda ─────────────────────────────── */}
       <Card className="no-print">
-        <SectionLabel>Tu comentario</SectionLabel>
-        <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-          Ajústalo con tus palabras.
-        </p>
+        <SectionTitle Icon={PenNib} accent="mostaza" hint="Ajústalo con tus palabras: es tu voz y tu firma.">
+          Tu comentario
+        </SectionTitle>
         <textarea
           value={comment}
           onChange={e => setOwnComment(e.target.value)}
@@ -332,12 +337,21 @@ export default function Informe({
         </div>
 
         <header style={{ borderBottom: `1px solid ${DT.line}`, paddingBottom: '14px', marginBottom: '18px' }}>
-          <p style={{
-            margin: 0, fontSize: '20px', fontWeight: 700, color: DT.ink,
-            fontFamily: DT.display, lineHeight: 1.25,
-          }}>
-            {title}
-          </p>
+          {/* Membrete: el símbolo de Dracs junto al título. Es el documento que
+              sale del escritorio, así que lleva la marca donde la llevaría
+              cualquier informe en papel. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img
+              src="/brand/dracs-favicon-cut.png" alt="" aria-hidden
+              style={{ width: '26px', height: '26px', objectFit: 'contain', flexShrink: 0 }}
+            />
+            <p style={{
+              margin: 0, fontSize: '20px', fontWeight: 600, color: DT.ink,
+              fontFamily: DT.display, lineHeight: 1.25,
+            }}>
+              {title}
+            </p>
+          </div>
           <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
             {childLine}
           </p>

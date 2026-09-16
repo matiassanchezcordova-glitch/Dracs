@@ -15,15 +15,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   CaretLeft, CaretRight, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil,
-  House, Plus, FileText,
+  House, Plus, FileText, GameController, Timer, Confetti, PuzzlePiece, Flame,
+  CalendarBlank, ChartPieSlice,
 } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { getWeekCode } from '../../../lib/utils'
 import type { DbSession } from '../../../lib/types'
-import { DT } from './deskTokens'
-import { Card, SectionLabel, Avatar } from './deskUI'
+import { ACCENT, DT, type Accent } from './deskTokens'
+import { Card, SectionTitle, FieldLabel, StatTile, Chip, Avatar, DragonWatermark, EmptyState } from './deskUI'
+import { deskStatus, type StatusTone } from './patientStatus'
+import { proximaCita } from './agenda'
 import { usePorArea } from './usePorArea'
 import EnfocarMundo from './EnfocarMundo'
 import AjusteDificultad from './AjusteDificultad'
@@ -43,6 +46,10 @@ import { useScrollTop } from './useScrollTop'
 interface Props {
   patient: Patient
   supabasePatientId?: string
+  // En la demo, los ids de todas las carpetas: con ellos se sabe cuándo cae la
+  // próxima cita de este niño. En cuenta real la agenda todavía no existe, así
+  // que llega vacío y esa línea no se dibuja.
+  allPatientIds?: string[]
   onBack: () => void
 }
 
@@ -76,12 +83,30 @@ function longDayLabel(day: string): string {
 
 function navBtn(enabled: boolean): React.CSSProperties {
   return {
-    width: '34px', height: '34px', borderRadius: DT.radiusSm,
+    width: '34px', height: '34px', borderRadius: '11px', flexShrink: 0,
     border: `1px solid ${DT.line}`, background: DT.cream,
     color: enabled ? DT.ink : DT.faint,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: enabled ? 'pointer' : 'default', opacity: enabled ? 1 : 0.5,
+    boxShadow: enabled ? DT.shadowSoft : 'none',
   }
+}
+
+// Los tres acentos rotan en la lista de áreas, en este orden.
+const AREA_ACCENTS: Accent[] = ['azul', 'mostaza', 'arena']
+
+// El acento visual de la carpeta sale del mismo tono que usa el escritorio.
+const TONE_ACCENT: Record<StatusTone, Accent> = {
+  played: 'azul',
+  attention: 'mostaza',
+  idle: 'arena',
+}
+
+// "mar 16 sep a las 12:15", para la línea de estado de la identidad.
+function citaLabel(cita: { day: string; time: string } | null): string | null {
+  if (!cita) return null
+  const d = parseDay(cita.day)
+  return `${DAY_NAMES[(d.getDay() + 6) % 7]} ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} a las ${cita.time}`
 }
 
 function slugify(name: string): string {
@@ -120,29 +145,77 @@ function Toast({ message }: { message: string }) {
   )
 }
 
-function StatTile({ value, label }: { value: string; label: string }) {
+// ── La tarjeta de identidad ──────────────────────────────────────────────────
+// Alta como lo que tiene que decir y ni un píxel más: avatar con el aro de su
+// estado, nombre, chips de dato y una línea compacta con lo que hace falta
+// saber antes de abrir nada. La filigrana del dragón pone la marca en la
+// esquina, al 7%. Antes era un rectángulo blanco enorme con un nombre arriba a
+// la izquierda y un vacío gigante debajo.
+function IdentidadCard({ patient, level, accent, estado, proxima }: {
+  patient: Patient
+  level: ChildLevel | null
+  accent: Accent
+  estado: string
+  proxima: string | null
+}) {
+  const a = ACCENT[accent]
   return (
-    <div style={{ background: DT.arena, borderRadius: DT.radiusSm, padding: '14px 16px' }}>
-      <div style={{ fontSize: '24px', fontWeight: 800, color: DT.ink, lineHeight: 1, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>
-        {value}
+    <div style={{
+      position: 'relative', overflow: 'hidden', boxSizing: 'border-box',
+      background: DT.white, border: `1px solid ${DT.line}`, borderLeft: `3px solid ${a.solid}`,
+      borderRadius: DT.radius, boxShadow: DT.shadow, padding: '18px 20px',
+    }}>
+      {/* Tinte de marca muy suave detrás del nombre, para que la tarjeta no sea
+          un plano blanco. */}
+      <span aria-hidden style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: `radial-gradient(420px 150px at 0% 0%, ${a.tint}, transparent 72%)`,
+        opacity: 0.85,
+      }} />
+      <DragonWatermark size={140} opacity={0.07} bottom="-34px" right="-22px" rotate={12} />
+
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+        <Avatar name={patient.name} size={58} accent={accent} />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h2 style={{
+            margin: '0 0 8px', fontSize: '23px', fontWeight: 600, color: DT.ink,
+            fontFamily: DT.display, lineHeight: 1.1,
+          }}>
+            {patient.name}
+          </h2>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <Chip accent="arena">{patient.age} años</Chip>
+            {patient.condition && <Chip accent="arena">{patient.condition}</Chip>}
+            {level && <Chip accent="azul" Icon={Target}>Nivel {level.min} a {level.max}</Chip>}
+          </div>
+        </div>
       </div>
-      <div style={{ fontSize: '12px', color: DT.muted, marginTop: '6px', fontFamily: DT.body }}>{label}</div>
+
+      {/* Línea de estado: una sola fila, lo justo para saber cómo llega. */}
+      <div style={{
+        position: 'relative', display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap',
+        marginTop: '14px', paddingTop: '13px', borderTop: `1px solid ${DT.lineSoft}`,
+        fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body,
+      }}>
+        <span aria-hidden style={{
+          width: '8px', height: '8px', borderRadius: '50%', background: a.solid, flexShrink: 0,
+        }} />
+        <span>{estado}</span>
+        {proxima && (
+          <>
+            <span aria-hidden style={{ color: DT.faint }}>·</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: DT.muted }}>
+              <CalendarBlank size={14} weight="regular" color={DT.azulInk} />
+              Próxima sesión: {proxima}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   )
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span style={{
-      padding: '3px 10px', borderRadius: '999px', background: DT.arena, color: DT.ink,
-      fontSize: '12px', fontWeight: 700, fontFamily: DT.body,
-    }}>
-      {children}
-    </span>
-  )
-}
-
-export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props) {
+export default function Carpeta({ patient: p, supabasePatientId, allPatientIds = [], onBack }: Props) {
   const { user, profile } = useAuth()
   const isReal = !!(user && supabasePatientId)
 
@@ -304,6 +377,19 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
   const firstName = p.name.split(' ')[0]
   const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
 
+  // Identidad: el estado humano y el acento salen de los mismos datos que en el
+  // escritorio, así que la carpeta no puede decir otra cosa que su tarjeta.
+  const estado = deskStatus({
+    sessionsThisWeek: p.metrics.sessionsThisWeek,
+    lastPlayedISO: p.lastPlayedISO,
+    totalSessions: p.totalSessions,
+  })
+  const toneAccent = TONE_ACCENT[estado.tone]
+  const proximaLabel = useMemo(
+    () => (allPatientIds.length > 0 ? citaLabel(proximaCita(p.id, allPatientIds)) : null),
+    [p.id, allPatientIds],
+  )
+
   const kSessions = useCountUp(week.sessions)
 
   async function handleAddNote() {
@@ -355,29 +441,26 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
       {/* Volver al escritorio */}
       <button
         onClick={onBack}
+        className="dk-press dk-focus"
         style={{
-          alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px',
-          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
-          color: DT.azul, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+          alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '7px',
+          background: DT.white, border: `1px solid ${DT.line}`, cursor: 'pointer',
+          height: '34px', padding: '0 14px 0 10px', borderRadius: '999px',
+          color: DT.azulInk, fontSize: '13.5px', fontWeight: 700, fontFamily: DT.body,
+          boxShadow: DT.shadowSoft,
         }}
       >
-        <CaretLeft size={16} weight="bold" /> Escritorio
+        <CaretLeft size={15} weight="regular" /> Escritorio
       </button>
 
       {/* ── Identidad: fija, fuera de las secciones ───────────────── */}
-      <Card style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-        <Avatar name={p.name} size={54} />
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <h2 style={{ margin: '0 0 8px', fontSize: '24px', fontWeight: 700, color: DT.ink, fontFamily: DT.display, lineHeight: 1.1 }}>
-            {p.name}
-          </h2>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <Chip>{p.age} años</Chip>
-            {p.condition && <Chip>{p.condition}</Chip>}
-            {level && <Chip>Nivel {level.min}-{level.max}</Chip>}
-          </div>
-        </div>
-      </Card>
+      <IdentidadCard
+        patient={p}
+        level={level}
+        accent={toneAccent}
+        estado={estado.text}
+        proxima={proximaLabel}
+      />
 
       {/* ── Sub-barra de secciones ────────────────────────────────── */}
       <ModuleTabs
@@ -398,61 +481,67 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             <Card>
               {/* Navegador de semanas: flechas y el rango de la semana que se
                   está mirando. Todo lo de esta tarjeta habla de ESA semana. */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: '10px', marginBottom: '16px',
-              }}>
-                <div style={{ minWidth: 0 }}>
-                  <SectionLabel>Qué jugó</SectionLabel>
-                  <p style={{ margin: '-10px 0 0', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
-                    {weekTitle}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  <button type="button" onClick={() => setWeekOffset(o => o - 1)} aria-label="Semana anterior" style={navBtn(true)}>
-                    <CaretLeft size={16} weight="regular" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setWeekOffset(o => Math.min(0, o + 1))}
-                    disabled={weekOffset >= 0}
-                    aria-label="Semana siguiente"
-                    style={navBtn(weekOffset < 0)}
-                  >
-                    <CaretRight size={16} weight="regular" />
-                  </button>
-                </div>
-              </div>
+              <SectionTitle
+                Icon={ChartLine}
+                accent="azul"
+                size="lg"
+                hint={weekTitle}
+                right={
+                  <>
+                    <button type="button" className="dk-press dk-focus" onClick={() => setWeekOffset(o => o - 1)} aria-label="Semana anterior" style={navBtn(true)}>
+                      <CaretLeft size={16} weight="regular" />
+                    </button>
+                    <button
+                      type="button"
+                      className="dk-press dk-focus"
+                      onClick={() => setWeekOffset(o => Math.min(0, o + 1))}
+                      disabled={weekOffset >= 0}
+                      aria-label="Semana siguiente"
+                      style={navBtn(weekOffset < 0)}
+                    >
+                      <CaretRight size={16} weight="regular" />
+                    </button>
+                  </>
+                }
+              >
+                Qué jugó
+              </SectionTitle>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
-                <StatTile value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
-                <StatTile value={(week.minutes ?? 0) > 0 ? `${week.minutes}` : '—'} label="minutos" />
-                <StatTile value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
-                <StatTile value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
+              {/* Cuatro métricas, cada una con su ícono y su filo de color. No es
+                  un muro de KPIs: son las cuatro que se miran de verdad. */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '10px' }}>
+                <StatTile Icon={GameController} accent="azul" value={String(kSessions)} label={week.sessions === 1 ? 'partida' : 'partidas'} />
+                <StatTile Icon={Timer} accent="mostaza" value={(week.minutes ?? 0) > 0 ? `${week.minutes}` : '—'} label="minutos" />
+                <StatTile Icon={PuzzlePiece} accent="arena" value={week.sessions ? String(week.exercises) : '—'} label="juegos completados" />
+                <StatTile Icon={Confetti} accent="amarillo" value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
               </div>
 
               {/* Barras por día de la semana elegida: un solo gráfico, el que
                   acompaña al navegador. */}
-              <div style={{ marginTop: '20px' }}>
-                <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
-                  Partidas por día
-                </p>
+              <div style={{
+                marginTop: '20px', padding: '15px 16px 13px', borderRadius: DT.radiusSm,
+                background: DT.cream, border: `1px solid ${DT.line}`,
+              }}>
+                <FieldLabel accent="azul">Partidas por día</FieldLabel>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
                   {dayBars.map(d => (
                     <div key={d.iso} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                       <span style={{
-                        height: '15px', fontSize: '11px', fontWeight: 700,
-                        color: d.sessions > 0 ? DT.ink : DT.faint,
+                        height: '15px', fontSize: '11px', fontWeight: 800,
+                        color: d.sessions > 0 ? (d.isToday ? DT.azulInk : DT.ink) : DT.faint,
                         fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
                       }}>
                         {d.sessions > 0 ? d.sessions : ''}
                       </span>
                       {/* El riel arena se ve siempre: un día sin partidas se lee
-                          como un día sin partidas, no como un hueco. */}
+                          como un día sin partidas, no como un hueco. El de hoy
+                          va en amarillo, que es el pop de la marca. */}
                       <div
                         title={`${d.label}: ${d.sessions} ${d.sessions === 1 ? 'partida' : 'partidas'}`}
                         style={{
-                          width: '100%', height: '62px', borderRadius: '8px', background: DT.arena,
+                          width: '100%', height: '64px', borderRadius: '9px', background: DT.arenaDeep,
+                          border: `1px solid ${d.isToday ? DT.yellowTintLine : 'transparent'}`,
+                          boxSizing: 'border-box',
                           display: 'flex', alignItems: 'flex-end', overflow: 'hidden',
                           opacity: d.isFuture ? 0.45 : 1,
                         }}
@@ -461,60 +550,64 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                           width: '100%',
                           height: `${d.sessions > 0 ? Math.max(14, (d.sessions / maxSessions) * 100) : 0}%`,
                           borderRadius: '8px',
-                          background: d.isToday ? DT.azulInk : DT.azul,
+                          background: d.isToday
+                            ? `linear-gradient(180deg, ${DT.yellow} 0%, ${DT.mostaza} 100%)`
+                            : `linear-gradient(180deg, ${DT.azul} 0%, ${DT.azulInk} 100%)`,
+                          transition: 'height 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
                         }} />
                       </div>
                       <span style={{
                         fontSize: '11px', fontWeight: d.isToday ? 800 : 600,
-                        color: d.isToday ? DT.azulInk : DT.muted, fontFamily: DT.body,
+                        color: d.isToday ? DT.mostazaInk : DT.muted, fontFamily: DT.body,
                       }}>
                         {d.initial}
                       </span>
                     </div>
                   ))}
                 </div>
+                {/* Línea base: las barras se apoyan en algo, no flotan sueltas. */}
+                <div aria-hidden style={{ height: '1px', marginTop: '7px', background: DT.line }} />
               </div>
 
               {/* Racha y lugares hablan de ahora, no de la semana que se mira. */}
               {weekOffset === 0 && (streak > 0 || places.length > 0) && (
-                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {streak > 0 && (
-                    <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
-                      Racha actual: {streak} {streak === 1 ? 'día' : 'días'} seguidos.
-                    </p>
+                    <Chip accent="amarillo" Icon={Flame}>
+                      Racha de {streak} {streak === 1 ? 'día' : 'días'}
+                    </Chip>
                   )}
-                  {places.length > 0 && (
-                    <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <MapPin size={15} weight="regular" color={DT.azul} /> Lugares: {places.join(', ')}.
-                    </p>
-                  )}
+                  {places.map(place => (
+                    <Chip key={place} accent="azul" Icon={MapPin}>{place}</Chip>
+                  ))}
                 </div>
               )}
 
-              <p style={{ margin: '22px 0 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
-                Sus partidas
-              </p>
+              <div style={{ marginTop: '22px' }}>
+                <FieldLabel accent="mostaza">Sus partidas</FieldLabel>
+              </div>
               {weekSessions.length === 0 ? (
-                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-                  Esa semana no jugó ninguna partida.
-                </p>
+                <EmptyState title="Esa semana no jugó" accent="arena" compact>
+                  No hay ninguna partida entre {dayLabel(weekRange.from)} y {dayLabel(weekRange.to)}.
+                  Prueba con otra semana usando las flechas de arriba.
+                </EmptyState>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
+                <div className="dk-scroll" style={{ borderRadius: DT.radiusSm, border: `1px solid ${DT.line}`, overflow: 'hidden' }}>
                   <table style={{ width: '100%', minWidth: '360px', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr>
+                      <tr style={{ background: DT.cream }}>
                         {['Fecha', 'Duración', 'Juegos', 'Aciertos'].map((c, i) => (
-                          <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11px', fontWeight: 700, color: DT.faint, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: DT.body, padding: '0 8px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
+                          <th key={c} style={{ textAlign: i === 0 ? 'left' : 'center', fontSize: '11.5px', fontWeight: 800, color: DT.topoInk, fontFamily: DT.body, padding: '9px 10px', borderBottom: `1px solid ${DT.line}` }}>{c}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {weekSessions.map((s, i) => (
-                        <tr key={`${s.day}-${i}`} style={{ background: i % 2 === 1 ? DT.cream : 'transparent' }}>
-                          <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{longDayLabel(s.day)}</td>
-                          <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.minutes ? `${s.minutes} min` : '—'}</td>
-                          <td style={{ padding: '10px 8px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.exercises}</td>
-                          <td style={{ padding: '10px 8px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>
+                        <tr key={`${s.day}-${i}`} style={{ background: i % 2 === 1 ? DT.cream : DT.white }}>
+                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{longDayLabel(s.day)}</td>
+                          <td style={{ padding: '10px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.minutes ? `${s.minutes} min` : '—'}</td>
+                          <td style={{ padding: '10px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{s.exercises}</td>
+                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 800, color: DT.azulInk, fontFamily: DT.body, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>
                             {s.exercises > 0 ? `${Math.round((s.correct / s.exercises) * 100)}%` : '—'}
                           </td>
                         </tr>
@@ -528,26 +621,31 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             {/* Por área: en cuenta real de Supabase, en la demo del detalle
                 por ejercicio del historial. Nunca una ilustración. */}
             <Card>
-              <SectionLabel>Por área</SectionLabel>
+              <SectionTitle Icon={ChartPieSlice} accent="mostaza">Por área</SectionTitle>
               {isReal && porArea.loading ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
               ) : areas.length === 0 ? (
-                <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-                  Todavía no hay juegos suyos clasificados por área. Aparece en cuanto los haya.
-                </p>
+                <EmptyState title="Todavía sin áreas" accent="mostaza" compact>
+                  Aún no hay juegos suyos clasificados por área. Aparece aquí en cuanto los haya.
+                </EmptyState>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {areas.map(a => (
-                    <div key={a.slug}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
+                  {areas.map((a, i) => {
+                    // El color rota entre los tres acentos: la lista se lee de un
+                    // vistazo y no es un muro de barras del mismo azul.
+                    const tone = ACCENT[AREA_ACCENTS[i % AREA_ACCENTS.length]]
+                    return (
+                      <div key={a.slug}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{a.label}</span>
+                          <span style={{ fontSize: '13px', fontWeight: 800, color: tone.ink, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
+                        </div>
+                        <div style={{ height: '9px', background: DT.arenaDeep, borderRadius: '999px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${a.pct}%`, background: tone.solid, borderRadius: '999px', transition: 'width 0.6s cubic-bezier(0.22, 1, 0.36, 1)' }} />
+                        </div>
                       </div>
-                      <div style={{ height: '8px', background: DT.arena, borderRadius: '999px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${a.pct}%`, background: DT.azul, borderRadius: '999px', transition: 'width 0.6s ease' }} />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </Card>
@@ -575,11 +673,10 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
       {/* Bloc de notas de verdad, con o sin cuenta: escribes, se guarda con su
           fecha y se apila con las anteriores. */}
       <div id={panelId('notas')} role="tabpanel" aria-labelledby="tab-notas" hidden={section !== 'notas'}>
-        <Card style={{ borderLeft: `3px solid ${DT.mostaza}` }}>
-          <SectionLabel>Notas clínicas · privadas</SectionLabel>
-          <p style={{ margin: '0 0 12px', fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.5 }}>
-            Solo para ti, la familia no las ve.
-          </p>
+        <Card edge="mostaza">
+          <SectionTitle Icon={NotePencil} accent="mostaza" hint="Solo para ti, la familia no las ve.">
+            Notas clínicas
+          </SectionTitle>
           <textarea
             value={draftNote}
             onChange={e => setDraftNote(e.target.value)}
@@ -597,8 +694,8 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               disabled={!draftNote.trim() || savingClinical || !notesLoaded}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
-                padding: '10px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostaza}`,
-                background: DT.cream, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+                padding: '11px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostazaTintLine}`,
+                background: DT.mostazaTint, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
                 cursor: !draftNote.trim() || savingClinical ? 'default' : 'pointer',
                 opacity: !draftNote.trim() || savingClinical || !notesLoaded ? 0.5 : 1,
               }}
@@ -610,22 +707,27 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
 
           {/* Las notas guardadas. Cada una en crema sobre la tarjeta blanca,
               para que se lean como fichas y no como otra card encima. */}
+          {notesLoaded && notes.length === 0 && (
+            <div style={{ marginTop: '18px' }}>
+              <EmptyState title="Tu bloc está en blanco" accent="mostaza" compact>
+                Lo que escribas aquí se guarda con su fecha y se queda contigo.
+              </EmptyState>
+            </div>
+          )}
           {notes.length > 0 && (
             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <p style={{
-                margin: 0, fontSize: '11px', fontWeight: 800, letterSpacing: '0.06em',
-                textTransform: 'uppercase', color: DT.faint, fontFamily: DT.body,
-              }}>
+              <FieldLabel accent="mostaza" style={{ marginBottom: 0 }}>
                 {notes.length} {notes.length === 1 ? 'nota guardada' : 'notas guardadas'}
-              </p>
+              </FieldLabel>
               {notes.map(n => (
                 <div key={n.id} style={{
-                  background: DT.cream, border: `1px solid ${DT.line}`, borderRadius: DT.radiusSm,
+                  background: DT.cream, border: `1px solid ${DT.line}`,
+                  borderLeft: `3px solid ${DT.mostazaTintLine}`, borderRadius: DT.radiusSm,
                   padding: '12px 14px',
                 }}>
                   {noteDate(n.createdAt) && (
                     <p style={{
-                      margin: '0 0 5px', fontSize: '11.5px', fontWeight: 800, color: DT.mostaza,
+                      margin: '0 0 5px', fontSize: '11.5px', fontWeight: 800, color: DT.mostazaInk,
                       fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
                     }}>
                       {noteDate(n.createdAt)}
@@ -647,7 +749,9 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
       {/* ── Comentario para la familia ────────────────────────────── */}
       <div id={panelId('familia')} role="tabpanel" aria-labelledby="tab-familia" hidden={section !== 'familia'}>
         <Card>
-          <SectionLabel>Comentario para la familia</SectionLabel>
+          <SectionTitle Icon={House} accent="azul" hint="Lo verán en su Casa, con tu nombre.">
+            Comentario para la familia
+          </SectionTitle>
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
@@ -672,22 +776,29 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               onClick={handlePublish}
               disabled={!comment.trim()}
               style={{
-                display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', borderRadius: DT.radiusSm,
-                border: 'none', background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+                display: 'flex', alignItems: 'center', gap: '7px', padding: '11px 20px', borderRadius: DT.radiusSm,
+                border: 'none', background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
                 cursor: comment.trim() ? 'pointer' : 'default', opacity: comment.trim() ? 1 : 0.5,
+                boxShadow: comment.trim() ? '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)' : 'none',
               }}
             >
-              <PaperPlaneTilt size={15} weight="fill" /> Publicar
+              <PaperPlaneTilt size={15} weight="regular" /> Publicar
             </button>
           </div>
           {published && (
             <div style={{
-              marginTop: '16px', padding: '12px 16px', background: DT.cream,
-              border: `1px solid ${DT.line}`, borderLeft: `3px solid ${DT.azul}`,
+              marginTop: '16px', padding: '13px 16px', background: DT.azulTint,
+              border: `1px solid ${DT.azulTintLine}`, borderLeft: `3px solid ${DT.azul}`,
               borderRadius: `0 ${DT.radiusSm} ${DT.radiusSm} 0`,
             }}>
-              <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 800, color: DT.azul, fontFamily: DT.body }}>Publicado · {therapistDisplayName}</p>
-              <p style={{ margin: 0, fontSize: '13px', color: DT.ink, fontFamily: DT.body, lineHeight: 1.6 }}>{published.text}</p>
+              <p style={{
+                margin: '0 0 5px', display: 'flex', alignItems: 'center', gap: '7px',
+                fontSize: '12px', fontWeight: 800, color: DT.azulInk, fontFamily: DT.body,
+              }}>
+                <House size={14} weight="regular" /> Publicado · {therapistDisplayName}
+                {published.date ? ` · ${published.date}` : ''}
+              </p>
+              <p style={{ margin: 0, fontSize: '13.5px', color: DT.ink, fontFamily: DT.body, lineHeight: 1.6 }}>{published.text}</p>
             </div>
           )}
         </Card>

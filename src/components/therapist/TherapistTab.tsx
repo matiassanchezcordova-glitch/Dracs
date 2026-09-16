@@ -16,7 +16,8 @@ import { useTherapist } from '../../context/TherapistContext'
 import { supabase } from '../../lib/supabase'
 import type { DbSession, DbChild, LinkRequestWithPatient } from '../../lib/types'
 import { getAge, getAccuracyPercent, getDurationMinutes, getCurrentLevel } from '../../lib/derived'
-import { DT } from './desk/deskTokens'
+import { DT, SURFACE } from './desk/deskTokens'
+import { DESK_CSS } from './desk/deskUI'
 import Escritorio from './desk/Escritorio'
 import Carpeta from './desk/Carpeta'
 import DracsCopilot from './copilot/DracsCopilot'
@@ -152,6 +153,9 @@ export default function TherapistTab() {
   }
 
   const patients = isReal ? realPatients : demoPatients
+  // Los ids de la demo, estables entre renders: la Carpeta los usa para saber
+  // cuándo cae la próxima cita del niño que tiene abierto.
+  const demoIds = useMemo(() => (isReal ? [] : patients.map(x => x.id)), [isReal, patients])
   const openPatient = openId ? patients.find(p => p.id === openId) ?? null : null
 
   function openCarpeta(id: string) {
@@ -160,11 +164,16 @@ export default function TherapistTab() {
   }
 
   return (
-    <div style={{ flex: 1, width: '100%', overflowY: 'auto', background: DT.cream, minHeight: 0 }}>
+    // La superficie: crema con grano casi imperceptible y un resplandor cálido
+    // arriba. El fondo va en el propio contenedor de scroll, así el grano cubre
+    // todo el alto de la vista y el resplandor se queda donde empieza.
+    <div style={{ flex: 1, width: '100%', overflowY: 'auto', minHeight: 0, ...SURFACE }}>
+      <style>{DESK_CSS}</style>
       {openPatient ? (
         <Carpeta
           patient={openPatient}
           supabasePatientId={isReal ? openPatient.id : undefined}
+          allPatientIds={demoIds}
           onBack={() => setOpenId(null)}
         />
       ) : (
@@ -184,14 +193,22 @@ export default function TherapistTab() {
           los módulos. Antes se repetía dentro del briefing, del borrador y del
           pie del copiloto; decirlo una vez y bien vale más que decirlo cuatro. */}
       <footer style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 88px' }}>
-        <p style={{
-          margin: 0, paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
-          fontSize: '11.5px', fontWeight: 600, lineHeight: 1.5,
-          color: DT.muted, fontFamily: DT.body,
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '12px',
+          paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
         }}>
-          Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda
-          revisa y firma todo.
-        </p>
+          <img
+            src="/brand/dracs-favicon-cut.png" alt="" aria-hidden
+            style={{ width: '26px', height: '26px', objectFit: 'contain', flexShrink: 0, opacity: 0.85 }}
+          />
+          <p style={{
+            margin: 0, fontSize: '11.5px', fontWeight: 600, lineHeight: 1.5,
+            color: DT.muted, fontFamily: DT.body,
+          }}>
+            Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda
+            revisa y firma todo.
+          </p>
+        </div>
       </footer>
 
       {/* Copiloto clínico: flota sobre el Escritorio y sobre la Carpeta. */}

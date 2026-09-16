@@ -8,9 +8,9 @@
 // Aún NO se conecta al mundo del niño ni a la familia: eso es el paso siguiente.
 
 import { useEffect, useMemo, useState } from 'react'
-import { Target, PushPin, MapPin } from '@phosphor-icons/react'
+import { Target, PushPin, MapPin, GameController } from '@phosphor-icons/react'
 import { DT } from './deskTokens'
-import { Card, SectionLabel } from './deskUI'
+import { Card, EmptyState, FieldLabel, SectionTitle } from './deskUI'
 import { SKILL_ORDER, SKILL_LABELS } from './labels'
 import { recommendGames, type RecommendResult } from './recommendGames'
 import { loadChildFocus, saveChildFocus } from './childFocus'
@@ -88,18 +88,12 @@ export default function EnfocarMundo({
 
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '4px' }}>
-        <Target size={20} weight="duotone" color={DT.azul} />
-        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>
-          Enfocar el mundo de {childName}
-        </h3>
-      </div>
-      <p style={{ margin: '0 0 18px', fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-        Elige áreas y, si quieres, deja una nota.
-      </p>
+      <SectionTitle Icon={Target} accent="azul" hint="Elige áreas y, si quieres, deja una nota.">
+        Enfocar el mundo de {childName}
+      </SectionTitle>
 
       {/* Áreas de foco */}
-      <SectionLabel>Áreas de foco</SectionLabel>
+      <FieldLabel accent="azul">Áreas de foco</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
         {SKILL_ORDER.map(slug => {
           const on = areas.includes(slug)
@@ -107,14 +101,16 @@ export default function EnfocarMundo({
             <button
               key={slug}
               onClick={() => toggleArea(slug)}
+              className="dk-press dk-focus"
               style={{
-                padding: '8px 13px', minHeight: '40px', borderRadius: '999px', cursor: 'pointer',
+                padding: '8px 14px', minHeight: '40px', borderRadius: '999px', cursor: 'pointer',
                 border: on ? `1px solid ${DT.azul}` : `1px solid ${DT.line}`,
                 // Sin seleccionar va en crema: blanco sobre la card blanca no
                 // se leería como botón.
                 background: on ? DT.azul : DT.cream,
                 color: on ? DT.cream : DT.ink,
-                fontSize: '13px', fontWeight: 700, fontFamily: DT.body, transition: 'all 0.14s ease',
+                fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+                boxShadow: on ? '0 2px 6px rgba(91,136,150,0.28)' : 'none',
               }}
             >
               {SKILL_LABELS[slug]}
@@ -124,7 +120,7 @@ export default function EnfocarMundo({
       </div>
 
       {/* Nota de contexto */}
-      <SectionLabel>Nota de contexto (opcional)</SectionLabel>
+      <FieldLabel accent="arena">Nota de contexto (opcional)</FieldLabel>
       <textarea
         value={note}
         onChange={e => setNote(e.target.value)}
@@ -138,43 +134,55 @@ export default function EnfocarMundo({
       />
 
       {/* Juegos sugeridos */}
-      <SectionLabel>Juegos sugeridos</SectionLabel>
+      <FieldLabel accent="amarillo">Juegos sugeridos</FieldLabel>
       {areas.length === 0 ? (
-        <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-          Elige un área arriba y aparecen los juegos.
-        </p>
+        <EmptyState title="Elige un área y verás juegos" accent="azul" compact>
+          En cuanto marques una arriba, aquí salen los juegos que la trabajan, cada
+          uno con el lugar donde pasa.
+        </EmptyState>
       ) : recLoading ? (
         <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Buscando juegos…</p>
       ) : items.length === 0 ? (
-        <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.6 }}>
-          Todavía no hay juegos para estas áreas.
-        </p>
+        <EmptyState title="Sin juegos para esas áreas" accent="arena" compact>
+          Prueba a marcar otra área: el catálogo crece con cada mundo nuevo.
+        </EmptyState>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {shown.map(g => {
             const pinned = emphasis.has(g.id)
             return (
-              <div key={g.id} style={{
+              <div key={g.id} className="dk-press" style={{
                 display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px',
-                borderRadius: DT.radiusSm, background: pinned ? '#FDF4D6' : DT.cream,
-                border: `1px solid ${pinned ? DT.yellow : DT.line}`,
+                borderRadius: DT.radiusSm, background: pinned ? DT.yellowTint : DT.cream,
+                border: `1px solid ${pinned ? DT.yellowTintLine : DT.line}`,
               }}>
+                <span aria-hidden style={{
+                  width: '34px', height: '34px', flexShrink: 0, borderRadius: '11px',
+                  background: pinned ? DT.white : DT.azulTint,
+                  border: `1px solid ${pinned ? DT.yellowTintLine : DT.azulTintLine}`,
+                  color: pinned ? DT.mostazaInk : DT.azulInk,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <GameController size={17} weight="regular" />
+                </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{g.title}</p>
+                  <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>{g.title}</p>
                   <p style={{ margin: 0, fontSize: '13px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-                    <MapPin size={13} weight="duotone" color={DT.azul} /> {g.rationale}
+                    <MapPin size={13} weight="regular" color={DT.azul} /> {g.rationale}
                   </p>
                 </div>
                 <button
                   onClick={() => togglePin(g.id)}
                   aria-pressed={pinned}
                   title={pinned ? 'Quitar del énfasis' : 'Fijar al énfasis'}
+                  className="dk-press dk-focus"
                   style={{
                     flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px',
                     height: '38px', padding: '0 13px', borderRadius: DT.radiusSm, cursor: 'pointer',
                     border: pinned ? 'none' : `1px solid ${DT.line}`,
                     background: pinned ? DT.yellow : DT.white, color: DT.ink,
                     fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+                    boxShadow: pinned ? '0 1px 2px rgba(51,48,42,0.10), 0 5px 12px rgba(247,195,28,0.26)' : DT.shadowSoft,
                   }}
                 >
                   <PushPin size={15} weight={pinned ? 'fill' : 'regular'} />
@@ -196,10 +204,12 @@ export default function EnfocarMundo({
         <button
           onClick={handleSave}
           disabled={saving || !loaded}
+          className="dk-press dk-focus"
           style={{
-            padding: '11px 22px', borderRadius: DT.radiusSm, border: 'none',
-            background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.body,
+            padding: '12px 22px', borderRadius: DT.radiusSm, border: 'none',
+            background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
             cursor: saving ? 'default' : 'pointer', opacity: saving || !loaded ? 0.55 : 1,
+            boxShadow: saving || !loaded ? 'none' : '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)',
           }}
         >
           {saving ? 'Guardando…' : 'Guardar enfoque'}
@@ -207,7 +217,7 @@ export default function EnfocarMundo({
         <span style={{ fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
           {emphasis.size > 0 ? `${emphasis.size} juego${emphasis.size === 1 ? '' : 's'} en el énfasis.` : 'Sin juegos fijados todavía.'}
         </span>
-        {toast && <span style={{ fontSize: '13px', fontWeight: 700, color: DT.azul, fontFamily: DT.body }}>{toast}</span>}
+        {toast && <span className="dk-fade" style={{ fontSize: '13px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>}
       </div>
     </Card>
   )
