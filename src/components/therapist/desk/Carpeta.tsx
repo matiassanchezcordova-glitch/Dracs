@@ -1,34 +1,35 @@
 // La Carpeta — detalle de un paciente, ordenado en cuatro secciones.
 //
 // Fijo arriba: volver al escritorio y la identidad del paciente (avatar, nombre,
-// edad, condición, nivel). Debajo, una sub-barra de burbuja igual que la de
-// módulos pero en talla chica, para que se lea como subordinada y no compita.
+// edad, condición). Debajo, una sub-barra de burbuja igual que la de módulos
+// pero en talla chica, para que se lea como subordinada y no compita.
 //
-//   Resumen  qué jugó esta semana, evolución, últimas partidas y por área.
-//   Plan     enfocar el mundo (áreas, nota, juegos, énfasis) y dificultad.
-//   Notas    notas clínicas privadas, solo con cuenta real.
+//   Resumen  cómo le fue: la semana elegida, día a día, y por área.
+//   Plan     enfocar el mundo (áreas, nota, juegos, énfasis) y el nivel.
+//   Notas    notas clínicas privadas, con fecha.
 //   Familia  el comentario que se publica a la familia.
+//   Informe  el documento del período, para la familia o para el entorno.
 //
-// Un dato, un lugar: lo que jugó vive solo en Resumen. El terapeuta SÍ ve
-// números; sobrios, legibles, sin claims clínicos y sin datos inventados.
+// Un dato, un lugar: lo que jugó vive solo en Resumen y el nivel solo en Plan.
+// El terapeuta SÍ ve números; sobrios, sin claims y sin datos inventados.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   CaretLeft, CaretRight, PaperPlaneTilt, MapPin, ChartLine, Target, NotePencil,
-  House, Plus, FileText, GameController, Timer, Confetti, Flame, ChartPieSlice,
+  House, Plus, FileText, GameController, Timer, Confetti, ChartPieSlice,
 } from '@phosphor-icons/react'
 import { type Patient } from '../../../data/patients'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { getWeekCode } from '../../../lib/utils'
 import type { DbSession } from '../../../lib/types'
-import { DT } from './deskTokens'
-import { Card, SectionTitle, FieldLabel, StatTile, Chip, Avatar, EmptyState } from './deskUI'
+import { DT, FIELD } from './deskTokens'
+import { Card, SectionTitle, FieldLabel, StatTile, Chip, Avatar, EmptyState, Button, IconButton } from './deskUI'
 import { usePorArea } from './usePorArea'
 import EnfocarMundo from './EnfocarMundo'
+import Objetivos from './Objetivos'
 import AjusteDificultad from './AjusteDificultad'
 import ModuleTabs, { type ModuleDef } from './ModuleTabs'
-import type { ChildLevel } from './childLevel'
 import {
   loadClinicalNotes, saveClinicalNotes, newNoteId, noteDate, type ClinicalNote,
 } from './clinicalNotes'
@@ -67,17 +68,6 @@ function shortDate(iso?: string | null): string {
 
 const DAY_INITIALS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-function navBtn(enabled: boolean): React.CSSProperties {
-  return {
-    width: '34px', height: '34px', borderRadius: '11px', flexShrink: 0,
-    border: `1px solid ${DT.line}`, background: DT.cream,
-    color: enabled ? DT.ink : DT.faint,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: enabled ? 'pointer' : 'default', opacity: enabled ? 1 : 0.5,
-    boxShadow: enabled ? DT.shadowSoft : 'none',
-  }
-}
-
 function slugify(name: string): string {
   return name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
@@ -96,13 +86,9 @@ function Toast({ message }: { message: string }) {
 }
 
 // ── La tarjeta de identidad ──────────────────────────────────────────────────
-// Sólo identidad: quién es. Nada de agenda (eso es de Hoy) y nada de resultados
-// (eso es del Resumen, dos dedos más abajo). Alta como lo que tiene que decir y
-// ni un píxel más.
-function IdentidadCard({ patient, level }: {
-  patient: Patient
-  level: ChildLevel | null
-}) {
+// Sólo identidad: quién es. Nada de agenda (es de la Agenda), nada de
+// resultados (del Resumen) y nada de nivel (del Plan, donde se ajusta).
+function IdentidadCard({ patient }: { patient: Patient }) {
   return (
     <div style={{
       boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap',
@@ -120,7 +106,6 @@ function IdentidadCard({ patient, level }: {
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           <Chip>{patient.age} años</Chip>
           {patient.condition && <Chip>{patient.condition}</Chip>}
-          {level && <Chip Icon={Target}>Nivel {level.min} a {level.max}</Chip>}
         </div>
       </div>
     </div>
@@ -157,13 +142,13 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
     }
   })
   const [toast, setToast] = useState<string | null>(null)
+  // Las áreas de foco marcadas ahora mismo, arriba porque las comparten dos
+  // tarjetas del Plan: donde se eligen y donde se les fija un objetivo.
+  const [planAreas, setPlanAreas] = useState<string[]>([])
   const [section, setSection] = useState('resumen')
   // Abrir una carpeta o cambiar de sección empieza arriba del todo, no donde
   // se hubiera quedado el scroll de la pantalla anterior.
   const rootRef = useRef<HTMLDivElement>(null)
-  // El nivel vive aquí y no en la tarjeta de identidad: al guardarlo en Plan, el
-  // chip de arriba tiene que decir lo mismo sin recargar la Carpeta.
-  const [level, setLevel] = useState<ChildLevel | null>(p.level ?? null)
 
   const porArea = usePorArea(isReal ? supabasePatientId : null)
 
@@ -259,24 +244,22 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
     })
   }, [allSessions, weekRange])
 
-  const maxSessions = Math.max(1, ...dayBars.map(d => d.sessions))
-
-  // Racha y lugares: datos de ahora, no de la semana que se esté mirando.
-  const streak = useMemo(() => {
-    const played = new Set(allSessions.map(s => s.day))
-    const cursor = new Date()
-    if (!played.has(localIso(cursor))) cursor.setDate(cursor.getDate() - 1)
-    let n = 0
-    while (played.has(localIso(cursor))) { n++; cursor.setDate(cursor.getDate() - 1) }
-    return n
-  }, [allSessions])
+  // Escala fija de al menos 3 partidas: con un máximo de 1, un día con una sola
+  // partida llenaba la barra entera y parecía un día lleno.
+  const maxSessions = Math.max(3, ...dayBars.map(d => d.sessions))
 
   // Por área: de Supabase en cuenta real, del detalle por ejercicio en la demo.
   const areas = useMemo(
     () => (isReal ? porArea.distribution.map(a => ({ slug: a.slug, label: a.label, pct: a.pct })) : localAreas(p.history ?? [])),
     [isReal, porArea.distribution, p.history],
   )
-  const places = isReal ? porArea.placesVisited : localPlaces(p.history ?? [])
+  // Dónde jugó la semana que se mira (en la demo, del detalle por partida).
+  // En cuenta real el lugar no viene por semana, así que va el total.
+  const places = useMemo(() => {
+    if (isReal) return porArea.placesVisited
+    const inWeek = (p.history ?? []).filter(s => s.date >= weekRange.from && s.date <= weekRange.to)
+    return localPlaces(inWeek)
+  }, [isReal, porArea.placesVisited, p.history, weekRange])
 
   const firstName = p.name.split(' ')[0]
   const therapistDisplayName = profile?.full_name ?? 'Terapeuta'
@@ -328,22 +311,12 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
       {toast && <Toast message={toast} />}
 
       {/* Volver al escritorio */}
-      <button
-        onClick={onBack}
-        className="dk-press dk-focus"
-        style={{
-          alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '7px',
-          background: DT.white, border: `1px solid ${DT.line}`, cursor: 'pointer',
-          height: '34px', padding: '0 14px 0 10px', borderRadius: '999px',
-          color: DT.azulInk, fontSize: '13.5px', fontWeight: 700, fontFamily: DT.body,
-          boxShadow: DT.shadowSoft,
-        }}
-      >
-        <CaretLeft size={15} weight="regular" /> Escritorio
-      </button>
+      <Button size="sm" Icon={CaretLeft} onClick={onBack} style={{ alignSelf: 'flex-start' }}>
+        Escritorio
+      </Button>
 
       {/* ── Identidad: fija, fuera de las secciones ───────────────── */}
-      <IdentidadCard patient={p} level={level} />
+      <IdentidadCard patient={p} />
 
       {/* ── Sub-barra de secciones ────────────────────────────────── */}
       <ModuleTabs
@@ -369,19 +342,13 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                 size="lg"
                 right={
                   <>
-                    <button type="button" className="dk-press dk-focus" onClick={() => setWeekOffset(o => o - 1)} aria-label="Semana anterior" style={navBtn(true)}>
-                      <CaretLeft size={16} weight="regular" />
-                    </button>
-                    <button
-                      type="button"
-                      className="dk-press dk-focus"
+                    <IconButton Icon={CaretLeft} label="Semana anterior" onClick={() => setWeekOffset(o => o - 1)} />
+                    <IconButton
+                      Icon={CaretRight}
+                      label="Semana siguiente"
                       onClick={() => setWeekOffset(o => Math.min(0, o + 1))}
                       disabled={weekOffset >= 0}
-                      aria-label="Semana siguiente"
-                      style={navBtn(weekOffset < 0)}
-                    >
-                      <CaretRight size={16} weight="regular" />
-                    </button>
+                    />
                   </>
                 }
               >
@@ -394,20 +361,18 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               {/* Si esa semana no jugó, se dice una vez y ya. Sin tiles en
                   guiones ni un gráfico de rieles vacíos diciendo lo mismo. */}
               {week.sessions === 0 ? (
-                <EmptyState Icon={GameController} title="Esa semana no jugó" compact>
-                  No hay ninguna partida entre {dayLabel(weekRange.from)} y {dayLabel(weekRange.to)}.
-                  Prueba con otra semana con las flechas de arriba.
-                </EmptyState>
+                <EmptyState Icon={GameController} title="Esa semana no jugó" compact />
               ) : (
                 <>
 
-              {/* Dos métricas, y ninguna repite lo que dice el gráfico. Las
-                  partidas se cuentan abajo, día a día; aquí va lo que el gráfico
-                  no puede decir. */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '10px' }}>
-                <StatTile Icon={Timer} value={(week.minutes ?? 0) > 0 ? `${week.minutes}` : '—'} label="minutos jugados" />
-                <StatTile Icon={Confetti} value={week.accuracy == null ? '—' : `${week.accuracy}%`} label="aciertos" />
-              </div>
+              {/* Lo que el gráfico no dice. Las partidas se cuentan abajo, día a
+                  día. Un número que no se midió no se pinta: ni guiones ni ceros. */}
+              {((week.minutes ?? 0) > 0 || week.accuracy != null) && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '10px' }}>
+                  {(week.minutes ?? 0) > 0 && <StatTile Icon={Timer} value={`${week.minutes}`} label="minutos jugados" />}
+                  {week.accuracy != null && <StatTile Icon={Confetti} value={`${week.accuracy}%`} label="aciertos" />}
+                </div>
+              )}
 
               {/* Barras por día de la semana elegida: un solo gráfico, el que
                   acompaña al navegador. */}
@@ -459,14 +424,9 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                 <div aria-hidden style={{ height: '1px', marginTop: '7px', background: DT.line }} />
               </div>
 
-              {/* Racha y lugares hablan de ahora, no de la semana que se mira. */}
-              {weekOffset === 0 && (streak > 0 || places.length > 0) && (
+              {/* Dónde jugó esa semana. */}
+              {places.length > 0 && (
                 <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {streak > 0 && (
-                    <Chip Icon={Flame}>
-                      Racha de {streak} {streak === 1 ? 'día' : 'días'}
-                    </Chip>
-                  )}
                   {places.map(place => (
                     <Chip key={place} Icon={MapPin}>{place}</Chip>
                   ))}
@@ -484,9 +444,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               {isReal && porArea.loading ? (
                 <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>Cargando…</p>
               ) : areas.length === 0 ? (
-                <EmptyState Icon={ChartPieSlice} title="Todavía sin áreas" compact>
-                  Aún no hay juegos suyos clasificados por área. Aparece aquí en cuanto los haya.
-                </EmptyState>
+                <EmptyState Icon={ChartPieSlice} title="Todavía sin partidas por área" compact />
               ) : (
                 // Todas las barras en azul: aquí el color no codifica nada, así
                 // que ponerle uno distinto a cada área sería ruido.
@@ -514,13 +472,25 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           nota a medio escribir no se pierde al mirar otra sección. */}
       <div id={panelId('plan')} role="tabpanel" aria-labelledby="tab-plan" hidden={section !== 'plan'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <EnfocarMundo childName={firstName} isReal={isReal} storeId={(isReal ? supabasePatientId : p.id) as string} />
+          <EnfocarMundo
+            childName={firstName}
+            isReal={isReal}
+            storeId={(isReal ? supabasePatientId : p.id) as string}
+            onAreasChange={setPlanAreas}
+          />
+          {/* Debajo de las áreas de foco: a dónde quiere llegar con cada una,
+              de qué dato parte y qué ha pasado desde entonces. */}
+          <Objetivos
+            isReal={isReal}
+            storeId={(isReal ? supabasePatientId : p.id) as string}
+            focusAreas={planAreas}
+            demoHistory={p.history ?? []}
+          />
           <AjusteDificultad
             isReal={isReal}
             storeId={(isReal ? supabasePatientId : p.id) as string}
             userId={user?.id}
             initial={p.level ?? null}
-            onLevel={setLevel}
           />
         </div>
       </div>
@@ -534,49 +504,37 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           <textarea
             value={draftNote}
             onChange={e => setDraftNote(e.target.value)}
-            placeholder={`Qué observaste hoy de ${firstName}, para tu propio registro.`}
+            placeholder={`Qué observaste de ${firstName}.`}
+            aria-label="Nueva nota clínica"
             rows={4}
-            style={{
-              width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-              border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink, fontSize: '14px',
-              fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
-            }}
+            style={{ ...FIELD, resize: 'vertical', maxHeight: '220px', marginBottom: '12px' }}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button
+            <Button
+              variant="primary"
+              Icon={Plus}
               onClick={handleAddNote}
               disabled={!draftNote.trim() || savingClinical || !notesLoaded}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '7px',
-                padding: '11px 20px', borderRadius: DT.radiusSm, border: `1px solid ${DT.mostazaTintLine}`,
-                background: DT.mostazaTint, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
-                cursor: !draftNote.trim() || savingClinical ? 'default' : 'pointer',
-                opacity: !draftNote.trim() || savingClinical || !notesLoaded ? 0.5 : 1,
-              }}
             >
-              <Plus size={15} weight="regular" />
               {savingClinical ? 'Guardando…' : 'Guardar nota'}
-            </button>
+            </Button>
           </div>
 
-          {/* Las notas guardadas. Cada una en crema sobre la tarjeta blanca,
-              para que se lean como fichas y no como otra card encima. */}
+          {/* Las notas guardadas, en crema sobre la tarjeta blanca: se leen como
+              fichas y no como otra tarjeta encima. */}
           {notesLoaded && notes.length === 0 && (
             <div style={{ marginTop: '18px' }}>
-              <EmptyState Icon={NotePencil} title="Tu bloc está en blanco" compact>
-                Lo que escribas aquí se guarda con su fecha y no lo ve la familia.
+              <EmptyState Icon={NotePencil} title="Aún no hay notas" compact>
+                Se guardan con su fecha. La familia no las ve.
               </EmptyState>
             </div>
           )}
           {notes.length > 0 && (
             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <FieldLabel style={{ marginBottom: 0 }}>
-                {notes.length} {notes.length === 1 ? 'nota guardada' : 'notas guardadas'}
-              </FieldLabel>
+              <FieldLabel style={{ marginBottom: 0 }}>Guardadas</FieldLabel>
               {notes.map(n => (
                 <div key={n.id} style={{
-                  background: DT.cream, border: `1px solid ${DT.line}`,
-                  borderLeft: `3px solid ${DT.mostazaTintLine}`, borderRadius: DT.radiusSm,
+                  background: DT.cream, border: `1px solid ${DT.lineSoft}`, borderRadius: DT.radiusSm,
                   padding: '12px 14px',
                 }}>
                   {noteDate(n.createdAt) && (
@@ -612,42 +570,29 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               // Enter salta de línea.
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePublish() }
             }}
-            placeholder="Escribe aquí tu observación de la semana para la familia."
+            placeholder="Tu observación de la semana para la familia."
+            aria-label="Comentario para la familia"
             rows={4}
-            style={{
-              width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-              border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink, fontSize: '14px',
-              fontFamily: DT.body, resize: 'vertical', maxHeight: '220px', outline: 'none', lineHeight: 1.6, marginBottom: '12px',
-            }}
+            style={{ ...FIELD, resize: 'vertical', maxHeight: '220px', marginBottom: '12px' }}
           />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
-              Enter publica. Mayúsculas y Enter para saltar de línea.
+            <span style={{ fontSize: '12px', color: DT.muted, fontFamily: DT.body }}>
+              Enter publica. Mayúsculas y Enter, salto de línea.
             </span>
-            <button
-              onClick={handlePublish}
-              disabled={!comment.trim()}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '7px', padding: '11px 20px', borderRadius: DT.radiusSm,
-                border: 'none', background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
-                cursor: comment.trim() ? 'pointer' : 'default', opacity: comment.trim() ? 1 : 0.5,
-                boxShadow: comment.trim() ? '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)' : 'none',
-              }}
-            >
-              <PaperPlaneTilt size={15} weight="regular" /> Publicar
-            </button>
+            <Button variant="primary" Icon={PaperPlaneTilt} onClick={handlePublish} disabled={!comment.trim()}>
+              Publicar
+            </Button>
           </div>
           {published && (
             <div style={{
               marginTop: '16px', padding: '13px 16px', background: DT.azulTint,
-              border: `1px solid ${DT.azulTintLine}`, borderLeft: `3px solid ${DT.azul}`,
-              borderRadius: `0 ${DT.radiusSm} ${DT.radiusSm} 0`,
+              border: `1px solid ${DT.azulTintLine}`, borderRadius: DT.radiusSm,
             }}>
               <p style={{
                 margin: '0 0 5px', display: 'flex', alignItems: 'center', gap: '7px',
                 fontSize: '12px', fontWeight: 800, color: DT.azulInk, fontFamily: DT.body,
               }}>
-                <House size={14} weight="regular" /> Publicado · {therapistDisplayName}
+                <House size={14} weight="regular" /> Lo que ve la familia · {therapistDisplayName}
                 {published.date ? ` · ${published.date}` : ''}
               </p>
               <p style={{ margin: 0, fontSize: '13.5px', color: DT.ink, fontFamily: DT.body, lineHeight: 1.6 }}>{published.text}</p>

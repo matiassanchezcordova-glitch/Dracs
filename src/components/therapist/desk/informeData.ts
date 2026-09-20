@@ -85,7 +85,7 @@ function pctOf(list: InformeSession[]): number | null {
   return Math.round((correct / total) * 100)
 }
 
-function mondayOf(d: Date): Date {
+export function mondayOf(d: Date): Date {
   const dow = d.getDay()
   const m = new Date(d)
   m.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1))
