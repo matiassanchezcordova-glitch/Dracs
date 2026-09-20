@@ -4,18 +4,19 @@
 // Qué es de verdad y qué no:
 //   - el cuerpo sale de las partidas reales del período, y si no hay, lo dice;
 //   - el comentario es del logopeda: arranca con un borrador descriptivo y él
-//     lo reescribe. Su voz, su firma, su responsabilidad;
+//     lo reescribe ahí mismo, dentro del documento, que es donde se lee. Así
+//     el texto sale una sola vez en pantalla. Su voz, su firma;
 //   - exportar es window.print con un CSS de impresión dedicado. Sin backend,
 //     sin envío de correo, sin promesas;
-//   - lo único que sigue siendo mockup es el pulido con el copiloto, que es
+//   - "Redactar con Dracs" abre el copiloto con las líneas del período. Es
 //     opcional y no bloquea nada.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Printer, Copy, FloppyDisk, Sparkle, Check, CalendarBlank, Users, PenNib,
+  Printer, Copy, FloppyDisk, Sparkle, Check, CalendarBlank,
 } from '@phosphor-icons/react'
-import { DT } from './deskTokens'
-import { Card, FieldLabel, SectionTitle } from './deskUI'
+import { DT, FIELD } from './deskTokens'
+import { Button, Card, FieldLabel, SectionTitle, ToggleChip } from './deskUI'
 import { loadChildFocus } from './childFocus'
 import {
   fromLocalHistory, rangeFor, rangeLabel, statsFor, localIso,
@@ -32,15 +33,15 @@ const PERIODS: { id: PeriodId; label: string }[] = [
   { id: 'rango', label: 'Rango de fechas' },
 ]
 
-const VERSIONS: { id: Version; label: string; hint: string }[] = [
-  { id: 'familia', label: 'Para la familia', hint: 'En claro, sin cifras ni jerga.' },
-  { id: 'entorno', label: 'Para el entorno', hint: 'Sobria y con los números, para un centro o un seguro.' },
+const VERSIONS: { id: Version; label: string }[] = [
+  { id: 'familia', label: 'Para la familia' },
+  { id: 'entorno', label: 'Para el colegio o el seguro' },
 ]
 
 // CSS de impresión: al imprimir solo queda el documento. Se oculta por
 // visibility y no por display para no descolocar el layout de la página.
 const PRINT_CSS = `
-.inf-chip { transition: background 0.14s ease, border-color 0.14s ease; }
+.print-only { display: none; }
 @media print {
   body * { visibility: hidden !important; }
   .inf-doc, .inf-doc * { visibility: visible !important; }
@@ -51,13 +52,11 @@ const PRINT_CSS = `
     background: #FFFFFF !important;
   }
   .no-print { display: none !important; }
+  .print-only { display: block !important; }
   /* La app vive dentro de contenedores con scroll: al imprimir tienen que
      soltar la altura para que el informe no se corte en una pantalla. */
   html, body, #root { height: auto !important; overflow: visible !important; }
   @page { margin: 16mm; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .inf-chip { transition: none !important; }
 }
 `
 
@@ -66,29 +65,8 @@ function longDate(d: Date): string {
   return `${d.getDate()} de ${M[d.getMonth()]} de ${d.getFullYear()}`
 }
 
-function Chip({ on, children, onClick }: { on: boolean; children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      className="inf-chip"
-      onClick={onClick}
-      aria-pressed={on}
-      style={{
-        padding: '8px 14px', minHeight: '38px', borderRadius: '999px', cursor: 'pointer',
-        border: `1px solid ${on ? DT.azul : DT.line}`,
-        background: on ? DT.azul : DT.cream,
-        color: on ? DT.cream : DT.ink,
-        fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// Acción del informe. Van las cuatro juntas arriba del documento, como los
-// botones de copiar de un bloque de código: icono, nombre y confirmación en el
-// mismo sitio, para que se vea sobre qué actúan.
+// Acción del informe. Van las cuatro juntas arriba del documento, sobre lo que
+// actúan, y confirman en el mismo botón.
 function DocAction({ Icon, label, done, onRun, primary }: {
   Icon: typeof Printer
   label: string
@@ -110,22 +88,15 @@ function DocAction({ Icon, label, done, onRun, primary }: {
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      size="sm"
+      variant={primary ? 'primary' : 'secondary'}
+      Icon={flash ? Check : Icon}
       onClick={run}
       aria-label={label}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: '7px',
-        height: '36px', padding: '0 13px', borderRadius: DT.radiusSm,
-        border: primary ? 'none' : `1px solid ${DT.line}`,
-        background: flash ? DT.azulTint : primary ? DT.yellow : DT.cream,
-        color: DT.ink, fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
-        cursor: 'pointer', whiteSpace: 'nowrap',
-      }}
     >
-      {flash ? <Check size={16} weight="regular" /> : <Icon size={16} weight="regular" />}
       {flash ? done : label}
-    </button>
+    </Button>
   )
 }
 
@@ -211,7 +182,7 @@ export default function Informe({
   // La versión de la familia se ve cálida (bloques en crema, más aire); la del
   // entorno, sobria (etiquetas chicas y texto corrido).
   const warm = version === 'familia'
-  const title = warm ? 'Informe de seguimiento' : 'Informe de seguimiento del período'
+  const title = 'Informe de seguimiento'
   const childLine = `${fullName}, ${age} años`
   const periodLine = `Período: ${rangeLabel(range)}`
   const signature = `${therapistName} · ${longDate(new Date())}`
@@ -264,7 +235,7 @@ export default function Informe({
         <SectionTitle Icon={CalendarBlank}>Período</SectionTitle>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
           {PERIODS.map(p => (
-            <Chip key={p.id} on={periodId === p.id} onClick={() => setPeriodId(p.id)}>{p.label}</Chip>
+            <ToggleChip key={p.id} on={periodId === p.id} onClick={() => setPeriodId(p.id)}>{p.label}</ToggleChip>
           ))}
         </div>
 
@@ -278,11 +249,7 @@ export default function Informe({
                   value={custom[field]}
                   max={localIso(new Date())}
                   onChange={e => setCustom(prev => ({ ...prev, [field]: e.target.value }))}
-                  style={{
-                    height: '40px', padding: '0 12px', borderRadius: DT.radiusSm,
-                    border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink,
-                    fontSize: '14px', fontFamily: DT.body, outline: 'none',
-                  }}
+                  style={{ ...FIELD, height: '42px', padding: '0 12px', width: 'auto', fontWeight: 600 }}
                 />
               </label>
             ))}
@@ -292,38 +259,15 @@ export default function Informe({
         <FieldLabel>Versión</FieldLabel>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {VERSIONS.map(v => (
-            <Chip key={v.id} on={version === v.id} onClick={() => setVersion(v.id)}>{v.label}</Chip>
+            <ToggleChip key={v.id} on={version === v.id} onClick={() => setVersion(v.id)}>{v.label}</ToggleChip>
           ))}
         </div>
-        <p style={{
-          margin: '11px 0 0', display: 'flex', alignItems: 'center', gap: '7px',
-          fontSize: '13px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55,
-        }}>
-          <Users size={15} weight="regular" color={DT.mostazaInk} style={{ flexShrink: 0 }} />
-          {VERSIONS.find(v => v.id === version)?.hint}
-        </p>
-      </Card>
-
-      {/* ── Comentario del logopeda ─────────────────────────────── */}
-      <Card className="no-print">
-        <SectionTitle Icon={PenNib}>Tu comentario</SectionTitle>
-        <textarea
-          value={comment}
-          onChange={e => setOwnComment(e.target.value)}
-          rows={5}
-          aria-label="Comentario del logopeda para el informe"
-          style={{
-            width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-            border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink, fontSize: '14px',
-            fontFamily: DT.body, resize: 'vertical', maxHeight: '320px', outline: 'none', lineHeight: 1.6,
-          }}
-        />
       </Card>
 
       {/* ── El documento ────────────────────────────────────────── */}
       {/* Esto es lo que se imprime y lo que se copia: encabezado del niño,
-          cuerpo desde los datos, comentario firmado y el aviso al pie. Las
-          cuatro acciones viven aquí arriba, sobre el documento al que aplican. */}
+          cuerpo desde los datos, comentario firmado y el aviso al pie. El
+          comentario se escribe aquí mismo; al imprimir queda como texto. */}
       <Card className="inf-doc">
         <div className="no-print" style={{
           display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '14px',
@@ -335,21 +279,18 @@ export default function Informe({
         </div>
 
         <header style={{ borderBottom: `1px solid ${DT.line}`, paddingBottom: '14px', marginBottom: '18px' }}>
-          {/* Membrete: el símbolo de Dracs junto al título. Es el documento que
-              sale del escritorio, así que lleva la marca donde la llevaría
-              cualquier informe en papel. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img
-              src="/brand/dracs-favicon-cut.png" alt="" aria-hidden
-              style={{ width: '26px', height: '26px', objectFit: 'contain', flexShrink: 0 }}
-            />
-            <p style={{
-              margin: 0, fontSize: '20px', fontWeight: 600, color: DT.ink,
-              fontFamily: DT.display, lineHeight: 1.25,
-            }}>
-              {title}
-            </p>
-          </div>
+          {/* Membrete: el wordmark de Dracs sobre el título, como en cualquier
+              informe en papel. El dragón se queda en el escritorio. */}
+          <img
+            src="/brand/dracs-wordmark.svg" alt="Dracs"
+            style={{ display: 'block', height: '22px', width: 'auto', marginBottom: '10px' }}
+          />
+          <p style={{
+            margin: 0, fontSize: '20px', fontWeight: 600, color: DT.ink,
+            fontFamily: DT.display, lineHeight: 1.25,
+          }}>
+            {title}
+          </p>
           <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
             {childLine}
           </p>
@@ -357,7 +298,7 @@ export default function Informe({
             {periodLine}
           </p>
           <p style={{ margin: '2px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
-            {version === 'familia' ? 'Versión para la familia' : 'Versión para el entorno'}
+            {VERSIONS.find(v => v.id === version)?.label}
           </p>
         </header>
 
@@ -396,8 +337,7 @@ export default function Informe({
             </section>
           ))}
 
-          {comment.trim() && (
-            <section>
+          <section className={comment.trim() ? undefined : 'no-print'}>
               <p style={{
                 margin: '0 0 7px',
                 fontSize: warm ? '15px' : '11px',
@@ -409,14 +349,21 @@ export default function Informe({
               }}>
                 Comentario del logopeda
               </p>
-              <p style={{
+              <textarea
+                className="no-print"
+                value={comment}
+                onChange={e => setOwnComment(e.target.value)}
+                rows={5}
+                aria-label="Comentario del logopeda"
+                style={{ ...FIELD, resize: 'vertical', maxHeight: '320px', fontSize: warm ? '14.5px' : '13.5px' }}
+              />
+              <p className="print-only" style={{
                 margin: 0, whiteSpace: 'pre-wrap', fontSize: warm ? '14.5px' : '13.5px',
                 lineHeight: 1.65, color: DT.ink, fontFamily: DT.body,
               }}>
                 {comment.trim()}
               </p>
             </section>
-          )}
         </div>
 
         <footer style={{ marginTop: '22px', paddingTop: '14px', borderTop: `1px solid ${DT.line}` }}>

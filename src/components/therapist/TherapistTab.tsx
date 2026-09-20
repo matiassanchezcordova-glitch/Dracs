@@ -3,9 +3,9 @@
 // La Carpeta (detalle).
 //
 // Dos modos: con cuenta de terapeuta, los pacientes reales de Supabase. En el
-// showroom, el niño demo del navegador (Pol) como carpeta principal —construido
-// desde el mismo historial que escribe el niño al jugar— más tres carpetas de
-// ejemplo debajo, marcadas como tales.
+// showroom, el niño demo del navegador (Pol) como carpeta principal, construido
+// desde el mismo historial que escribe el niño al jugar, y tres pacientes más
+// generados con el mismo motor.
 
 import { useEffect, useMemo, useState } from 'react'
 import { type Patient as MockPatient } from '../../data/patients'
@@ -66,7 +66,9 @@ function adaptPatient(sp: DbChild, sessions: DbSession[], level: { min: number; 
     name: sp.full_name,
     age: getAge(sp.birth_date),
     condition: sp.family_notes ?? '',
-    area: 'Logopedia',
+    // Sin objetivo registrado no se rellena con la disciplina: la tarjeta
+    // simplemente no dibuja esa línea.
+    area: '',
     avatar: '',
     status: thisWeek.length >= 5 ? 'completed' : thisWeek.length > 0 ? 'pending' : 'overdue',
     metrics: {
@@ -96,6 +98,9 @@ export default function TherapistTab() {
   const [linkRequests, setLinkRequests] = useState<LinkRequestWithPatient[]>([])
   const [loadingReal, setLoadingReal] = useState(isReal)
   const [openId, setOpenId] = useState<string | null>(null)
+  // El módulo del escritorio vive aquí y no en el Escritorio: al volver de una
+  // carpeta abierta desde Pacientes, se vuelve a Pacientes y no a la Agenda.
+  const [deskModule, setDeskModule] = useState('agenda')
 
   useEffect(() => {
     if (!isReal) return
@@ -161,9 +166,8 @@ export default function TherapistTab() {
   }
 
   return (
-    // La superficie: crema con grano casi imperceptible y un resplandor cálido
-    // arriba. El fondo va en el propio contenedor de scroll, así el grano cubre
-    // todo el alto de la vista y el resplandor se queda donde empieza.
+    // La superficie: crema lisa, sin textura. El fondo va en el propio
+    // contenedor de scroll para cubrir todo el alto de la vista.
     <div style={{ flex: 1, width: '100%', overflowY: 'auto', minHeight: 0, ...SURFACE }}>
       <style>{DESK_CSS}</style>
       {openPatient ? (
@@ -175,6 +179,8 @@ export default function TherapistTab() {
       ) : (
         <Escritorio
           patients={patients}
+          module={deskModule}
+          onModule={setDeskModule}
           onOpen={openCarpeta}
           linkRequests={isReal ? linkRequests : []}
           onAccept={handleAccept}
@@ -185,9 +191,7 @@ export default function TherapistTab() {
         />
       )}
 
-      {/* Aviso legal: UNO para toda la sección del logopeda, al pie y fuera de
-          los módulos. Antes se repetía dentro del briefing, del borrador y del
-          pie del copiloto; decirlo una vez y bien vale más que decirlo cuatro. */}
+      {/* Aviso legal: uno para toda la sección del logopeda, al pie. */}
       <footer style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 88px' }}>
         <p style={{
           margin: 0, paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
@@ -200,7 +204,7 @@ export default function TherapistTab() {
       </footer>
 
       {/* Copiloto clínico: flota sobre el Escritorio y sobre la Carpeta. */}
-      <DracsCopilot />
+      <DracsCopilot patients={patients} isDemo={!isReal} />
     </div>
   )
 }

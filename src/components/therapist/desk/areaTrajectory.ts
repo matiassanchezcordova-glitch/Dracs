@@ -65,7 +65,7 @@ export function weeklyPctFor(plays: AreaPlay[], area: string, fromDay?: string):
 }
 
 // La última semana con partidas de esa área, o null si nunca jugó en ella.
-// Es de donde sale la línea base al fijar un objetivo.
+// Es el "hoy" que se muestra al lado del objetivo.
 export function latestWeekFor(plays: AreaPlay[], area: string): WeekPoint | null {
   const points = weeklyPctFor(plays, area)
   return points.length > 0 ? points[points.length - 1] : null

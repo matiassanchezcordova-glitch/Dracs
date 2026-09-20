@@ -6,7 +6,7 @@
 //
 //   Resumen  cómo le fue: la semana elegida, día a día, y por área.
 //   Plan     enfocar el mundo (áreas, nota, juegos, énfasis) y el nivel.
-//   Notas    notas clínicas privadas, con fecha.
+//   Notas    notas privadas del logopeda, con fecha.
 //   Familia  el comentario que se publica a la familia.
 //   Informe  el documento del período, para la familia o para el entorno.
 //
@@ -500,7 +500,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           fecha y se apila con las anteriores. */}
       <div id={panelId('notas')} role="tabpanel" aria-labelledby="tab-notas" hidden={section !== 'notas'}>
         <Card edge="mostaza">
-          <SectionTitle Icon={NotePencil}>Notas clínicas, privadas</SectionTitle>
+          <SectionTitle Icon={NotePencil}>Notas privadas</SectionTitle>
           <textarea
             value={draftNote}
             onChange={e => setDraftNote(e.target.value)}
@@ -524,9 +524,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               fichas y no como otra tarjeta encima. */}
           {notesLoaded && notes.length === 0 && (
             <div style={{ marginTop: '18px' }}>
-              <EmptyState Icon={NotePencil} title="Aún no hay notas" compact>
-                Se guardan con su fecha. La familia no las ve.
-              </EmptyState>
+              <EmptyState Icon={NotePencil} title="Aún no hay notas" compact />
             </div>
           )}
           {notes.length > 0 && (
@@ -565,20 +563,12 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
-            onKeyDown={e => {
-              // Enter publica, como en el composer del copiloto. Mayúsculas y
-              // Enter salta de línea.
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePublish() }
-            }}
             placeholder="Tu observación de la semana para la familia."
             aria-label="Comentario para la familia"
             rows={4}
             style={{ ...FIELD, resize: 'vertical', maxHeight: '220px', marginBottom: '12px' }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', color: DT.muted, fontFamily: DT.body }}>
-              Enter publica. Mayúsculas y Enter, salto de línea.
-            </span>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button variant="primary" Icon={PaperPlaneTilt} onClick={handlePublish} disabled={!comment.trim()}>
               Publicar
             </Button>

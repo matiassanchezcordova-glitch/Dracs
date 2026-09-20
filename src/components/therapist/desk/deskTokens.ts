@@ -1,9 +1,9 @@
 // Escritorio del Terapeuta — tokens y helpers puros (sin componentes, para que
 // fast-refresh trate deskUI.tsx como archivo de sólo-componentes).
 //
-// Paleta oficial, sobria y cálida. El amarillo sigue siendo el único pop (acción
-// primaria y foco), pero la vista no es monocroma: el azul, la mostaza y la
-// arena entran como acentos suaves y cada sección abre con el suyo.
+// Paleta oficial, sobria y cálida. El amarillo es el único pop y va sólo en la
+// acción primaria. El azul es la estructura; la mostaza y la arena entran sólo
+// donde codifican algo (el estado de un paciente, lo privado de una nota).
 //
 // Dos reglas de profundidad que mandan sobre cualquier estilo suelto:
 //   1. El color de una tarjeta NUNCA es el del fondo. La tarjeta va en blanco
@@ -96,6 +96,19 @@ export function initials(name: string): string {
   return (parts[0] ?? '?').slice(0, 2).toUpperCase()
 }
 
-// El dragón de la marca. Aparece como filigrana en cabeceras y como ilustración
-// en los estados vacíos; nunca como decoración suelta.
+// El dragón de la marca. Una sola filigrana en toda la vista (la cabecera del
+// escritorio); su otro sitio es el copiloto.
 export const DRAGON = '/brand/dracs-dragon.png'
+
+// Campo de texto de la vista: textarea, input de fecha, select. Uno solo, para
+// que escribir se sienta igual en el Plan, las Notas, la Familia y el Informe.
+export const FIELD: CSSProperties = {
+  width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
+  border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink,
+  fontSize: '14px', fontFamily: DT.body, lineHeight: 1.6, outline: 'none',
+}
+
+// La misma caja en una sola línea (fechas, horas, selects).
+export const FIELD_LINE: CSSProperties = {
+  ...FIELD, height: '42px', padding: '0 12px', fontWeight: 600, lineHeight: 1,
+}

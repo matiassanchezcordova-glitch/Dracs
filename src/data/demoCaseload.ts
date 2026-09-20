@@ -143,7 +143,7 @@ export function buildDemoChildPatient(history: SessionResult[]): Patient {
     name: child.name,
     age: child.age,
     condition: '',            // no inventamos diagnóstico
-    area: 'Logopedia',
+    area: '',                 // sin objetivo registrado: la tarjeta no lo dibuja
     avatar: '',
     level: { min: child.level, max: child.level },
   }, history)

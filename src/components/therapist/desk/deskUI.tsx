@@ -10,9 +10,14 @@
 //   FieldLabel     rótulo interno en tinta, con un filo azul.
 //   StatTile       una métrica, un ícono, un número. Sin color decorativo.
 //   Chip           dato, no acción: relleno suave y sin borde.
+//   ToggleChip     opción que se marca: pastilla con borde, azul cuando está.
+//   Button         acción. Primaria en amarillo (una por tarjeta), el resto en
+//                  blanco con borde. Mismo alto, radio y tipografía en toda la
+//                  vista.
+//   IconButton     la misma acción, cuadrada y sólo con ícono (flechas, +/-).
 //   EmptyState     ícono de línea y una frase humana cuando no hay dato.
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 import type { Icon } from '@phosphor-icons/react'
 import { ACCENT, DRAGON, DT, initials, type Accent } from './deskTokens'
 
@@ -29,9 +34,13 @@ export const DESK_CSS = `
 .dk-focus:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 .dk-scroll { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
 .dk-scroll::-webkit-scrollbar { display: none; }
+.dk-btn { transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, color 0.14s ease; }
+.dk-btn:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
+.dk-btn-secondary:hover:not(:disabled) { border-color: ${DT.topo}; }
+.dk-btn-primary:hover:not(:disabled) { box-shadow: 0 1px 2px rgba(51,48,42,0.12), 0 6px 16px rgba(247,195,28,0.36); }
 @media (prefers-reduced-motion: reduce) {
   .dk-rise, .dk-fade { animation: none !important; }
-  .dk-lift, .dk-press { transition: none !important; }
+  .dk-lift, .dk-press, .dk-btn { transition: none !important; }
 }
 `
 
@@ -209,27 +218,20 @@ export function DragonWatermark({
   )
 }
 
-// Estado vacío: un ícono de línea, un título y una frase que dice qué pasa y qué
-// esperar. Nunca una línea gris suelta.
+// Estado vacío: un ícono de línea, un título y, si hace falta, una frase. Sin
+// círculo detrás del ícono: no es un botón ni un adorno.
 export function EmptyState({ Icon: I, title, children, compact }: {
   Icon: Icon
   title: string
   children?: ReactNode
   compact?: boolean
 }) {
-  const ring = compact ? 48 : 60
   return (
     <div className="dk-fade" style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-      gap: '5px', padding: compact ? '18px 12px' : '28px 16px', margin: '0 auto', maxWidth: '400px',
+      gap: '6px', padding: compact ? '16px 12px' : '26px 16px', margin: '0 auto', maxWidth: '400px',
     }}>
-      <span aria-hidden style={{
-        width: ring, height: ring, borderRadius: '50%', marginBottom: '8px',
-        background: DT.arena, color: DT.topoInk,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <I size={Math.round(ring * 0.44)} weight="regular" />
-      </span>
+      <I size={compact ? 24 : 28} weight="regular" color={DT.topo} aria-hidden style={{ marginBottom: '4px' }} />
       <p style={{
         margin: 0, fontSize: compact ? '15px' : '16.5px', fontWeight: 700,
         color: DT.ink, fontFamily: DT.display,
@@ -244,5 +246,104 @@ export function EmptyState({ Icon: I, title, children, compact }: {
         </p>
       )}
     </div>
+  )
+}
+
+// Opción que se marca y se desmarca (áreas de foco, período, versión). Tiene
+// borde porque se toca; marcada va en azul lleno.
+export function ToggleChip({ on, onClick, children }: {
+  on: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className="dk-btn dk-btn-secondary"
+      style={{
+        minHeight: '38px', padding: '7px 14px', borderRadius: '999px', cursor: 'pointer',
+        border: `1px solid ${on ? DT.azul : DT.line}`,
+        background: on ? DT.azul : DT.white,
+        color: on ? DT.white : DT.ink,
+        fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+const BUTTON_SIZE = {
+  md: { height: 40, padX: 16, font: '13.5px', icon: 16 },
+  sm: { height: 34, padX: 13, font: '13px', icon: 15 },
+} as const
+
+// Botón de la vista. `primary` es la acción principal de su tarjeta, en
+// amarillo; todo lo demás es `secondary`, en blanco con borde.
+export function Button({
+  variant = 'secondary', size = 'md', Icon: I, children, style, className, ...rest
+}: {
+  variant?: 'primary' | 'secondary'
+  size?: keyof typeof BUTTON_SIZE
+  Icon?: Icon
+  children?: ReactNode
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const S = BUTTON_SIZE[size]
+  const primary = variant === 'primary'
+  const off = !!rest.disabled
+  return (
+    <button
+      type="button"
+      {...rest}
+      className={`dk-btn dk-btn-${variant}${className ? ` ${className}` : ''}`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+        height: `${S.height}px`, padding: `0 ${S.padX}px`, borderRadius: DT.radiusSm, flexShrink: 0,
+        border: primary ? '1px solid transparent' : `1px solid ${DT.line}`,
+        background: primary ? DT.yellow : DT.white, color: DT.ink,
+        fontSize: S.font, fontWeight: 700, fontFamily: DT.display, whiteSpace: 'nowrap',
+        cursor: off ? 'default' : 'pointer', opacity: off ? 0.5 : 1,
+        boxShadow: off ? 'none' : primary
+          ? '0 1px 2px rgba(51,48,42,0.10), 0 5px 12px rgba(247,195,28,0.26)'
+          : DT.shadowSoft,
+        ...style,
+      }}
+    >
+      {I && <I size={S.icon} weight="regular" style={{ flexShrink: 0 }} />}
+      {children}
+    </button>
+  )
+}
+
+// Botón cuadrado de sólo ícono: flechas de semana, más y menos. Mismo borde,
+// radio y sombra que Button.
+export function IconButton({ Icon: I, label, style, active, ...rest }: {
+  Icon: Icon
+  label: string
+  active?: boolean
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const off = !!rest.disabled
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      {...rest}
+      className="dk-btn dk-btn-secondary"
+      style={{
+        width: '34px', height: '34px', borderRadius: '11px', flexShrink: 0, padding: 0,
+        border: `1px solid ${active ? DT.azulTintLine : DT.line}`,
+        background: active ? DT.azulTint : DT.white,
+        color: active ? DT.azulInk : DT.ink,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: off ? 'default' : 'pointer', opacity: off ? 0.4 : 1,
+        boxShadow: off ? 'none' : DT.shadowSoft,
+        ...style,
+      }}
+    >
+      <I size={16} weight="regular" />
+    </button>
   )
 }

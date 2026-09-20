@@ -10,17 +10,14 @@
 
 import { supabase } from '../../../lib/supabase'
 
-// Un objetivo por área fijada. La línea base y la trayectoria son DATO; el
-// objetivo lo escribe el logopeda con sus palabras y el cumplimiento lo marca
-// él. Dracs no juzga ninguno de los dos.
+// Un objetivo por área elegida. El objetivo lo escribe el logopeda con sus
+// palabras y el cumplimiento lo marca él; Dracs sólo pone el dato de esa área.
 export interface FocusGoal {
-  area: string            // slug de área de habilidad
-  baselineLabel: string   // el dato del que se partió, en texto descriptivo
-  baselineDate: string    // YYYY-MM-DD en que se tomó la línea base
-  target: string          // a dónde quiere llegar, con las palabras del logopeda
-  setDate: string         // YYYY-MM-DD en que se fijó el objetivo
-  lastReviewDate: string  // YYYY-MM-DD de la última revisión
-  done: boolean           // lo marca el logopeda, nunca Dracs
+  area: string         // slug de área de habilidad
+  startDate: string    // YYYY-MM-DD, desde cuándo cuenta el gráfico de esa área
+  target: string       // a dónde quiere llegar, con sus palabras
+  reviewDate: string   // YYYY-MM-DD de revisión
+  done: boolean        // lo marca el logopeda, nunca Dracs
 }
 
 export interface ChildFocus {
@@ -45,11 +42,9 @@ function parseGoals(raw: unknown): FocusGoal[] {
     if (typeof g.area !== 'string' || !g.area) continue
     out.push({
       area: g.area,
-      baselineLabel: typeof g.baselineLabel === 'string' ? g.baselineLabel : '',
-      baselineDate: typeof g.baselineDate === 'string' ? g.baselineDate : '',
+      startDate: typeof g.startDate === 'string' ? g.startDate : '',
       target: typeof g.target === 'string' ? g.target : '',
-      setDate: typeof g.setDate === 'string' ? g.setDate : '',
-      lastReviewDate: typeof g.lastReviewDate === 'string' ? g.lastReviewDate : '',
+      reviewDate: typeof g.reviewDate === 'string' ? g.reviewDate : '',
       done: g.done === true,
     })
   }

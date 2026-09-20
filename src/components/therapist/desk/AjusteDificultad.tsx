@@ -4,17 +4,18 @@
 // getCurrentLevel y lo mismo que ve la familia). No es una valoración: es el
 // rango con el que el terapeuta decide trabajar, y se guarda tal cual.
 //
-// Honestidad: hoy este rango es el nivel registrado del niño. La sesión del
+// Honestidad: hoy este rango es el nivel registrado del niño. La partida del
 // niño todavía se arma con su propio nivel de juego, así que la línea del pie
 // dice qué hace y qué no, sin prometer lo que aún no pasa.
+//
+// El nivel vive sólo aquí: ni la identidad de la Carpeta lo repite ni esta
+// tarjeta lo dibuja dos veces. Dos steppers y su botón.
 
 import { useEffect, useState } from 'react'
 import { Minus, Plus, SlidersHorizontal } from '@phosphor-icons/react'
 import { DT } from './deskTokens'
-import { Card, FieldLabel, SectionTitle } from './deskUI'
+import { Button, Card, FieldLabel, IconButton, SectionTitle } from './deskUI'
 import { LEVEL_MAX, LEVEL_MIN, clampLevel, loadChildLevel, saveChildLevel, type ChildLevel } from './childLevel'
-
-const STEPS = [1, 2, 3, 4, 5]
 
 function Stepper({ label, value, onChange, disabled, min, max }: {
   label: string
@@ -24,13 +25,6 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
   min: number
   max: number
 }) {
-  const btn = (enabled: boolean): React.CSSProperties => ({
-    width: '36px', height: '36px', borderRadius: '11px', flexShrink: 0,
-    border: `1px solid ${DT.line}`, background: DT.white, color: enabled ? DT.azulInk : DT.faint,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: enabled ? 'pointer' : 'default', opacity: enabled ? 1 : 0.5,
-    boxShadow: enabled ? DT.shadowSoft : 'none',
-  })
   const canDown = !disabled && value > min
   const canUp = !disabled && value < max
 
@@ -45,15 +39,7 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
       }}>
         {label}
       </span>
-      <button
-        type="button"
-        onClick={() => canDown && onChange(value - 1)}
-        disabled={!canDown}
-        aria-label={`Bajar ${label.toLowerCase()}`}
-        style={btn(canDown)}
-      >
-        <Minus size={15} weight="regular" />
-      </button>
+      <IconButton Icon={Minus} label={`Bajar ${label.toLowerCase()}`} onClick={() => canDown && onChange(value - 1)} disabled={!canDown} />
       <span
         aria-live="polite"
         style={{
@@ -63,29 +49,18 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
       >
         {value}
       </span>
-      <button
-        type="button"
-        onClick={() => canUp && onChange(value + 1)}
-        disabled={!canUp}
-        aria-label={`Subir ${label.toLowerCase()}`}
-        style={btn(canUp)}
-      >
-        <Plus size={15} weight="regular" />
-      </button>
+      <IconButton Icon={Plus} label={`Subir ${label.toLowerCase()}`} onClick={() => canUp && onChange(value + 1)} disabled={!canUp} />
     </div>
   )
 }
 
 export default function AjusteDificultad({
-  isReal, storeId, userId, initial, onLevel,
+  isReal, storeId, userId, initial,
 }: {
   isReal: boolean
   storeId: string
   userId?: string
   initial: ChildLevel | null
-  // Se llama al cargar lo guardado y al guardar: el chip de nivel de la
-  // identidad tiene que decir siempre lo mismo que este control.
-  onLevel: (level: ChildLevel) => void
 }) {
   const [level, setLevel] = useState<ChildLevel>(initial ?? { min: LEVEL_MIN, max: LEVEL_MAX })
   const [saved, setSaved] = useState<ChildLevel | null>(initial)
@@ -99,11 +74,10 @@ export default function AjusteDificultad({
     let cancelled = false
     loadChildLevel(isReal, storeId).then(stored => {
       if (cancelled) return
-      if (stored) { setLevel(stored); setSaved(stored); onLevel(stored) }
+      if (stored) { setLevel(stored); setSaved(stored) }
       setLoaded(true)
     })
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReal, storeId])
 
   function change(next: Partial<ChildLevel>) {
@@ -116,10 +90,9 @@ export default function AjusteDificultad({
     setSaving(false)
     if (res.ok) {
       setSaved(level)
-      onLevel(level)
-      setToast('Nivel guardado.')
+      setToast('Guardado.')
     } else {
-      setToast('No se pudo guardar el nivel. Vuelve a intentarlo.')
+      setToast('No se pudo guardar. Vuelve a intentarlo.')
     }
     setTimeout(() => setToast(null), 3600)
   }
@@ -129,59 +102,18 @@ export default function AjusteDificultad({
 
   return (
     <Card>
-      <SectionTitle Icon={SlidersHorizontal}>Ajuste de dificultad</SectionTitle>
-      <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55 }}>
-        Súbelo si se le queda corto, bájalo si se atasca.
-      </p>
+      <SectionTitle Icon={SlidersHorizontal}>Dificultad</SectionTitle>
 
-      <FieldLabel>Nivel del 1 al 5</FieldLabel>
-      {/* Los 5 escalones, con el rango elegido en color: la misma cifra que los
-          steppers de abajo, dibujada. */}
-      <div
-        role="img"
-        aria-label={`Nivel ${level.min} a ${level.max} de ${LEVEL_MAX}`}
-        style={{ display: 'flex', gap: '6px', marginBottom: '18px' }}
-      >
-        {STEPS.map(step => {
-          const on = step >= level.min && step <= level.max
-          return (
-            <div key={step} style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                height: '9px', borderRadius: '999px',
-                background: on ? DT.azul : DT.arenaDeep,
-                transition: 'background 0.2s ease',
-              }} />
-              <p style={{
-                margin: '5px 0 0', textAlign: 'center', fontSize: '11px', fontWeight: 700,
-                color: on ? DT.ink : DT.faint, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
-              }}>
-                {step}
-              </p>
-            </div>
-          )
-        })}
-      </div>
-
+      <FieldLabel>Nivel, del {LEVEL_MIN} al {LEVEL_MAX}</FieldLabel>
       <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', marginBottom: '18px' }}>
         <Stepper label="Mínimo" value={level.min} onChange={v => change({ min: v })} disabled={blocked} min={LEVEL_MIN} max={level.max} />
         <Stepper label="Máximo" value={level.max} onChange={v => change({ max: v })} disabled={blocked} min={level.min} max={LEVEL_MAX} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={blocked || !dirty}
-          style={{
-            padding: '12px 22px', borderRadius: DT.radiusSm, border: 'none',
-            background: DT.yellow, color: DT.ink, fontSize: '14px', fontWeight: 700, fontFamily: DT.display,
-            cursor: blocked || !dirty ? 'default' : 'pointer',
-            opacity: blocked || !dirty ? 0.55 : 1,
-            boxShadow: blocked || !dirty ? 'none' : '0 1px 2px rgba(51,48,42,0.10), 0 6px 14px rgba(247,195,28,0.28)',
-          }}
-        >
-          {saving ? 'Guardando…' : 'Guardar nivel'}
-        </button>
+        <Button variant="primary" onClick={handleSave} disabled={blocked || !dirty}>
+          {saving ? 'Guardando…' : 'Guardar'}
+        </Button>
         {toast && (
           <span className="dk-fade" style={{ fontSize: '13px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>
         )}
@@ -189,10 +121,9 @@ export default function AjusteDificultad({
 
       <p style={{
         margin: '14px 0 0', fontSize: '12px', fontWeight: 600, lineHeight: 1.5,
-        color: DT.faint, fontFamily: DT.body,
+        color: DT.muted, fontFamily: DT.body,
       }}>
-        Es el nivel que ves arriba y el que ve la familia. Todavía no elige por sí
-        solo los juegos de su sesión.
+        La familia ve este nivel. Todavía no cambia los juegos del niño.
       </p>
     </Card>
   )

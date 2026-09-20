@@ -92,8 +92,8 @@ export default function EnfocarMundo({
     setToast(!res.ok
       ? 'No se pudo guardar. Vuelve a intentarlo.'
       : emphasis.size > 0
-        ? 'Guardado. En casa aparecerá en "una cosa para hoy".'
-        : 'Enfoque guardado.')
+        ? 'Guardado. La familia ya lo ve.'
+        : 'Guardado.')
     setTimeout(() => setToast(null), 3600)
   }
 
@@ -115,7 +115,7 @@ export default function EnfocarMundo({
       </div>
 
       {/* Nota de contexto */}
-      <FieldLabel>Nota de contexto (opcional)</FieldLabel>
+      <FieldLabel>Nota</FieldLabel>
       <textarea
         value={note}
         onChange={e => setNote(e.target.value)}
@@ -160,7 +160,7 @@ export default function EnfocarMundo({
           })}
           {items.length > MAX_SHOWN && (
             <p style={{ margin: '2px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
-              y {items.length - MAX_SHOWN} juego{items.length - MAX_SHOWN === 1 ? '' : 's'} más que también encajan.
+              y {items.length - MAX_SHOWN} juego{items.length - MAX_SHOWN === 1 ? '' : 's'} más.
             </p>
           )}
         </div>

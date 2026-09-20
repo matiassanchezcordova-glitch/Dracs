@@ -61,7 +61,7 @@ export function buildBlocks(version: Version, input: InformeInput): InformeBlock
     })
     if (focusAreas.length > 0) {
       blocks.push({
-        title: version === 'familia' ? 'En lo que estamos' : 'Áreas de foco vigentes',
+        title: version === 'familia' ? 'En lo que estamos' : 'Áreas de foco',
         lines: [joinNames(focusNames(focusAreas)) + '.'],
       })
     }
@@ -117,7 +117,7 @@ export function buildBlocks(version: Version, input: InformeInput): InformeBlock
   }
   if (focusAreas.length > 0) {
     blocks.push({
-      title: 'Áreas de foco vigentes',
+      title: 'Áreas de foco',
       lines: [joinNames(focusNames(focusAreas)) + '.'],
     })
   }
@@ -153,7 +153,7 @@ export function draftComment(version: Version, input: InformeInput): string {
   parts.push(`${childName} registró ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} del período.`)
   if (stats.accuracy != null) parts.push(`El porcentaje de aciertos del período es ${stats.accuracy}%.`)
   if (areas.length > 0) parts.push(`El juego se concentró en ${joinNames(areas.slice(0, 2).map(a => a.label.toLowerCase()))}.`)
-  if (focusAreas.length > 0) parts.push(`Las áreas de foco vigentes son ${joinNames(focusNames(focusAreas).map(n => n.toLowerCase()))}.`)
+  if (focusAreas.length > 0) parts.push(`Las áreas de foco son ${joinNames(focusNames(focusAreas).map(n => n.toLowerCase()))}.`)
   parts.push('Añade aquí tu valoración y las indicaciones que correspondan.')
   return parts.join(' ')
 }

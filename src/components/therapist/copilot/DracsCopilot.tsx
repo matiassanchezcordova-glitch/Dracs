@@ -20,7 +20,7 @@
 // Iconografía: un solo set, Phosphor en variante de LÍNEA (weight="regular").
 // Ni "fill", ni emojis, ni chevrons. El color entra por `color`/currentColor.
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   Lock, PaperPlaneTilt, X, FileText, CheckCircle, Copy, Lightbulb, ArrowsOut, ArrowsIn,
   Paperclip, Microphone, Waveform, UserCircle, ChartBar, UsersThree, CalendarBlank,
@@ -31,9 +31,10 @@ import { loadHistory } from '../../../hooks/useChildProfile'
 import { DT, SURFACE_PANEL } from '../desk/deskTokens'
 import { fromLocalHistory, rangeFor, statsFor } from '../desk/informeData'
 import {
-  ANSWERS, FALLBACK, GREETING, NO_OFFER, REPEATED, isAffirmative, normalize, route,
+  buildAnswers, FALLBACK, GREETING, NO_OFFER, REPEATED, isAffirmative, normalize, route,
   type AnswerGroup, type CopilotAnswer,
 } from './copilotData'
+import type { Patient } from '../../../data/patients'
 
 const ONLINE = '#10B981'          // mismo verde de "en línea" que usa la familia
 const FAVICON = '/brand/dracs-favicon-cut.png'
@@ -571,7 +572,8 @@ function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; ch
 // Minimizado, panel de esquina, pantalla completa.
 type View = 'min' | 'panel' | 'full'
 
-export default function DracsCopilot() {
+export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]; isDemo: boolean }) {
+  const answers = useMemo(() => buildAnswers(patients, isDemo), [patients, isDemo])
   const [view, setView] = useState<View>('min')
   const [messages, setMessages] = useState<Msg[]>([
     { id: 0, role: 'assistant', full: GREETING, shown: GREETING, done: true },
@@ -721,14 +723,14 @@ export default function DracsCopilot() {
     // "sí", "dale", "ok": se ejecuta lo que Dracs dejó ofrecido. Si no había
     // nada ofrecido, se pregunta corto en vez de repetir la respuesta anterior.
     if (isAffirmative(text)) {
-      const pending = offered.current ? ANSWERS.find(a => a.id === offered.current) : null
+      const pending = offered.current ? answers.find(a => a.id === offered.current) : null
       deliver(text, pending ?? NO_OFFER)
       return
     }
 
-    const routed = route(text)
+    const routed = route(text, answers)
     deliver(text, routed.id === 'informe' ? informeAnswer(undefined) : routed)
-  }, [deliver])
+  }, [answers, deliver])
 
   // Enganches del escritorio: "Tu día" pide preparar una sesión, y el informe de
   // la Carpeta pide un borrador. Si el guion de la vista previa no cubre a ese
@@ -740,7 +742,7 @@ export default function DracsCopilot() {
       const intent = detail?.intent
       if (intent !== 'prep' && intent !== 'redacta') return
       const child = (detail?.childName ?? '').trim()
-      const answer = ANSWERS.find(a => a.id === 'prep')
+      const answer = answers.find(a => a.id === 'prep')
       if (!answer) return
       setView(v => v === 'min' ? 'panel' : v)
 
@@ -760,7 +762,7 @@ export default function DracsCopilot() {
     }
     window.addEventListener('dracs-copilot-open', onAsk)
     return () => window.removeEventListener('dracs-copilot-open', onAsk)
-  }, [deliver])
+  }, [answers, deliver])
 
   function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value)
@@ -781,7 +783,7 @@ export default function DracsCopilot() {
   const isEmptyThread = messages.length <= 1 && !typing
   // Una sugerencia usada se va para siempre: volver a pedirla devolvería la
   // misma respuesta, así que la lista mengua a medida que se gastan.
-  const chips = ANSWERS.filter(a => !used.includes(a.id))
+  const chips = answers.filter(a => !used.includes(a.id))
   const canSend = input.trim().length > 0 && !busy
 
   const anchor: React.CSSProperties = {
