@@ -1,6 +1,6 @@
-import RoleSelector from '../components/RoleSelector'
+import Landing from '../landing/Landing'
 
-// Landing pública (/): hero + secciones de marketing. El selector de rol vive en /demo.
+// Landing pública (/). El selector de rol vive en /demo.
 export default function HomePage() {
-  return <RoleSelector />
+  return <Landing />
 }

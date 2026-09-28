@@ -145,7 +145,7 @@ function AppInner() {
                   fontFamily: 'Nunito, sans-serif',
                 }}
               >
-                DEMO
+                DEMO<span className="dracs-demo-extra"> · DATOS DE EJEMPLO</span>
               </button>
             )}
           </div>
