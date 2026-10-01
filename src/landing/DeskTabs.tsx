@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { PauseButton } from './MapExplorer'
 import { useInView } from './useInView'
 
-// El escritorio del logopeda con capturas reales de la demo. Pasa de una
+// El escritorio del profesional con capturas reales de la demo. Pasa de una
 // pantalla a otra sola; las pestañas de abajo permiten elegir y el botón de
 // pausa la detiene.
 
@@ -31,7 +31,7 @@ export default function DeskTabs() {
         <img
           key={t.id}
           src={t.img}
-          alt={`Escritorio del logopeda: ${t.name}.`}
+          alt={`Escritorio del profesional: ${t.name}.`}
           width={t.w}
           height={t.h}
           loading="lazy"

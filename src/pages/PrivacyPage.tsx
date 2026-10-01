@@ -31,8 +31,9 @@ export default function PrivacyPage() {
           Formulario de contacto de la web
         </h2>
         {[
-          'Cuando envías el formulario "Quiero sumarme", guardamos los datos que escribes: nombre, correo, dónde trabajas, ciudad, edades con las que trabajas, cómo quieres participar y tu comentario.',
-          'Los usamos solo para responderte y hablar contigo sobre Dracs. No los compartimos con nadie ni los usamos para publicidad.',
+          'Cuando envías el formulario "Quiero sumarme", recibimos en dracs@dracs.health los datos que escribes: nombre, correo, profesión, dónde trabajas, ciudad, edades con las que trabajas, cómo quieres participar y tu comentario.',
+          'El envío pasa por FormSubmit (formsubmit.co), un servicio que entrega el formulario a nuestro correo.',
+          'Usamos estos datos solo para responderte y hablar contigo sobre Dracs. No los compartimos con nadie más ni los usamos para publicidad.',
           'Puedes pedir que los corrijamos o los borremos cuando quieras escribiendo a dracs@dracs.health.',
         ].map(t => (
           <p key={t} style={{ fontSize: '16px', color: '#33302A', lineHeight: 1.6, margin: '0 0 12px' }}>{t}</p>

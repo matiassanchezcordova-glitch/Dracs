@@ -19,16 +19,17 @@ import '../landing/landing.css'
 // cuenta entra por el enlace de abajo y recorre el camino real de siempre
 // (Supabase, roles, conflictos); ese camino queda intacto.
 //
-// Atajo para compartir: /demo?como=logopeda (o familia, nino) entra directo por
+// Atajo para compartir: /demo?como=profesional (o familia, nino) entra directo por
 // esa puerta. Es el enlace que usan los botones "Probar la demo" de la landing.
 
 const DOORS: { role: Exclude<Role, 'demo'>; title: string; text: string; recommended?: boolean }[] = [
-  { role: 'therapist', title: 'Logopeda', text: 'El escritorio con un paciente de ejemplo: agenda, carpeta, plan e informe.', recommended: true },
+  { role: 'therapist', title: 'Profesional', text: 'El escritorio con un paciente de ejemplo: agenda, carpeta, plan e informe.', recommended: true },
   { role: 'child', title: 'Niño', text: 'El mapa y los juegos, tal como los ve el niño en casa.' },
   { role: 'family', title: 'Familia', text: 'Lo que recibe la familia: la carta de la semana y una propuesta para hoy.' },
 ]
 
 const QUERY_TO_ROLE: Record<string, Exclude<Role, 'demo'>> = {
+  profesional: 'therapist',
   logopeda: 'therapist',
   terapeuta: 'therapist',
   familia: 'family',
@@ -69,7 +70,7 @@ export default function DemoPage() {
     navigate(`/app/${roleToPath(door)}`)
   }
 
-  // Enlace directo (?como=logopeda): sin sesión, entra sin pasar por las puertas.
+  // Enlace directo (?como=profesional): sin sesión, entra sin pasar por las puertas.
   const como = params.get('como')?.toLowerCase() ?? null
   const directRole = como ? QUERY_TO_ROLE[como] : undefined
   useEffect(() => {
@@ -93,8 +94,7 @@ export default function DemoPage() {
         <div className="lp-wrap">
           <div className="lp-nav__row">
             <Link className="lp-brand" to="/" aria-label="Volver a la web de Dracs">
-              <img src="/landing/dragon.webp" alt="" width={26} height={34} />
-              <span>Dracs</span>
+              <img src="/landing/dragon.webp" alt="Dracs" width={40} height={52} />
             </Link>
             <div className="lp-nav__cta">
               <Link className="lp-btn lp-btn--primary lp-btn--small" to="/#sumarme">Quiero sumarme</Link>
@@ -120,7 +120,7 @@ export default function DemoPage() {
                     <span className="lp-sub">{d.title}</span>
                     <span className="lp-door__desc">{d.text}</span>
                   </span>
-                  {d.recommended && <span className="lp-door__tag">Recomendado para logopedas</span>}
+                  {d.recommended && <span className="lp-door__tag">Recomendado para profesionales</span>}
                   <svg className="lp-door__arrow" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
                     <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>

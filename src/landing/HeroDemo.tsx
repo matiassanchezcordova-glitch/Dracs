@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { prefersReducedMotion, useInView } from './useInView'
 
 // La demostración del hero: a la izquierda, una partida tal como la ve el niño;
-// a la derecha, lo que le llega a su logopeda. Quien visita puede jugar. Si no
+// a la derecha, lo que le llega a su profesional. Quien visita puede jugar. Si no
 // toca nada, la demo se juega sola para que se entienda sin leer.
 //
 // Todo es un ejemplo con ilustraciones reales del juego. No hay datos
@@ -198,7 +198,7 @@ export default function HeroDemo() {
             <span className="hd-avatar" aria-hidden="true">PO</span>
             <div>
               <p className="hd-folder__name">Carpeta de Pol</p>
-              <p className="hd-folder__meta">Lo que ve su logopeda · <span className="hd-tag">Ejemplo</span></p>
+              <p className="hd-folder__meta">Lo que ve su profesional · <span className="hd-tag">Ejemplo</span></p>
             </div>
           </div>
           <ul className="hd-rows">

@@ -6,33 +6,34 @@ import WeekStrip from './WeekStrip'
 import MapExplorer from './MapExplorer'
 import DeskTabs from './DeskTabs'
 import Cinta from './Cinta'
+import Futuro from './Futuro'
 import { useInView } from './useInView'
 import './landing.css'
 
 // Landing pública (/). Se entiende mirando y jugando: poco texto, capturas
 // reales, ilustraciones propias y demostraciones que se mueven solas.
-// Escrita para la logopeda como lectora principal.
+// Escrita para los profesionales que trabajan con niños como lectores principales.
 //
 // Reglas (Constitución §6): sin datos sin fuente, sin claims clínicos, sin
 // comparaciones con otras marcas, sin guiones largos.
 
-const DEMO_THERAPIST = '/demo?como=logopeda'
+const DEMO_THERAPIST = '/demo?como=profesional'
 
 const MENU = [
   { href: '#inicio', label: 'Inicio' },
   { href: '#como-funciona', label: 'Cómo funciona' },
-  { href: '#escritorio', label: 'Para logopedas' },
+  { href: '#escritorio', label: 'Para profesionales' },
   { href: '#familia', label: 'Para familias' },
-  { href: '#hoy', label: 'Qué funciona hoy' },
+  { href: '#hoy', label: 'Lo que ya existe' },
+  { href: '#futuro', label: 'Hacia dónde vamos' },
   { href: '#equipo', label: 'Equipo' },
   { href: '#preguntas', label: 'Preguntas' },
 ]
 
-function Brand({ onDark = false }: { onDark?: boolean }) {
+function Brand() {
   return (
     <a className="lp-brand" href="#inicio" aria-label="Dracs, inicio">
-      <img src="/landing/dragon.webp" alt="" width={26} height={34} />
-      <span style={onDark ? { color: '#fff' } : undefined}>Dracs</span>
+      <img src="/landing/dragon.webp" alt="Dracs" width={40} height={52} />
     </a>
   )
 }
@@ -92,8 +93,8 @@ function Hero() {
         </div>
       </header>
       <section className="lp-hero">
-        <h1 className="lp-display">El niño juega.<br />Tú ves cómo le fue.</h1>
-        <p className="lp-lead">Juegos de lenguaje y cognición para niños de 3 a 10 años. Cada partida llega a su logopeda.</p>
+        <h1 className="lp-display">El niño juega.<br />Tú decides.</h1>
+        <p className="lp-lead">Juegos de lenguaje y cognición para niños de 3 a 10 años. Cada partida llega al profesional que lo acompaña.</p>
         <HeroDemo />
       </section>
     </div>
@@ -117,7 +118,7 @@ function Statement() {
         <span className="st-pill st-pill--night" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="44" height="44"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2h8.8A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
         </span>{' '}
-        que su logopeda lee antes de cada sesión. El criterio sigue siendo tuyo{' '}
+        que su profesional lee antes de cada sesión. El criterio sigue siendo tuyo{' '}
         <span className="st-pill st-pill--yellow" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="40" height="40"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#15191b" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </span>
@@ -229,7 +230,7 @@ function Decide() {
   return (
     <section className="lp-section" id="decides">
       <div className="lp-wrap">
-        <h2 className="lp-title lp-center">Tú decides.<br />Dracs ordena el dato.</h2>
+        <h2 className="lp-title lp-center">Lo que hace Dracs.<br />Y lo que no.</h2>
         <div className="lp-decide">
           <div className="lp-decide__col">
             <p className="lp-decide__head"><span className="lp-dot lp-dot--yes" aria-hidden="true" />Lo que hace Dracs</p>
@@ -257,8 +258,8 @@ function Showcase() {
   return (
     <section className="lp-show" id="hoy">
       <div className="lp-wrap lp-center">
-        <h2 className="lp-title lp-center">Funciona hoy.</h2>
-        <p className="lp-lead">Todo lo que ves en esta página se puede probar ahora en la demo.</p>
+        <h2 className="lp-title lp-center">Ya se puede probar.</h2>
+        <p className="lp-lead">Todo lo que viste hasta aquí está en la demo, abierta y sin registro.</p>
         <Link className="lp-btn lp-btn--dark" to={DEMO_THERAPIST}>Probar la demo</Link>
       </div>
       <div className="sc-row">
@@ -269,36 +270,21 @@ function Showcase() {
           </figure>
         ))}
       </div>
-      <p className="lp-wrap lp-center lp-next">
-        <strong>En desarrollo:</strong> juegos de escenas, contenido en catalán, reconocimiento de habla y el primer piloto con logopedas.
-      </p>
     </section>
   )
 }
 
 function Sumarse() {
-  const ways = [
-    { name: 'Probar y opinar', what: 'Recorres la demo y hablamos.', time: '30 minutos' },
-    { name: 'Primer piloto', what: 'Usas Dracs con algunos pacientes y nos cuentas qué falta.', time: 'Unas semanas' },
-    { name: 'Equipo', what: 'Lideras el criterio clínico de Dracs como socia o socio fundador.', time: 'Lo hablamos' },
-  ]
   return (
     <section className="lp-section lp-section--alt" id="sumarme">
       <div className="lp-wrap lp-join">
-        <div>
-          <img className="lp-join__photo" src="/landing/foto-escritorio.webp" alt="Una tablet con el escritorio de Dracs sobre una mesa, junto a un cuaderno." width={1024} height={768} loading="lazy" />
-          <h2 className="lp-title">Buscamos logopedas para construir Dracs.</h2>
-          <p className="lp-p" style={{ marginTop: 16 }}>Tres maneras de sumarte. Puedes elegir más de una.</p>
-          <ul className="lp-ways">
-            {ways.map(w => (
-              <li className="lp-way" key={w.name}>
-                <p className="lp-label">{w.name}</p>
-                <p className="lp-way__time">{w.time}</p>
-                <p className="lp-way__what">{w.what}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="lp-source" style={{ marginTop: 20 }}>
+        <div className="lp-join__left">
+          <div className="lp-join__photo">
+            <img src="/landing/foto-escritorio.webp" alt="Una tablet sobre una mesa de trabajo, junto a un cuaderno." width={1024} height={768} loading="lazy" />
+          </div>
+          <h2 className="lp-title">Buscamos profesionales para construir Dracs.</h2>
+          <p className="lp-p">Logopedas, psicólogos, terapeutas ocupacionales y equipos de atención temprana. Cuéntanos quién eres y cómo quieres participar.</p>
+          <p className="lp-source">
             Te respondemos en menos de 48 horas. También puedes escribir a{' '}
             <a href="mailto:dracs@dracs.health">dracs@dracs.health</a>.
           </p>
@@ -316,23 +302,23 @@ function Equipo() {
         <h2 className="lp-title lp-center">Quién está detrás.</h2>
         <div className="lp-team">
           <article className="lp-person">
-            <span className="lp-person__mono" aria-hidden="true">MS</span>
+            <span className="lp-person__mono" aria-hidden="true">MSC</span>
             <h3 className="lp-sub">Matías Sánchez Cordova</h3>
             <p className="lp-label">Fundador</p>
-            <p className="lp-p">Diseña el producto y lo construye con herramientas de IA, desde Barcelona.</p>
+            <p className="lp-p">Lleva la visión y la estrategia de producto de Dracs, desde Barcelona.</p>
           </article>
           <article className="lp-person lp-person--open">
             <span className="lp-person__mono" aria-hidden="true">+</span>
             <h3 className="lp-sub">Perfil clínico</h3>
-            <p className="lp-label">Este lugar es para una logopeda</p>
+            <p className="lp-label">Buscamos socia o socio</p>
             <p className="lp-p">Buscamos a quien lidere el criterio clínico de Dracs desde el primer día.</p>
             <div><a className="lp-btn lp-btn--ghost lp-btn--small" href="#sumarme">Quiero hablarlo</a></div>
           </article>
         </div>
         <div className="lp-team__notes">
           <div>
-            <p className="lp-label">El nombre</p>
-            <p className="lp-p">Dracs significa dragones en catalán. Es el nombre que tenía la clase de Benjamín, el hermano de Matías, en su colegio de Barcelona.</p>
+            <p className="lp-label">Por qué Dracs</p>
+            <p className="lp-p">Benjamín, el hermano de Matías, tiene síndrome de Down. Su última clase en un colegio de Barcelona se llamaba Dracs: dragones, en catalán.</p>
           </div>
           <div>
             <p className="lp-label">Reconocimiento</p>
@@ -346,12 +332,11 @@ function Equipo() {
 
 function Preguntas() {
   const faq = [
-    { q: '¿Dracs es un producto sanitario?', a: 'No. Es una herramienta de práctica en casa y de seguimiento. No diagnostica ni trata, y no dice si un niño mejoró: eso lo valora el logopeda.' },
-    { q: '¿Dónde se guardan los datos de los niños?', a: 'En una base de datos con acceso restringido por cuenta: cada logopeda ve solo a sus pacientes y cada familia solo a su hijo. La familia no ve aciertos ni niveles.' },
-    { q: '¿Cuánto cuesta?', a: 'Todavía no tiene precio. Lo estamos definiendo con los primeros logopedas y centros.' },
-    { q: '¿En qué dispositivos funciona?', a: 'En tablet, móvil y ordenador, desde el navegador. No hay que instalar nada.' },
+    { q: '¿Dracs es un producto sanitario?', a: 'No. Es una herramienta de práctica en casa y de seguimiento. No diagnostica ni trata, y no dice si un niño mejoró: eso lo valora el profesional.' },
+    { q: '¿Dónde se guardan los datos de los niños?', a: 'En una base de datos con acceso restringido por cuenta: cada profesional ve solo a sus pacientes y cada familia solo a su hijo. La familia no ve aciertos ni niveles.' },
+    { q: '¿Qué dispositivos hacen falta?', a: 'En tablet, móvil y ordenador, desde el navegador. No hay que instalar nada.' },
     { q: '¿Está en catalán?', a: 'Todavía no. Está en desarrollo.' },
-    { q: '¿Para qué niños está pensado?', a: 'Para niños de 3 a 10 años que trabajan lenguaje y cognición con su logopeda. Las áreas van del lenguaje receptivo y expresivo a la atención, la autorregulación y la autonomía.' },
+    { q: '¿Para qué niños está pensado?', a: 'Para niños de 3 a 10 años que trabajan lenguaje y cognición con un profesional: logopedia, psicología, terapia ocupacional o atención temprana. Las áreas van del lenguaje receptivo y expresivo a la atención, la autorregulación y la autonomía.' },
   ]
   return (
     <section className="lp-section lp-section--alt" id="preguntas">
@@ -375,17 +360,13 @@ function Footer() {
     <footer className="lp-bigfoot">
       <nav aria-label="Pie de página">
         <ul className="lp-bigfoot__links">
-          <li><a href="#como-funciona">Cómo funciona</a></li>
-          <li><Link to={DEMO_THERAPIST}>Probar la demo</Link></li>
-          <li><a href="#sumarme">Quiero sumarme</a></li>
-          <li><Link to="/privacidad">Privacidad</Link></li>
           <li><a href="mailto:dracs@dracs.health">Escríbenos</a></li>
+          <li><Link to="/privacidad">Privacidad</Link></li>
         </ul>
       </nav>
       <p className="lp-bigfoot__mark" aria-hidden="true">Dracs</p>
       <div className="lp-bigfoot__legal lp-wrap">
-        <p className="lp-source">Hecho en Barcelona · © 2026 Dracs</p>
-        <p className="lp-source"><Link to="/login">Iniciar sesión</Link></p>
+        <p className="lp-source">© 2026 Dracs · Barcelona</p>
       </div>
     </footer>
   )
@@ -396,7 +377,7 @@ function StickyCta({ heroInView, joinInView }: { heroInView: boolean; joinInView
   const show = !heroInView && !joinInView
   return (
     <div className={`lp-dock${show ? ' is-on' : ''}`} aria-hidden={!show}>
-      <p className="lp-dock__text">¿Eres logopeda?</p>
+      <p className="lp-dock__text">¿Trabajas con niños?</p>
       <Link className="lp-btn lp-btn--ghost lp-btn--small" to={DEMO_THERAPIST} tabIndex={show ? 0 : -1}>Probar la demo</Link>
       <a className="lp-btn lp-btn--primary lp-btn--small" href="#sumarme" tabIndex={show ? 0 : -1}>Quiero sumarme</a>
     </div>
@@ -408,7 +389,7 @@ export default function Landing() {
   const [joinRef, joinInView] = useInView<HTMLDivElement>({ threshold: 0.05 })
 
   useEffect(() => {
-    document.title = 'Dracs · Juegos en casa, seguimiento para el logopeda'
+    document.title = 'Dracs · El niño juega. Tú decides.'
     // Llegada con ancla desde otra ruta (por ejemplo /#sumarme desde /demo).
     const id = window.location.hash.slice(1)
     if (id) document.getElementById(id)?.scrollIntoView()
@@ -416,7 +397,6 @@ export default function Landing() {
 
   return (
     <div className="lp">
-      <p className="lp-banner">Proyecto en desarrollo en Barcelona · Buscamos logopedas para el primer piloto</p>
       <main>
         <div ref={heroRef}><Hero /></div>
         <Statement />
@@ -424,6 +404,7 @@ export default function Landing() {
         <Cinta />
         <Decide />
         <Showcase />
+        <Futuro />
         <div ref={joinRef}>
           <Sumarse />
         </div>

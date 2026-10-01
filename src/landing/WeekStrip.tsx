@@ -12,7 +12,7 @@ export default function WeekStrip() {
   let order = 0
   return (
     <div className={`wk${inView ? ' is-in' : ''}`} ref={ref} role="img"
-      aria-label="Semana de ejemplo: sesión con el logopeda el miércoles y partidas en casa lunes, martes, jueves, viernes y sábado.">
+      aria-label="Semana de ejemplo: sesión con el profesional el miércoles y partidas en casa lunes, martes, jueves, viernes y sábado.">
       <div className="wk-grid" aria-hidden="true">
         <span className="wk-rowlabel" />
         {DAYS.map(d => <span key={d} className="wk-day">{d}</span>)}
