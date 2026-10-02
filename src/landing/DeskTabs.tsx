@@ -8,9 +8,9 @@ import { useInView } from './useInView'
 
 const TABS = [
   { id: 'pacientes', name: 'Pacientes', img: '/landing/app-pacientes.webp', w: 2240, h: 1400, contain: true },
-  { id: 'resumen', name: 'Resumen', img: '/landing/resumen-areas.webp', w: 1440, h: 1806, contain: false },
-  { id: 'plan', name: 'Plan', img: '/landing/plan.webp', w: 1000, h: 944, contain: false },
-  { id: 'informe', name: 'Informe', img: '/landing/informe.webp', w: 1000, h: 1582, contain: false },
+  { id: 'resumen', name: 'Resumen', img: '/landing/resumen-areas.webp', w: 1344, h: 1888, contain: false },
+  { id: 'plan', name: 'Plan', img: '/landing/plan.webp', w: 1344, h: 894, contain: false },
+  { id: 'informe', name: 'Informe', img: '/landing/informe.webp', w: 1344, h: 1672, contain: false },
 ]
 const STEP_MS = 4000
 

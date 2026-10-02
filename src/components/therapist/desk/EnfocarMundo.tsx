@@ -144,8 +144,8 @@ export default function EnfocarMundo({
                 border: `1px solid ${pinned ? DT.azulTintLine : DT.lineSoft}`,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>{g.title}</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+                  <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 600, color: DT.ink, fontFamily: DT.display }}>{g.title}</p>
+                  <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                     <MapPin size={13} weight="regular" color={DT.azulInk} /> {g.rationale}
                   </p>
                 </div>
@@ -159,7 +159,7 @@ export default function EnfocarMundo({
             )
           })}
           {items.length > MAX_SHOWN && (
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
+            <p style={{ margin: '2px 0 0', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
               y {items.length - MAX_SHOWN} juego{items.length - MAX_SHOWN === 1 ? '' : 's'} más.
             </p>
           )}
@@ -171,10 +171,10 @@ export default function EnfocarMundo({
         <Button variant="primary" onClick={handleSave} disabled={saving || !loaded}>
           {saving ? 'Guardando…' : 'Guardar enfoque'}
         </Button>
-        <span style={{ fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
+        <span style={{ fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
           {emphasis.size > 0 ? `${emphasis.size} juego${emphasis.size === 1 ? '' : 's'} fijado${emphasis.size === 1 ? '' : 's'}.` : 'Sin juegos fijados.'}
         </span>
-        {toast && <span className="dk-fade" style={{ fontSize: '13px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>}
+        {toast && <span className="dk-fade" style={{ fontSize: '14px', fontWeight: 600, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>}
       </div>
     </Card>
   )

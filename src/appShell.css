@@ -1,0 +1,170 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Marco de la app (/app/*): la barra de arriba y la superficie.
+   Es la misma barra que la web y que /demo: el dragón a la izquierda y el
+   botón amarillo a la derecha. En la demo, en el centro, las tres vistas de
+   Pol (Profesional, Familia, Niño) a un toque.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.ax {
+  --ax-paper: #ffffff;
+  --ax-paper-2: #f4f4f1;
+  --ax-ink: #15191b;
+  --ax-night: #17313a;
+  --ax-note: #5e6468;
+  --ax-line: #e3e4e0;
+  --ax-line-strong: #c9cbc6;
+  --ax-yellow: #f7c31c;
+  --ax-yellow-hover: #e9b50f;
+  --ax-data: #3f6b78;
+  --ax-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ax-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  --ax-nav-h: 65px;   /* alto real de la barra, con su borde */
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  background: var(--ax-paper-2);
+  color: var(--ax-ink);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Las vistas del profesional y de la familia heredan la sans de la web. Lo que
+   trae su fuente en línea (el juego, en Fredoka) la conserva. */
+.ax-sans, .ax-sans * { font-family: var(--ax-sans); }
+
+/* ── Barra ─────────────────────────────────────────────────────────────── */
+.ax-nav {
+  position: sticky; top: 0; z-index: 50; flex-shrink: 0;
+  background: var(--ax-paper);
+  border-bottom: 1px solid var(--ax-line);
+}
+.ax-nav, .ax-nav *, .ax-modal, .ax-modal * { font-family: var(--ax-sans); }
+.ax-nav__row {
+  max-width: 1040px; margin: 0 auto; padding: 0 24px; height: 64px;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+}
+.ax-nav__left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ax-nav__right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-width: 0; }
+
+.ax-brand { display: inline-flex; align-items: center; flex-shrink: 0; border-radius: 8px; }
+.ax-brand img { width: 40px; height: auto; display: block; }
+
+.ax-demo-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 12px; border-radius: 999px;
+  background: var(--ax-paper-2); border: 1px solid var(--ax-line);
+  color: var(--ax-note); font-size: 13px; font-weight: 500; white-space: nowrap;
+  cursor: pointer;
+}
+.ax-demo-tag:hover { color: var(--ax-ink); border-color: var(--ax-line-strong); }
+.ax-demo-tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--ax-yellow); }
+
+/* Las tres vistas */
+.ax-views {
+  position: relative; display: inline-flex; gap: 2px; padding: 4px;
+  border: 1px solid var(--ax-line); border-radius: 999px; background: var(--ax-paper);
+}
+.ax-views__bubble {
+  position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 999px;
+  background: var(--ax-night);
+  transition: transform 0.3s cubic-bezier(.2,.8,.2,1), width 0.3s cubic-bezier(.2,.8,.2,1);
+}
+.ax-view {
+  position: relative; z-index: 1; height: 38px; padding: 0 16px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--ax-note); cursor: pointer;
+  font-size: 15px; font-weight: 500; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: color 0.2s ease;
+}
+.ax-view:hover { color: var(--ax-ink); }
+.ax-view[aria-current='page'] { color: #fff; font-weight: 600; }
+
+/* Botones de la barra */
+.ax-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 0 16px; border-radius: 12px;
+  font-size: 15px; font-weight: 600; line-height: 1; white-space: nowrap;
+  border: 1.5px solid transparent; cursor: pointer; text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.ax-btn--primary { background: var(--ax-yellow); color: var(--ax-ink); }
+.ax-btn--primary:hover { background: var(--ax-yellow-hover); }
+.ax-btn--night { background: var(--ax-night); color: #fff; border-radius: 999px; padding: 0 18px; }
+.ax-btn--night:hover { background: #1f3d47; }
+.ax-btn--ghost { background: transparent; color: var(--ax-ink); border-color: var(--ax-line-strong); }
+.ax-btn--ghost:hover { border-color: var(--ax-ink); }
+.ax-btn:focus-visible, .ax-view:focus-visible, .ax-brand:focus-visible, .ax-demo-tag:focus-visible, .ax-menu button:focus-visible {
+  outline: 3px solid var(--ax-data); outline-offset: 2px;
+}
+
+/* Menú */
+.ax-menu-wrap { position: relative; }
+.ax-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 70; min-width: 240px;
+  background: var(--ax-paper); border: 1px solid var(--ax-line); border-radius: 14px;
+  box-shadow: 0 2px 4px rgba(21,25,27,0.05), 0 20px 40px -16px rgba(21,25,27,0.28);
+  padding: 6px; animation: axDrop 0.16s ease;
+}
+.ax-menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 11px 12px; border: 0; border-radius: 10px; background: transparent;
+  color: var(--ax-ink); font-size: 15px; font-weight: 500; text-align: left; cursor: pointer;
+}
+.ax-menu button:hover { background: var(--ax-paper-2); }
+.ax-menu button[aria-current='page'] { font-weight: 600; }
+.ax-menu button svg { color: var(--ax-note); flex-shrink: 0; }
+.ax-menu hr { border: 0; border-top: 1px solid var(--ax-line); margin: 6px 4px; }
+.ax-menu .ax-menu__only-m { display: none; }
+.ax-menu__danger { color: #b42318 !important; }
+.ax-menu__danger svg { color: #b42318 !important; }
+@keyframes axDrop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* ── Contenido ─────────────────────────────────────────────────────────── */
+.ax-main {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  width: 100%; position: relative;
+}
+
+/* ── Aviso de la demo ──────────────────────────────────────────────────── */
+.ax-modal-back {
+  position: fixed; inset: 0; z-index: 200; padding: 24px;
+  background: rgba(21,25,27,0.48); display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.18s ease;
+}
+.ax-modal {
+  width: 100%; max-width: 420px; background: var(--ax-paper); border-radius: 16px;
+  padding: 28px; box-shadow: 0 30px 60px -20px rgba(21,25,27,0.4);
+  animation: axDrop 0.2s ease;
+}
+.ax-modal h2 { margin: 0 0 10px; font-family: var(--ax-serif); font-weight: 600; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em; }
+.ax-modal p { margin: 0 0 22px; font-size: 16px; line-height: 1.6; color: var(--ax-ink); }
+.ax-modal__actions { display: grid; gap: 10px; }
+.ax-modal__link { background: none; border: 0; padding: 6px 0 0; cursor: pointer; color: var(--ax-note); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ax, .ax-menu, .ax-modal, .ax-modal-back { animation: none; }
+  .ax-views__bubble, .ax-view { transition: none; }
+}
+
+/* ── Tablet: sin la etiqueta de la demo ni el botón amarillo ────────────── */
+@media (max-width: 1080px) {
+  .ax-demo-tag { display: none; }
+}
+@media (max-width: 900px) {
+  .ax-nav__cta { display: none; }
+  .ax-menu .ax-menu__only-m { display: flex; }
+}
+
+/* ── Móvil: el selector de vistas baja a su propia fila ─────────────────── */
+@media (max-width: 640px) {
+  .ax { --ax-nav-h: 61px; }
+  .ax--views { --ax-nav-h: 117px; }
+  .ax-nav__row { grid-template-columns: auto 1fr; padding: 0 16px; height: 60px; gap: 12px; }
+  .ax--views .ax-nav__row { height: auto; padding: 8px 16px 10px; row-gap: 8px; grid-template-rows: 44px 46px; }
+  .ax-nav__center { grid-column: 1 / -1; grid-row: 2; display: flex; }
+  .ax-views { width: 100%; }
+  .ax-view { flex: 1; justify-content: center; padding: 0 8px; height: 36px; font-size: 14px; }
+  .ax-view svg { display: none; }
+  .ax-brand img { width: 34px; }
+}

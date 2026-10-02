@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useMapHotspots } from '../hooks/useMapHotspots'
 import type { MapHotspot } from '../types/mapHotspot'
+import LoadingSpinner from './LoadingSpinner'
 
 const MAP_URL =
   'https://bxhptoigtummmckxnkzv.supabase.co/storage/v1/object/public/exercise-images/mapa_principal.png'
@@ -13,53 +14,53 @@ export default function MapScreen() {
   const navigate = useNavigate()
   const { hotspots, loading, error } = useMapHotspots()
 
-  if (loading) {
-    return (
-      <div className="w-full flex items-center justify-center text-2xl" style={{ flex: 1 }}>
-        Cargando…
-      </div>
-    )
-  }
+  if (loading) return <LoadingSpinner />
   if (error) {
+    // El mensaje técnico queda en consola; el niño ve una frase amable.
+    console.error('[Dracs] Error al cargar el mapa:', error)
     return (
-      <div className="w-full flex items-center justify-center text-red-700 p-8" style={{ flex: 1 }}>
-        Error: {error}
+      <div className="w-full flex flex-col items-center justify-center gap-3 p-8 text-center" style={{ flex: 1 }}>
+        <p style={{ margin: 0, fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '24px', fontWeight: 600, color: '#17313A' }}>
+          El mapa no cargó.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          style={{ height: '48px', padding: '0 24px', borderRadius: '12px', border: 'none', background: '#F7C31C', color: '#15191B', fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '18px', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Probar otra vez
+        </button>
       </div>
     )
   }
 
   return (
-    // Alto DEFINIDO = viewport menos el navbar (64px). El shell usa
-    // `min-height:100svh`, que deja la cadena de alto indefinida: sin un alto
-    // definido acá, `max-height`/`cqh` evalúan a 0/none y el mapa se corta o
-    // colapsa. Columna: título arriba (shrink-0) + área del mapa abajo.
-    // TODO (S5.x): mover el 64px del navbar a una CSS var global `--navbar-height`
-    // en :root y usar calc(100svh - var(--navbar-height)) — hoy está hardcodeado.
+    // Alto DEFINIDO = viewport menos la barra (--ax-nav-h, que el marco de la
+    // app ajusta por tamaño de pantalla). El shell usa `min-height:100svh`, que
+    // deja la cadena de alto indefinida: sin un alto definido acá,
+    // `max-height`/`cqh` evalúan a 0/none y el mapa se corta o colapsa.
+    // Columna: título arriba (shrink-0) + área del mapa abajo.
     <div
       className="min-h-0 flex flex-col p-4"
-      style={{ height: 'calc(100svh - 64px)', backgroundColor: '#FAF5E8' }}
+      style={{ height: 'calc(100svh - var(--ax-nav-h, 65px))', backgroundColor: '#F4F4F1' }}
     >
-      {/* Panel azul clarito (como los de la landing): separa el título y el mapa
-          del fondo crema para que el título no quede flotando. */}
-      <div
-        className="flex-1 min-h-0 flex flex-col gap-3"
-        style={{
-          background: '#EAF3F5',
-          borderRadius: '24px',
-          padding: 'clamp(16px, 3vw, 28px)',
-        }}
-      >
+      {/* El mapa es el mundo del niño: aquí manda su color. Alrededor, el gris
+          papel de la app, sin paneles: el título y el mapa, nada más. */}
+      <div className="flex-1 min-h-0 flex flex-col gap-4" style={{ padding: 'clamp(4px, 2vw, 16px)' }}>
         <h1
-          className="shrink-0 text-center text-2xl md:text-4xl font-display font-bold"
-          style={{ color: '#5B8896' }}
+          className="shrink-0 text-center"
+          style={{
+            margin: 0, color: '#17313A', fontFamily: 'Fredoka, system-ui, sans-serif',
+            fontWeight: 600, fontSize: 'clamp(26px, 3.4vw, 40px)', lineHeight: 1.1,
+          }}
         >
           ¿A dónde vamos hoy?
         </h1>
 
-        {/* Área del mapa: ocupa el alto sobrante (definido vía la raíz) y centra la
-            caja. `containerType:size` hace que cqw/cqh del hijo midan ESTA área. */}
+        {/* Área del mapa: ocupa el alto sobrante (definido vía la raíz) y pega la
+            caja al título (en un móvil en vertical, centrarla dejaba un hueco). `containerType:size` hace que cqw/cqh del hijo midan ESTA área. */}
         <div
-          className="flex-1 min-h-0 flex items-center justify-center"
+          className="flex-1 min-h-0 flex items-start justify-center"
           style={{ containerType: 'size' }}
         >
           {/* La caja se queda con el menor entre "ancho completo" y "alto completo *
@@ -70,9 +71,9 @@ export default function MapScreen() {
             style={{
               aspectRatio: '1446 / 1088',
               width: 'min(100cqw, calc(100cqh * 1446 / 1088))',
-              border: '4px solid #F7C31C',
-              borderRadius: '16px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+              border: '6px solid #FFFFFF',
+              borderRadius: '24px',
+              boxShadow: '0 2px 4px rgba(21,25,27,0.06), 0 24px 48px -20px rgba(21,25,27,0.35)',
             }}
           >
             <img

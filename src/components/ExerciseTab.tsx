@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Stethoscope } from 'lucide-react'
 import { useChildProfile, loadHistory } from '../hooks/useChildProfile'
 import { buildSessionFromDb, type RuntimeExercise, type HotspotFilter } from '../data/exercises'
 import { getPaletteForHotspot } from '../lib/worldColors'
+import { PLACE_META } from './familia/home/placeOfTheDay'
 import { useAuth } from '../context/AuthContext'
+import { DEMO_CHILD_ID } from '../lib/demo'
 import { supabase } from '../lib/supabase'
 import LoadingSpinner from './LoadingSpinner'
 import SetupScreen from './exercise/SetupScreen'
@@ -36,7 +39,10 @@ interface EndState {
 export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta, hotspotFilter, hotspotId, onBackToMap }: Props) {
   const { profile, createProfile, completeSession } = useChildProfile()
   const { user, child, profile: authProfile } = useAuth()
+  const navigate = useNavigate()
   const palette = getPaletteForHotspot(hotspotId)
+  const placeMeta = hotspotId && hotspotId in PLACE_META ? PLACE_META[hotspotId as keyof typeof PLACE_META] : null
+  const placeName = placeMeta ? placeMeta.name.charAt(0).toUpperCase() + placeMeta.name.slice(1) : undefined
 
   // En modo hotspot arrancamos en 'loading' para que nunca se vea el welcome.
   const [screen, setScreen] = useState<Screen>(
@@ -195,6 +201,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
         onComplete={handleSessionComplete}
         onExit={() => (onBackToMap ? onBackToMap() : setScreen('welcome'))}
         palette={palette}
+        placeName={placeName}
       />
     )
   }
@@ -206,8 +213,10 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
         total={endState.total}
         levelChanged={endState.levelChanged}
         onRepeat={handleRepeat}
+        onBackToMap={onBackToMap}
         onViewProgress={handleViewProgress}
         onAutoPlayNext={hotspotFilter ? handleRepeat : undefined}
+        demoBridge={!user ? { label: `Ver en la carpeta de ${profile.name}`, onClick: () => navigate(`/app/terapeuta?carpeta=${DEMO_CHILD_ID}`) } : undefined}
         palette={palette}
       />
     )

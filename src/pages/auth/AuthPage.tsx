@@ -44,14 +44,14 @@ interface Props {
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   height: '52px',
-  borderRadius: '14px',
-  border: '1.5px solid #E5E7EB',
+  borderRadius: '10px',
+  border: '1.5px solid #C9CBC6',
   background: '#ffffff',
   padding: '0 16px',
   fontSize: '16px',
-  fontFamily: 'Nunito, sans-serif',
+  fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
   fontWeight: 500,
-  color: '#33302A',
+  color: '#15191B',
   outline: 'none',
   boxSizing: 'border-box',
   transition: 'border-color 0.18s ease',
@@ -60,12 +60,12 @@ const INPUT_STYLE: React.CSSProperties = {
 const BTN_PRIMARY: React.CSSProperties = {
   width: '100%',
   height: '52px',
-  borderRadius: '14px',
+  borderRadius: '12px',
   border: 'none',
   background: '#F7C31C',
-  color: '#33302A',
+  color: '#15191B',
   fontSize: '16px',
-  fontFamily: 'Fredoka, system-ui, sans-serif',
+  fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
   fontWeight: 600,
   cursor: 'pointer',
   display: 'flex',
@@ -78,8 +78,8 @@ const BTN_PRIMARY: React.CSSProperties = {
 const BTN_SECONDARY: React.CSSProperties = {
   ...BTN_PRIMARY,
   background: '#ffffff',
-  border: '1.5px solid #E5E7EB',
-  color: '#33302A',
+  border: '1.5px solid #C9CBC6',
+  color: '#15191B',
 }
 
 // ── Shared sub-components ──────────────────────────────────────────────────
@@ -103,7 +103,7 @@ function FocusInput({
         onBlur={() => setFocused(false)}
         style={{
           ...INPUT_STYLE,
-          borderColor: focused ? '#5B8896' : '#E5E7EB',
+          borderColor: focused ? '#3F6B78' : '#C9CBC6',
           paddingRight: suffix ? '48px' : '16px',
         }}
       />
@@ -111,7 +111,7 @@ function FocusInput({
         <div style={{
           position: 'absolute', right: '16px', top: '50%',
           transform: 'translateY(-50%)', display: 'flex',
-          alignItems: 'center', color: '#94A3B8', cursor: 'pointer',
+          alignItems: 'center', color: '#5E6468', cursor: 'pointer',
         }}>
           {suffix}
         </div>
@@ -128,7 +128,7 @@ function StepDots({ total, current }: { total: number; current: number }) {
           width: i === current ? '20px' : '8px',
           height: '8px',
           borderRadius: '4px',
-          background: i === current ? '#5B8896' : '#E5E7EB',
+          background: i === current ? '#3F6B78' : '#C9CBC6',
           transition: 'all 0.25s ease',
         }} />
       ))}
@@ -140,10 +140,10 @@ function CardTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 style={{
       margin: '0 0 8px',
-      fontFamily: '"Fredoka", system-ui, sans-serif',
+      fontFamily: "'Source Serif 4', Georgia, serif",
       fontSize: '26px',
-      fontWeight: 700,
-      color: '#33302A',
+      fontWeight: 600,
+      color: '#15191B',
       lineHeight: 1.2,
       textAlign: 'center',
     }}>
@@ -157,8 +157,8 @@ function CardSubtitle({ children }: { children: React.ReactNode }) {
     <p style={{
       margin: '0 0 24px',
       fontSize: '14px',
-      color: '#6B7280',
-      fontFamily: 'Nunito, sans-serif',
+      color: '#5E6468',
+      fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
       textAlign: 'center',
       lineHeight: 1.5,
     }}>
@@ -177,7 +177,7 @@ function ErrorMsg({ msg }: { msg: string }) {
       border: '1px solid #FECACA',
       fontSize: '13px',
       color: '#DC2626',
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
       fontWeight: 600,
       lineHeight: 1.4,
     }}>
@@ -191,9 +191,9 @@ function Label({ children }: { children: React.ReactNode }) {
     <p style={{
       margin: '0 0 8px',
       fontSize: '13px',
-      fontWeight: 700,
+      fontWeight: 600,
       color: '#374151',
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
     }}>
       {children}
     </p>
@@ -232,12 +232,12 @@ function AuthLayout({
   return (
     <div className="dracs-auth-layout" style={{
       minHeight: '100vh',
-      background: '#FAF5E8',
+      background: '#F4F4F1',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: '24px 24px 48px',
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
       position: 'relative',
     }}>
       {/* ── Top bar: brand lockup (→ landing) + contextual back ────── */}
@@ -259,24 +259,12 @@ function AuthLayout({
           }}
         >
           <img
-            src="/brand/dracs-dragon.png"
+            src="/landing/dragon.webp"
             alt="Dracs"
-            style={{
-              width: '38px',
-              height: 'auto',
-              animation: 'floatDragon2 3s ease-in-out infinite',
-              filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.12))',
-            }}
+            width={40}
+            height={52}
+            style={{ width: '40px', height: 'auto' }}
           />
-          <span style={{
-            fontFamily: 'Fredoka, system-ui, sans-serif',
-            fontWeight: 700,
-            fontSize: '20px',
-            color: '#33302A',
-            letterSpacing: '2px',
-          }}>
-            DRACS
-          </span>
         </button>
 
         {showBack && (
@@ -289,9 +277,9 @@ function AuthLayout({
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              color: '#5B8896',
+              color: '#3F6B78',
               fontSize: '14px',
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
               fontWeight: 600,
               padding: '8px',
             }}
@@ -305,8 +293,9 @@ function AuthLayout({
         width: '100%',
         maxWidth: '420px',
         background: '#ffffff',
-        borderRadius: '24px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.08)',
+        borderRadius: '16px',
+        border: '1px solid #E3E4E0',
+        boxShadow: '0 1px 2px rgba(21,25,27,0.04), 0 10px 28px -14px rgba(21,25,27,0.16)',
         padding: '32px',
       }}>
         {children}
@@ -321,7 +310,7 @@ function AuthLayout({
 
 function roleMismatchMsg(dbRole: string, _wanted: Role): string {
   if (dbRole === 'therapist') {
-    return 'Esta cuenta es de terapeuta. Usá Logopedia para entrar.'
+    return 'Esta cuenta es de profesional. Entra por la puerta Profesional.'
   }
   if (dbRole === 'patient') {
     return 'Esta cuenta es de paciente. Usá Ejercicios para entrar.'
@@ -337,7 +326,7 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
   const isTherapist = role === 'therapist'
   return (
     <AuthLayout onBack={onBack}>
-      <CardTitle>{isTherapist ? 'Acceso logopeda' : '¿Ya usas Dracs?'}</CardTitle>
+      <CardTitle>{isTherapist ? 'Acceso profesional' : '¿Ya usas Dracs?'}</CardTitle>
       <CardSubtitle>
         {isTherapist
           ? 'Inicia sesión o crea tu cuenta profesional.'
@@ -349,14 +338,14 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
           Sí, iniciar sesión
         </button>
         <button onClick={onSignup} style={BTN_SECONDARY}>
-          {isTherapist ? 'Registrarme como terapeuta' : 'No, crear cuenta nueva'}
+          {isTherapist ? 'Registrarme como profesional' : 'No, crear cuenta nueva'}
         </button>
         {role === 'child' && (
           <button
             onClick={onSkip}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif',
+              fontSize: '13px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
               fontWeight: 600, padding: '8px 0', textAlign: 'center',
             }}
           >
@@ -365,8 +354,8 @@ function ChooseScreen({ role, onLogin, onSignup, onSkip, onBack }: {
         )}
         {role === 'family' && (
           <p style={{
-            margin: '4px 0 0', fontSize: '12px', color: '#94A3B8',
-            fontFamily: 'Nunito, sans-serif', textAlign: 'center', lineHeight: 1.4,
+            margin: '4px 0 0', fontSize: '12px', color: '#5E6468',
+            fontFamily: "'IBM Plex Sans', system-ui, sans-serif", textAlign: 'center', lineHeight: 1.4,
           }}>
             Para ver el progreso necesitas una cuenta.
           </p>
@@ -545,7 +534,7 @@ function SignupStep1({ role, onContinue, onBack }: {
       <StepDots total={3} current={0} />
       <CardTitle>Crear cuenta</CardTitle>
       <CardSubtitle>
-        {role === 'therapist' ? 'Acceso para logopedas' : 'Acceso para familia y niño'}
+        {role === 'therapist' ? 'Acceso para profesionales' : 'Acceso para familia y niño'}
       </CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -612,10 +601,10 @@ function PatientStep2({ onContinue, onBack }: {
                 onClick={() => setChildAge(age)}
                 style={{
                   height: '52px', borderRadius: '14px',
-                  border: `1.5px solid ${childAge === age ? '#5B8896' : '#E5E7EB'}`,
+                  border: `1.5px solid ${childAge === age ? '#3F6B78' : '#C9CBC6'}`,
                   background: childAge === age ? '#EAF3F5' : '#ffffff',
-                  color: childAge === age ? '#5B8896' : '#6B7280',
-                  fontSize: '18px', fontWeight: 700, fontFamily: 'Nunito, sans-serif',
+                  color: childAge === age ? '#3F6B78' : '#5E6468',
+                  fontSize: '18px', fontWeight: 600, fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
                   cursor: 'pointer', transition: 'all 0.15s ease',
                 }}
               >
@@ -744,38 +733,38 @@ function PatientStep3({
   return (
     <AuthLayout onBack={onBack}>
       <StepDots total={3} current={2} />
-      <CardTitle>¿Tiene terapeuta?</CardTitle>
-      <CardSubtitle>Si tienes terapeuta, conéctalo para que reciba el progreso. Si no, puedes empezar igual.</CardSubtitle>
+      <CardTitle>¿Lo acompaña un profesional?</CardTitle>
+      <CardSubtitle>Si un profesional acompaña a tu hijo, conéctalo para que reciba su progreso. Si no, puedes empezar igual.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <ErrorMsg msg={error} />
 
         <div style={{ position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
+          <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#5E6468', pointerEvents: 'none' }} />
           <input
             placeholder="Buscar por nombre, centro o ciudad..."
             value={query}
             onChange={e => { setQuery(e.target.value); setSelected(null) }}
             style={{ ...INPUT_STYLE, paddingLeft: '44px' }}
-            onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#5B8896' }}
-            onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
+            onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#3F6B78' }}
+            onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#C9CBC6' }}
           />
         </div>
 
         {selected && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #5B8896' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #3F6B78' }}>
             <div>
-              <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{selected.profiles.full_name}</p>
-              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{selected.specialty} · {selected.center_name}</p>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#3F6B78', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{selected.profiles.full_name}</p>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{selected.specialty} · {selected.center_name}</p>
             </div>
-            <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
+            <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5E6468', padding: '4px' }}>
               <X size={16} />
             </button>
           </div>
         )}
 
         {!selected && results.length > 0 && (
-          <div style={{ borderRadius: '14px', border: '1px solid #E5E7EB', overflow: 'hidden', background: '#ffffff', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
+          <div style={{ borderRadius: '14px', border: '1px solid #C9CBC6', overflow: 'hidden', background: '#ffffff', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
             {results.map((t, i) => (
               <button
                 key={t.id}
@@ -784,31 +773,31 @@ function PatientStep3({
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
               >
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>{t.profiles.full_name}</p>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{t.specialty} · {t.center_name} · {t.city}</p>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#15191B', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{t.profiles.full_name}</p>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{t.specialty} · {t.center_name} · {t.city}</p>
               </button>
             ))}
           </div>
         )}
 
-        {searching && <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>Buscando...</p>}
+        {searching && <p style={{ margin: 0, fontSize: '13px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif", textAlign: 'center' }}>Buscando...</p>}
         {!searching && query.length >= 2 && results.length === 0 && !selected && (
-          <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>
-            No se encontraron terapeutas.
+          <p style={{ margin: 0, fontSize: '13px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif", textAlign: 'center' }}>
+            No encontramos a ese profesional.
           </p>
         )}
 
         <SpinnerBtn
           loading={saving}
-          label={selected ? `Conectar con ${selected.profiles.full_name}` : 'Empezar sin terapeuta'}
+          label={selected ? `Conectar con ${selected.profiles.full_name}` : 'Empezar sin profesional'}
           onClick={() => handleFinish(selected)}
         />
         {selected && (
           <button
             onClick={() => handleFinish(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center', padding: '4px' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif", fontWeight: 600, textAlign: 'center', padding: '4px' }}
           >
-            Prefiero empezar sin terapeuta
+            Prefiero empezar sin profesional
           </button>
         )}
       </div>
@@ -958,31 +947,31 @@ function TherapistStep3({
         {!showNewCenter && (
           <>
             <div style={{ position: 'relative' }}>
-              <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
+              <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#5E6468', pointerEvents: 'none' }} />
               <input
                 placeholder="Buscar tu centro de trabajo..."
                 value={query}
                 onChange={e => { setQuery(e.target.value); setSelected(null) }}
                 style={{ ...INPUT_STYLE, paddingLeft: '44px' }}
-                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#5B8896' }}
-                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#E5E7EB' }}
+                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#3F6B78' }}
+                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#C9CBC6' }}
               />
             </div>
 
             {selected && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #5B8896' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '12px', background: '#EAF3F5', border: '1.5px solid #3F6B78' }}>
                 <div>
-                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#5B8896', fontFamily: 'Nunito, sans-serif' }}>{selected.name}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{selected.city}</p>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#3F6B78', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{selected.name}</p>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{selected.city}</p>
                 </div>
-                <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
+                <button onClick={() => { setSelected(null); setQuery('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5E6468', padding: '4px' }}>
                   <X size={16} />
                 </button>
               </div>
             )}
 
             {!selected && results.length > 0 && (
-              <div style={{ borderRadius: '14px', border: '1px solid #E5E7EB', overflow: 'hidden', background: '#ffffff', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
+              <div style={{ borderRadius: '14px', border: '1px solid #C9CBC6', overflow: 'hidden', background: '#ffffff', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
                 {results.map((c, i) => (
                   <button
                     key={c.id}
@@ -991,14 +980,14 @@ function TherapistStep3({
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                   >
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#33302A', fontFamily: 'Nunito, sans-serif' }}>{c.name}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>{c.city}</p>
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#15191B', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{c.name}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>{c.city}</p>
                   </button>
                 ))}
               </div>
             )}
 
-            {searching && <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', textAlign: 'center' }}>Buscando...</p>}
+            {searching && <p style={{ margin: 0, fontSize: '13px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif", textAlign: 'center' }}>Buscando...</p>}
 
             <button onClick={() => setShowNewCenter(true)} style={{ ...BTN_SECONDARY, height: '44px', fontSize: '14px' }}>
               + Añadir centro nuevo
@@ -1010,7 +999,7 @@ function TherapistStep3({
           <div>
             <Label>Nombre del centro</Label>
             <FocusInput placeholder="Nombre del centro" value={newCenterName} onChange={setNewCenterName} autoFocus />
-            <button onClick={() => setShowNewCenter(false)} style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
+            <button onClick={() => setShowNewCenter(false)} style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#5E6468', fontFamily: "'IBM Plex Sans', system-ui, sans-serif", fontWeight: 600 }}>
               Buscar en la lista
             </button>
           </div>

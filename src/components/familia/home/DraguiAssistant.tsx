@@ -6,10 +6,10 @@
 // recorrido — "¿qué juego le costó más?", "¿cómo fue la semana?" — leyendo los
 // mismos datos que ya derivan `journey.ts` y `useFamilyWeek`, con dos voces
 // distintas: cálida y sin números para la familia (§principio 5), clínica y con
-// números para la logopeda. Hoy sigue siendo el mockup con candado.
+// números para el profesional. Hoy sigue siendo el mockup con candado.
 
 import { useEffect, useRef, useState } from 'react'
-import { Lock, Sparkle, PaperPlaneTilt } from '@phosphor-icons/react'
+import { Lock, PaperPlaneTilt } from '@phosphor-icons/react'
 import { HT } from './homeStyles'
 import {
   DRAGUI, ASSISTANT_SUBTITLE, ASSISTANT_PREVIEW_BADGE, ASSISTANT_LOCKED_PLACEHOLDER,
@@ -33,10 +33,10 @@ function DragonAvatar({ size }: { size: number }) {
   return (
     <span style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: HT.blueTint, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: HT.cream, display: 'flex', alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden',
     }}>
-      <img src="/brand/dracs-dragon.png" alt="" aria-hidden style={{ width: '86%', height: '86%', objectFit: 'contain' }} />
+      <img src="/landing/dragon.webp" alt="" aria-hidden style={{ width: '70%', height: '70%', objectFit: 'contain' }} />
     </span>
   )
 }
@@ -46,24 +46,24 @@ function MiniExerciseCard({ ex, name }: { ex: MiniExercise; name: string }) {
   return (
     <div style={{
       marginTop: '10px', background: HT.white, border: `1px solid ${HT.line}`,
-      borderRadius: HT.radiusSm, overflow: 'hidden', boxShadow: HT.shadowSoft,
+      borderRadius: HT.radiusSm, overflow: 'hidden',
       maxWidth: '320px',
     }}>
       <div style={{
         height: '104px', background: ex.gradient,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <ex.Icon size={44} weight="fill" color="#FFFFFF" />
+        <ex.Icon size={44} weight="duotone" color="#FFFFFF" />
       </div>
       <div style={{ padding: '14px 16px 16px' }}>
         <span style={{
           display: 'inline-block', marginBottom: '8px', padding: '3px 10px', borderRadius: '20px',
-          background: HT.blueTint, color: HT.ink, fontSize: '11px', fontWeight: 800,
-          fontFamily: HT.body, letterSpacing: '0.02em',
+          background: HT.sand, color: HT.ink, fontSize: '13px', fontWeight: 500,
+          fontFamily: HT.body,
         }}>
           {fill(ex.skillTag, name)}
         </span>
-        <p style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: 700, color: HT.ink, fontFamily: HT.display }}>
+        <p style={{ margin: '0 0 12px', fontSize: '19px', fontWeight: 600, color: HT.ink, fontFamily: HT.serif }}>
           {fill(ex.title, name)}
         </p>
         {/* Botón inerte: se ve real (vende el video) pero no hace nada. */}
@@ -73,12 +73,12 @@ function MiniExerciseCard({ ex, name }: { ex: MiniExercise; name: string }) {
           onClick={e => e.preventDefault()}
           style={{
             width: '100%', height: '44px', border: 'none', borderRadius: '12px',
-            background: HT.yellow, color: HT.ink, fontSize: '15px', fontWeight: 700,
-            fontFamily: HT.display, cursor: 'default',
+            background: HT.yellow, color: HT.ink, fontSize: '15px', fontWeight: 600,
+            fontFamily: HT.body, cursor: 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}
         >
-          <Sparkle size={16} weight="fill" /> Empezar a jugar
+          Empezar a jugar
         </button>
       </div>
     </div>
@@ -98,10 +98,10 @@ function Bubble({ msg, name }: { msg: Msg; name: string }) {
         <div style={{
           padding: '11px 14px',
           borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-          background: isUser ? HT.yellow : HT.white,
+          background: isUser ? HT.night : HT.white,
           border: isUser ? 'none' : `1px solid ${HT.line}`,
-          color: HT.ink, fontSize: '15px', fontWeight: 500, lineHeight: 1.5,
-          fontFamily: HT.body, boxShadow: isUser ? 'none' : HT.shadowSoft,
+          color: isUser ? '#FFFFFF' : HT.ink, fontSize: '16px', fontWeight: 400, lineHeight: 1.5,
+          fontFamily: HT.body,
         }}>
           {fill(msg.text, name)}
         </div>
@@ -116,7 +116,7 @@ function TypingIndicator() {
     <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
       <div style={{
         padding: '13px 16px', borderRadius: '16px 16px 16px 4px',
-        background: HT.white, border: `1px solid ${HT.line}`, boxShadow: HT.shadowSoft,
+        background: HT.white, border: `1px solid ${HT.line}`,
         display: 'flex', gap: '5px', alignItems: 'center',
       }}>
         {[0, 1, 2].map(i => (
@@ -175,31 +175,31 @@ export default function DraguiAssistant({
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '16px 18px', borderBottom: `1px solid ${HT.line}`,
-          background: `linear-gradient(180deg, ${HT.blueTint} 0%, ${HT.white} 100%)`,
+          padding: '20px 24px', borderBottom: `1px solid ${HT.line}`,
+          background: HT.white,
         }}>
-          <DragonAvatar size={44} />
+          <DragonAvatar size={48} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: HT.blueDeep, fontFamily: HT.display }}>
+            <p style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: HT.ink, fontFamily: HT.serif, lineHeight: 1.15 }}>
               {DRAGUI}
             </p>
-            <p style={{ margin: '1px 0 0', fontSize: '13px', fontWeight: 600, color: HT.muted, fontFamily: HT.body }}>
+            <p style={{ margin: '3px 0 0', fontSize: '15px', fontWeight: 400, color: HT.muted, fontFamily: HT.body }}>
               {ASSISTANT_SUBTITLE}
             </p>
           </div>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-            padding: '5px 11px', borderRadius: '20px', background: HT.sand,
-            color: HT.taupe, fontSize: '11px', fontWeight: 800, fontFamily: HT.body,
-            letterSpacing: '0.02em',
+            padding: '5px 12px', borderRadius: '999px', background: HT.cream,
+            border: `1px solid ${HT.line}`,
+            color: HT.muted, fontSize: '13px', fontWeight: 500, fontFamily: HT.body,
           }}>
-            <Lock size={12} weight="fill" /> {ASSISTANT_PREVIEW_BADGE}
+            <Lock size={13} weight="regular" /> {ASSISTANT_PREVIEW_BADGE}
           </span>
         </div>
 
         {/* Chat */}
         <div style={{
-          padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px',
+          padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: '14px',
           background: HT.cream,
         }}>
           {messages.map((m, i) => <Bubble key={i} msg={m} name={childName} />)}
@@ -215,13 +215,13 @@ export default function DraguiAssistant({
                   onClick={() => handleChip(chip)}
                   disabled={typing}
                   style={{
-                    padding: '9px 14px', minHeight: '40px', borderRadius: '20px',
-                    border: `1.5px solid ${HT.blue}`, background: HT.white,
-                    color: HT.blue, fontSize: '13.5px', fontWeight: 700, fontFamily: HT.body,
-                    cursor: typing ? 'default' : 'pointer', transition: 'background 0.15s ease, transform 0.12s ease',
+                    padding: '9px 15px', minHeight: '40px', borderRadius: '999px',
+                    border: '1.5px solid #C9CBC6', background: HT.white,
+                    color: HT.ink, fontSize: '15px', fontWeight: 500, fontFamily: HT.body,
+                    cursor: typing ? 'default' : 'pointer', transition: 'border-color 0.15s ease',
                   }}
-                  onMouseEnter={e => { if (!typing) e.currentTarget.style.background = HT.blueTint }}
-                  onMouseLeave={e => { e.currentTarget.style.background = HT.white }}
+                  onMouseEnter={e => { if (!typing) e.currentTarget.style.borderColor = HT.ink }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#C9CBC6' }}
                 >
                   {chip.chip}
                 </button>
@@ -233,20 +233,20 @@ export default function DraguiAssistant({
           {interacted && (
             <div className="carta-in" style={{
               marginTop: '2px', padding: '16px', borderRadius: HT.radiusSm,
-              background: '#FFF7E4', border: `1px dashed ${HT.yellow}`,
+              background: HT.white, border: `1px solid ${HT.line}`,
             }}>
               <p style={{
-                margin: '0 0 12px', fontSize: '14px', fontWeight: 600, color: HT.ink,
+                margin: '0 0 12px', fontSize: '15px', fontWeight: 400, color: HT.ink,
                 lineHeight: 1.55, fontFamily: HT.body,
                 display: 'flex', gap: '8px', alignItems: 'flex-start',
               }}>
-                <Lock size={16} weight="fill" color={HT.taupe} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <Lock size={16} weight="regular" color={HT.muted} style={{ flexShrink: 0, marginTop: '3px' }} />
                 {assistantPreviewNote(childName)}
               </p>
               {waitlisted ? (
                 <p style={{
-                  margin: 0, fontSize: '14px', fontWeight: 700, color: HT.mint,
-                  fontFamily: HT.display,
+                  margin: 0, fontSize: '15px', fontWeight: 600, color: HT.blue,
+                  fontFamily: HT.body,
                 }}>
                   {WAITLIST_THANKS}
                 </p>
@@ -256,8 +256,8 @@ export default function DraguiAssistant({
                   onClick={() => setWaitlisted(true)}
                   style={{
                     height: '44px', padding: '0 20px', borderRadius: '12px', border: 'none',
-                    background: HT.blue, color: HT.white, fontSize: '14px', fontWeight: 700,
-                    fontFamily: HT.display, cursor: 'pointer',
+                    background: HT.night, color: HT.white, fontSize: '15px', fontWeight: 600,
+                    fontFamily: HT.body, cursor: 'pointer',
                   }}
                 >
                   {WAITLIST_CTA}
@@ -270,14 +270,14 @@ export default function DraguiAssistant({
         {/* Entrada de texto BLOQUEADA — se lee como vista previa, no como rota. */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '12px 14px', borderTop: `1px solid ${HT.line}`, background: HT.white,
+          padding: '14px 24px', borderTop: `1px solid ${HT.line}`, background: HT.white,
         }}>
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', gap: '8px',
             height: '46px', padding: '0 14px', borderRadius: '999px',
             background: HT.cream, border: `1px solid ${HT.line}`, color: HT.taupe,
           }}>
-            <Lock size={15} weight="fill" style={{ flexShrink: 0 }} />
+            <Lock size={15} weight="regular" style={{ flexShrink: 0 }} />
             <input
               type="text"
               disabled
@@ -299,7 +299,7 @@ export default function DraguiAssistant({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <PaperPlaneTilt size={18} weight="fill" />
+            <PaperPlaneTilt size={18} weight="regular" />
           </button>
         </div>
       </div>

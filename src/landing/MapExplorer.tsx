@@ -12,7 +12,7 @@ const PLACES: Place[] = [
   { id: 'faro', name: 'El faro', x: 55, y: 20, prompt: 'Sorpresa: un juego de cualquier lugar', imgs: ['pulpo', 'castillo', 'sol'] },
   { id: 'casa', name: 'La casa', x: 72, y: 33, prompt: 'Uno no es como los demás', imgs: ['pez', 'manzana', 'cangrejo'] },
   { id: 'sol', name: 'El sol', x: 88, y: 13, prompt: '¿Dónde está la luna?', imgs: ['sol', 'nube', 'luna'] },
-  { id: 'playa', name: 'La playa', x: 89, y: 75, prompt: 'Ordena: primero, después y al final', imgs: ['cubo-vacio', 'cubo-lleno', 'castillo'] },
+  { id: 'playa', name: 'El castillo de arena', x: 89, y: 75, prompt: 'Ordena: primero, después y al final', imgs: ['cubo-vacio', 'cubo-lleno', 'castillo'] },
 ]
 
 export default function MapExplorer({ photo }: { photo?: string } = {}) {

@@ -8,6 +8,7 @@
 // generados con el mismo motor.
 
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { type Patient as MockPatient } from '../../data/patients'
 import { buildDemoCaseload } from '../../data/demoCaseload'
 import { loadHistory } from '../../hooks/useChildProfile'
@@ -97,7 +98,10 @@ export default function TherapistTab() {
   const [realPatients, setRealPatients] = useState<MockPatient[]>([])
   const [linkRequests, setLinkRequests] = useState<LinkRequestWithPatient[]>([])
   const [loadingReal, setLoadingReal] = useState(isReal)
-  const [openId, setOpenId] = useState<string | null>(null)
+  // ?carpeta=<id> abre directo esa carpeta: es el enlace del final de una
+  // partida en la demo ("Ver esta partida en la carpeta de Pol").
+  const [params] = useSearchParams()
+  const [openId, setOpenId] = useState<string | null>(() => params.get('carpeta'))
   // El módulo del escritorio vive aquí y no en el Escritorio: al volver de una
   // carpeta abierta desde Pacientes, se vuelve a Pacientes y no a la Agenda.
   const [deskModule, setDeskModule] = useState('agenda')
@@ -168,7 +172,7 @@ export default function TherapistTab() {
   return (
     // La superficie: crema lisa, sin textura. El fondo va en el propio
     // contenedor de scroll para cubrir todo el alto de la vista.
-    <div style={{ flex: 1, width: '100%', overflowY: 'auto', minHeight: 0, ...SURFACE }}>
+    <div className="ax-sans" style={{ flex: 1, width: '100%', overflowY: 'auto', minHeight: 0, ...SURFACE }}>
       <style>{DESK_CSS}</style>
       {openPatient ? (
         <Carpeta
@@ -187,18 +191,18 @@ export default function TherapistTab() {
           onReject={handleReject}
           loading={loadingReal}
           isDemo={!isReal}
-          therapistName={(profile?.full_name ?? 'Terapeuta').split(' ')[0]}
+          therapistName={(profile?.full_name ?? 'Profesional').split(' ')[0]}
         />
       )}
 
-      {/* Aviso legal: uno para toda la sección del logopeda, al pie. */}
-      <footer style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 88px' }}>
+      {/* Aviso legal: uno para toda la vista del profesional, al pie. */}
+      <footer className="dk-foot" style={{ maxWidth: '1040px', margin: '0 auto', boxSizing: 'border-box' }}>
         <p style={{
-          margin: 0, paddingTop: '18px', borderTop: `1px solid ${DT.line}`,
-          fontSize: '11.5px', fontWeight: 600, lineHeight: 1.5,
+          margin: 0, paddingTop: '20px', borderTop: `1px solid ${DT.line}`,
+          fontSize: '13px', fontWeight: 400, lineHeight: 1.5,
           color: DT.muted, fontFamily: DT.body,
         }}>
-          Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda
+          Dracs no es un dispositivo médico. No valora ni diagnostica: el profesional
           revisa y firma todo.
         </p>
       </footer>

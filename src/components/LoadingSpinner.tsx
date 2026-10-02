@@ -1,19 +1,24 @@
+// Carga: el dragón de la marca y un anillo fino, sobre el gris papel de la app.
 export default function LoadingSpinner() {
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', flexDirection: 'column', gap: '20px',
-      background: '#FAF5E8',
-    }}>
+    <div
+      role="status"
+      aria-label="Cargando"
+      style={{
+        minHeight: '100vh', flex: 1, display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexDirection: 'column', gap: '20px',
+        background: '#F4F4F1',
+      }}
+    >
       <img
-        src="/brand/dracs-dragon.png" alt="Dracs"
-        style={{ width: '80px', animation: 'floatDragon2 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.10))' }}
+        src="/landing/dragon.webp" alt="" width={64} height={83}
+        style={{ width: '64px', height: 'auto', animation: 'floatDragon2 3s ease-in-out infinite' }}
       />
       <div style={{
-        width: '32px', height: '32px', border: '3px solid #E0F2FE',
-        borderTop: '3px solid #5B8896', borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+        width: '28px', height: '28px', border: '3px solid #E3E4E0',
+        borderTop: '3px solid #17313A', borderRadius: '50%', animation: 'spin 0.8s linear infinite',
       }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @media (prefers-reduced-motion: reduce) { [role=status] img, [role=status] div { animation: none !important; } }`}</style>
     </div>
   )
 }

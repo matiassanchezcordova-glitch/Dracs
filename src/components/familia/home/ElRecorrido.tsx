@@ -6,14 +6,14 @@
 // niveles, ni "sesiones" — eso es del terapeuta.
 
 import { useMemo, useState } from 'react'
-import { Path, Star, Sparkle, CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { Star, Sparkle, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { HT } from './homeStyles'
 import { PLACE_META } from './placeOfTheDay'
 import { getJourneyWeek, type Journey, type JourneyDay } from './journey'
 import {
-  recorridoTitle, RECORRIDO_SUBTITLE, RECORRIDO_DAYS_LABEL, RECORRIDO_PLACES_LABEL,
-  RECORRIDO_HINT, RECORRIDO_MILESTONE_KICKER, recorridoEmpty, recorridoDayLine,
-  recorridoDayEmpty, recorridoStreak, recorridoMilestone,
+  recorridoTitle, RECORRIDO_DAYS_LABEL, RECORRIDO_PLACES_LABEL,
+  RECORRIDO_HINT, recorridoEmpty, recorridoDayLine,
+  recorridoDayEmpty, recorridoStreak,
 } from './familyHome.copy'
 
 // ── Flecha de navegación entre semanas ───────────────────────────────────────
@@ -33,16 +33,16 @@ function FlechaSemana({ dir, disabled, onClick }: {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
-        width: '30px', height: '30px', borderRadius: '9px', flexShrink: 0,
+        width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: `1px solid ${HT.line}`,
-        background: hover && !disabled ? HT.blueTint : 'transparent',
+        border: `1.5px solid ${hover && !disabled ? HT.ink : '#C9CBC6'}`,
+        background: HT.white,
         cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.35 : 1,
         transition: 'background 0.16s ease',
       }}
     >
-      <Icon size={15} weight="bold" color={disabled ? HT.taupe : HT.ink} />
+      <Icon size={16} weight="regular" color={disabled ? HT.taupe : HT.ink} />
     </button>
   )
 }
@@ -51,8 +51,7 @@ function FlechaSemana({ dir, disabled, onClick }: {
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <p style={{
-      margin: '0 0 10px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.11em',
-      textTransform: 'uppercase', color: HT.taupe, fontFamily: HT.body,
+      margin: '0 0 12px', fontSize: '15px', fontWeight: 600, color: HT.ink, fontFamily: HT.body,
     }}>
       {children}
     </p>
@@ -85,24 +84,23 @@ function Piedra({ day, selected, onSelect }: {
       }}
     >
       <span style={{
-        fontSize: '10px', fontWeight: 800, fontFamily: HT.body,
-        color: day.thisWeek ? HT.ink : HT.taupe, letterSpacing: '0.04em',
+        fontSize: '13px', fontWeight: 500, fontFamily: HT.body,
+        color: day.thisWeek ? HT.ink : HT.taupe,
       }}>
         {day.label}
       </span>
       <span
         aria-hidden
         style={{
-          width: '34px', height: '34px', borderRadius: '50%',
+          width: '38px', height: '38px', borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: lit ? HT.yellow : HT.sand,
           border: selected
-            ? `2px solid ${HT.blue}`
+            ? `2px solid ${HT.night}`
             : day.isToday
-              ? `2px solid ${HT.ink}`
-              : day.thisWeek ? `2px solid ${HT.yellowSoft}` : '2px solid transparent',
+              ? `2px solid ${HT.blue}`
+              : '2px solid transparent',
           boxSizing: 'border-box',
-          boxShadow: lit ? '0 2px 8px rgba(247,195,28,0.45)' : 'none',
           transform: hover || selected ? 'translateY(-2px) scale(1.06)' : 'none',
           transition: 'transform 0.16s ease, box-shadow 0.16s ease',
         }}
@@ -111,7 +109,7 @@ function Piedra({ day, selected, onSelect }: {
       </span>
       {/* Con 7 días entra el número: ancla la tira al "Semana del 17 al 23". */}
       <span style={{
-        fontSize: '10px', fontWeight: 600, fontFamily: HT.body,
+        fontSize: '13px', fontWeight: day.isToday ? 600 : 400, fontFamily: HT.body,
         color: day.isToday ? HT.ink : HT.taupe,
         fontVariantNumeric: 'tabular-nums',
       }}>
@@ -136,24 +134,20 @@ function Sello({ id, visited }: { id: keyof typeof PLACE_META; visited: boolean 
       <span
         aria-hidden
         style={{
-          width: '46px', height: '46px', borderRadius: '14px',
+          width: '52px', height: '52px', borderRadius: '14px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: visited
-            ? `linear-gradient(135deg, ${meta.palette.primary}, ${meta.palette.primaryDark})`
-            : HT.sand,
-          boxShadow: visited ? HT.shadowSoft : 'none',
-          opacity: visited ? 1 : 0.55,
+          background: visited ? meta.palette.primary : HT.sand,
+          opacity: visited ? 1 : 0.6,
           transition: 'opacity 0.2s ease',
         }}
       >
-        <meta.Icon size={24} weight="duotone" color={visited ? '#FFFFFF' : HT.taupe} />
+        <meta.Icon size={26} weight="duotone" color={visited ? '#FFFFFF' : HT.taupe} />
       </span>
       <span style={{
-        fontSize: '11px', fontWeight: visited ? 700 : 600, fontFamily: HT.body,
-        color: visited ? HT.ink : HT.taupe, textAlign: 'center', lineHeight: 1.2,
-        textTransform: 'capitalize',
+        fontSize: '13px', fontWeight: visited ? 500 : 400, fontFamily: HT.body,
+        color: visited ? HT.ink : HT.taupe, textAlign: 'center', lineHeight: 1.25,
       }}>
-        {meta.name}
+        {meta.name.charAt(0).toUpperCase() + meta.name.slice(1)}
       </span>
     </div>
   )
@@ -188,48 +182,34 @@ export default function ElRecorrido({
     setSelectedIso(null)
   }
 
-  const milestone = recorridoMilestone(childName, {
-    firstTime: journey.firstTime,
-    everyPlaceVisited: journey.everyPlaceVisited,
-    newPlaceNames: journey.newPlacesThisWeek.map(id => PLACE_META[id].name),
-    streakDays: journey.streakDays,
-    daysPlayedThisWeek: journey.daysPlayedThisWeek,
-    placesKnown: journey.placesVisited.length,
-  })
-
   return (
     <section className="home-rise" style={{ animationDelay: `${delay}ms` }}>
-      <div style={{
+      <div className="home-card" style={{
         background: HT.white, border: `1px solid ${HT.line}`, borderRadius: HT.radius,
-        padding: '24px', boxShadow: HT.shadow,
-        display: 'flex', flexDirection: 'column', gap: '22px',
+        boxShadow: HT.shadow,
+        display: 'flex', flexDirection: 'column', gap: '26px',
       }}>
-        {/* Encabezado */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
-          <span aria-hidden style={{
-            width: '38px', height: '38px', borderRadius: '11px', flexShrink: 0,
-            background: HT.blueTint, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        {/* Encabezado: título en serif y, debajo, la constancia dicha en cálido. */}
+        <div>
+          <h2 style={{
+            margin: 0, fontSize: '28px', fontWeight: 600, color: HT.ink, letterSpacing: '-0.01em',
+            fontFamily: HT.serif, lineHeight: 1.15,
           }}>
-            <Path size={20} weight="duotone" color={HT.blue} />
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <h2 style={{
-              margin: 0, fontSize: '19px', fontWeight: 700, color: HT.ink,
-              fontFamily: HT.display, lineHeight: 1.2,
-            }}>
-              {recorridoTitle(childName)}
-            </h2>
-            <p style={{ margin: '1px 0 0', fontSize: '13px', color: HT.muted, fontFamily: HT.body }}>
-              {RECORRIDO_SUBTITLE}
+            {recorridoTitle(childName)}
+          </h2>
+          {!journey.firstTime && (
+            <p style={{ margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', color: HT.muted, fontFamily: HT.body }}>
+              <Star size={16} weight="fill" color={HT.yellow} style={{ flexShrink: 0 }} />
+              {recorridoStreak(childName, journey.streakDays, journey.daysPlayedThisWeek, playedToday)}
             </p>
-          </div>
+          )}
         </div>
 
         {journey.firstTime ? (
           // Primera vez: invitación cálida, nunca un vacío roto.
           <div style={{
             display: 'flex', alignItems: 'flex-start', gap: '11px',
-            background: HT.creamCard, border: `1px solid ${HT.line}`,
+            background: HT.creamCard,
             borderRadius: HT.radiusSm, padding: '16px',
           }}>
             <Sparkle size={19} weight="fill" color={HT.yellow} style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -249,8 +229,8 @@ export default function ElRecorrido({
               }}>
                 <FlechaSemana dir="prev" disabled={!week.canGoBack} onClick={() => goWeek(-1)} />
                 <p style={{
-                  flex: 1, margin: 0, textAlign: 'center', fontSize: '13.5px',
-                  fontWeight: 700, color: HT.ink, fontFamily: HT.body,
+                  flex: 1, margin: 0, textAlign: 'center', fontSize: '15px',
+                  fontWeight: 500, color: HT.ink, fontFamily: HT.body,
                 }}>
                   {week.label}
                 </p>
@@ -269,9 +249,9 @@ export default function ElRecorrido({
               </div>
               {/* Al tocar un día, una línea cálida. Sin tocar nada, la pista. */}
               <p style={{
-                margin: '12px 0 0', fontSize: '14px', fontFamily: HT.body, lineHeight: 1.5,
-                color: selected ? HT.ink : HT.taupe,
-                fontWeight: selected ? 600 : 500,
+                margin: '14px 0 0', fontSize: '15px', fontFamily: HT.body, lineHeight: 1.5,
+                color: selected ? HT.ink : HT.muted,
+                fontWeight: selected ? 500 : 400,
                 minHeight: '21px',
               }}>
                 {selected
@@ -279,18 +259,6 @@ export default function ElRecorrido({
                       ? recorridoDayLine(childName, selected.places.map(id => PLACE_META[id].name))
                       : recorridoDayEmpty(childName))
                   : RECORRIDO_HINT}
-              </p>
-            </div>
-
-            {/* ── Constancia, como aliento ──────────────────────────── */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              background: HT.creamCard, border: `1px solid ${HT.line}`,
-              borderRadius: HT.radiusSm, padding: '13px 15px',
-            }}>
-              <Star size={17} weight="fill" color={HT.yellow} style={{ flexShrink: 0 }} />
-              <p style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: HT.ink, fontFamily: HT.body }}>
-                {recorridoStreak(childName, journey.streakDays, journey.daysPlayedThisWeek, playedToday)}
               </p>
             </div>
 
@@ -304,23 +272,6 @@ export default function ElRecorrido({
               </div>
             </div>
 
-            {/* ── El hito de la semana ──────────────────────────────── */}
-            {milestone && (
-              <div style={{
-                borderLeft: `3px solid ${HT.yellow}`, background: HT.creamCard,
-                borderRadius: `0 ${HT.radiusSm} ${HT.radiusSm} 0`, padding: '13px 16px',
-              }}>
-                <p style={{
-                  margin: '0 0 3px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.11em',
-                  textTransform: 'uppercase', color: HT.orange, fontFamily: HT.body,
-                }}>
-                  {RECORRIDO_MILESTONE_KICKER}
-                </p>
-                <p style={{ margin: 0, fontSize: '14.5px', color: HT.ink, fontFamily: HT.body, lineHeight: 1.55 }}>
-                  {milestone}
-                </p>
-              </div>
-            )}
           </>
         )}
       </div>

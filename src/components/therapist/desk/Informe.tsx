@@ -1,9 +1,9 @@
 // Informe del período: el mismo dato contado para dos audiencias, revisado y
-// firmado por el logopeda, y exportado con la impresión del navegador.
+// firmado por el profesional, y exportado con la impresión del navegador.
 //
 // Qué es de verdad y qué no:
 //   - el cuerpo sale de las partidas reales del período, y si no hay, lo dice;
-//   - el comentario es del logopeda: arranca con un borrador descriptivo y él
+//   - el comentario es del profesional: arranca con un borrador descriptivo y él
 //     lo reescribe ahí mismo, dentro del documento, que es donde se lee. Así
 //     el texto sale una sola vez en pantalla. Su voz, su firma;
 //   - exportar es window.print con un CSS de impresión dedicado. Sin backend,
@@ -25,7 +25,7 @@ import {
 import { buildBlocks, draftComment, toPlainText, type Version } from './informeText'
 import { loadInforme, saveInforme } from './informeStore'
 
-const LEGAL = 'Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda revisa y firma todo.'
+const LEGAL = 'Dracs no es un dispositivo médico. No valora ni diagnostica: el profesional revisa y firma todo.'
 
 const PERIODS: { id: PeriodId; label: string }[] = [
   { id: 'mes', label: 'Este mes' },
@@ -125,7 +125,7 @@ export default function Informe({
   const [periodId, setPeriodId] = useState<PeriodId>('mes')
   const [custom, setCustom] = useState<DayRange>(() => rangeFor('cuatro'))
   const [version, setVersion] = useState<Version>('familia')
-  // El texto propio del logopeda. `null` significa que todavía no ha escrito:
+  // El texto propio del profesional. `null` significa que todavía no ha escrito:
   // mientras tanto se muestra el borrador derivado de los datos, que se rehace
   // solo al cambiar de período o de versión. En cuanto escribe, mandan sus
   // palabras y el borrador ya no vuelve a pisarlas.
@@ -227,11 +227,13 @@ export default function Informe({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    <div className="dk-split dk-split--doc">
       <style>{PRINT_CSS}</style>
 
       {/* ── Controles ───────────────────────────────────────────── */}
-      <Card className="no-print">
+      {/* A la izquierda y fijos al hacer scroll: el documento se lee entero a
+          la derecha mientras se cambia el período o la versión. */}
+      <Card className="no-print dk-sticky">
         <SectionTitle Icon={CalendarBlank}>Período</SectionTitle>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
           {PERIODS.map(p => (
@@ -243,13 +245,13 @@ export default function Informe({
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
             {([['from', 'Desde'], ['to', 'Hasta']] as const).map(([field, label]) => (
               <label key={field} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: DT.ink, fontFamily: DT.body }}>{label}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>{label}</span>
                 <input
                   type="date"
                   value={custom[field]}
                   max={localIso(new Date())}
                   onChange={e => setCustom(prev => ({ ...prev, [field]: e.target.value }))}
-                  style={{ ...FIELD, height: '42px', padding: '0 12px', width: 'auto', fontWeight: 600 }}
+                  style={{ ...FIELD, height: '44px', padding: '0 12px', width: 'auto', fontWeight: 500 }}
                 />
               </label>
             ))}
@@ -268,9 +270,9 @@ export default function Informe({
       {/* Esto es lo que se imprime y lo que se copia: encabezado del niño,
           cuerpo desde los datos, comentario firmado y el aviso al pie. El
           comentario se escribe aquí mismo; al imprimir queda como texto. */}
-      <Card className="inf-doc">
+      <Card className="inf-doc" style={{ padding: '28px 32px' }}>
         <div className="no-print" style={{
-          display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '14px',
+          display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '18px',
         }}>
           <DocAction Icon={Sparkle} label="Redactar con Dracs" done="Se lo pedí" onRun={handleAskDracs} />
           <DocAction Icon={Copy} label="Copiar" done="Copiado" onRun={handleCopy} />
@@ -278,54 +280,49 @@ export default function Informe({
           <DocAction Icon={FloppyDisk} label={saving ? 'Guardando…' : 'Guardar'} done="Guardado" onRun={handleSave} primary />
         </div>
 
-        <header style={{ borderBottom: `1px solid ${DT.line}`, paddingBottom: '14px', marginBottom: '18px' }}>
-          {/* Membrete: el wordmark de Dracs sobre el título, como en cualquier
-              informe en papel. El dragón se queda en el escritorio. */}
+        <header style={{ borderBottom: `1px solid ${DT.line}`, paddingBottom: '18px', marginBottom: '22px' }}>
+          {/* Membrete: el dragón de la marca sobre el título, como en la web. */}
           <img
-            src="/brand/dracs-wordmark.svg" alt="Dracs"
-            style={{ display: 'block', height: '22px', width: 'auto', marginBottom: '10px' }}
+            src="/landing/dragon.webp" alt="Dracs" width={30} height={39}
+            style={{ display: 'block', width: '30px', height: 'auto', marginBottom: '14px' }}
           />
           <p style={{
-            margin: 0, fontSize: '20px', fontWeight: 600, color: DT.ink,
-            fontFamily: DT.display, lineHeight: 1.25,
+            margin: 0, fontSize: '30px', fontWeight: 600, color: DT.ink, letterSpacing: '-0.01em',
+            fontFamily: DT.serif, lineHeight: 1.15,
           }}>
             {title}
           </p>
-          <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+          <p style={{ margin: '10px 0 0', fontSize: '16px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>
             {childLine}
           </p>
-          <p style={{ margin: '2px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
-            {periodLine}
-          </p>
-          <p style={{ margin: '2px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
-            {VERSIONS.find(v => v.id === version)?.label}
+          <p style={{ margin: '3px 0 0', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
+            {periodLine} · {VERSIONS.find(v => v.id === version)?.label}
           </p>
         </header>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: warm ? '18px' : '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: warm ? '22px' : '18px' }}>
           {blocks.map(b => (
             <section key={b.title}>
               <p style={{
-                margin: '0 0 7px',
-                fontSize: warm ? '15px' : '11px',
-                fontWeight: warm ? 700 : 800,
-                letterSpacing: warm ? 'normal' : '0.06em',
+                margin: '0 0 8px',
+                fontSize: warm ? '19px' : '12px',
+                fontWeight: 600,
+                letterSpacing: warm ? '-0.005em' : '0.06em',
                 textTransform: warm ? 'none' : 'uppercase',
-                color: warm ? DT.ink : DT.faint,
-                fontFamily: warm ? DT.display : DT.body,
+                color: warm ? DT.ink : DT.muted,
+                fontFamily: warm ? DT.serif : DT.body,
               }}>
                 {b.title}
               </p>
               <div style={{
                 display: 'flex', flexDirection: 'column', gap: '5px',
-                padding: warm ? '12px 14px' : 0,
+                padding: warm ? '14px 16px' : 0,
                 background: warm ? DT.cream : 'transparent',
-                border: warm ? `1px solid ${DT.line}` : 'none',
                 borderRadius: warm ? DT.radiusSm : 0,
               }}>
                 {b.lines.map((l, i) => (
                   <p key={i} style={{
-                    margin: 0, fontSize: warm ? '14.5px' : '13.5px',
+                    margin: 0, fontSize: warm ? '16px' : '14.5px',
                     lineHeight: warm ? 1.65 : 1.55,
                     color: DT.ink, fontFamily: DT.body,
                     fontVariantNumeric: 'tabular-nums',
@@ -339,23 +336,23 @@ export default function Informe({
 
           <section className={comment.trim() ? undefined : 'no-print'}>
               <p style={{
-                margin: '0 0 7px',
-                fontSize: warm ? '15px' : '11px',
-                fontWeight: warm ? 700 : 800,
-                letterSpacing: warm ? 'normal' : '0.06em',
+                margin: '0 0 8px',
+                fontSize: warm ? '19px' : '12px',
+                fontWeight: 600,
+                letterSpacing: warm ? '-0.005em' : '0.06em',
                 textTransform: warm ? 'none' : 'uppercase',
-                color: warm ? DT.ink : DT.faint,
-                fontFamily: warm ? DT.display : DT.body,
+                color: warm ? DT.ink : DT.muted,
+                fontFamily: warm ? DT.serif : DT.body,
               }}>
-                Comentario del logopeda
+                Comentario del profesional
               </p>
               <textarea
                 className="no-print"
                 value={comment}
                 onChange={e => setOwnComment(e.target.value)}
                 rows={5}
-                aria-label="Comentario del logopeda"
-                style={{ ...FIELD, resize: 'vertical', maxHeight: '320px', fontSize: warm ? '14.5px' : '13.5px' }}
+                aria-label="Comentario del profesional"
+                style={{ ...FIELD, resize: 'vertical', maxHeight: '320px', fontSize: warm ? '16px' : '14.5px' }}
               />
               <p className="print-only" style={{
                 margin: 0, whiteSpace: 'pre-wrap', fontSize: warm ? '14.5px' : '13.5px',
@@ -367,14 +364,14 @@ export default function Informe({
         </div>
 
         <footer style={{ marginTop: '22px', paddingTop: '14px', borderTop: `1px solid ${DT.line}` }}>
-          <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+          <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>
             {signature}
           </p>
-          <p style={{ margin: '10px 0 0', fontSize: '11px', fontWeight: 600, lineHeight: 1.5, color: DT.faint, fontFamily: DT.body }}>
+          <p style={{ margin: '10px 0 0', fontSize: '13.5px', fontWeight: 400, lineHeight: 1.5, color: DT.muted, fontFamily: DT.body }}>
             {LEGAL}
           </p>
           {savedAt && (
-            <p className="no-print" style={{ margin: '10px 0 0', fontSize: '12px', color: DT.faint, fontFamily: DT.body }}>
+            <p className="no-print" style={{ margin: '10px 0 0', fontSize: '13px', color: DT.faint, fontFamily: DT.body }}>
               Guardado el {longDate(new Date(savedAt))}.
             </p>
           )}

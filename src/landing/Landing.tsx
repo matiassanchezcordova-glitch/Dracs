@@ -210,8 +210,8 @@ function Features() {
         mediaClass="lp-feature__media--sun"
         media={(
           <div className="fm">
-            <img src="/landing/carta.webp" alt="La carta de la semana que recibe la familia de Pol." width={1440} height={386} loading="lazy" />
-            <img src="/landing/hoy.webp" alt="Una cosa para hoy: jugar juntos 5 minutos en el faro." width={1440} height={512} loading="lazy" />
+            <img src="/landing/carta.webp" alt="La carta de la semana que recibe la familia de Pol." width={1520} height={406} loading="lazy" />
+            <img src="/landing/hoy.webp" alt="Una cosa para hoy: jugar juntos 5 minutos en el castillo de arena." width={1520} height={480} loading="lazy" />
           </div>
         )}
         title="La familia sabe qué hacer hoy."
@@ -250,10 +250,10 @@ function Decide() {
 function Showcase() {
   const cards = [
     { title: 'Tus pacientes', img: '/landing/app-pacientes.webp', w: 2240, h: 1400, cls: 'sc--wide sc--low' },
-    { title: 'Pautas el foco', img: '/landing/plan.webp', w: 1000, h: 944, cls: 'sc--mid' },
+    { title: 'Pautas el foco', img: '/landing/plan.webp', w: 1344, h: 894, cls: 'sc--mid' },
     { title: 'Juega en casa', img: '/landing/partida-caracola.webp', w: 760, h: 740, cls: 'sc--high' },
-    { title: 'El informe, con tu firma', img: '/landing/informe.webp', w: 1000, h: 1582, cls: 'sc--mid sc--tall' },
-    { title: 'La carta de la semana', img: '/landing/carta.webp', w: 1440, h: 386, cls: 'sc--wide sc--low' },
+    { title: 'El informe, con tu firma', img: '/landing/informe.webp', w: 1344, h: 1672, cls: 'sc--mid sc--tall' },
+    { title: 'La carta de la semana', img: '/landing/carta.webp', w: 1520, h: 406, cls: 'sc--wide sc--low' },
   ]
   return (
     <section className="lp-show" id="hoy">

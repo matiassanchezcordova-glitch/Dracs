@@ -35,7 +35,7 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
       background: DT.cream, border: `1px solid ${DT.line}`,
     }}>
       <span style={{
-        minWidth: '62px', fontSize: '13px', fontWeight: 800, color: DT.ink, fontFamily: DT.body,
+        minWidth: '62px', fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body,
       }}>
         {label}
       </span>
@@ -43,7 +43,7 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
       <span
         aria-live="polite"
         style={{
-          minWidth: '26px', textAlign: 'center', fontSize: '17px', fontWeight: 800,
+          minWidth: '26px', textAlign: 'center', fontSize: '17px', fontWeight: 600,
           color: DT.ink, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
         }}
       >
@@ -115,12 +115,12 @@ export default function AjusteDificultad({
           {saving ? 'Guardando…' : 'Guardar'}
         </Button>
         {toast && (
-          <span className="dk-fade" style={{ fontSize: '13px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>
+          <span className="dk-fade" style={{ fontSize: '14px', fontWeight: 600, color: DT.azulInk, fontFamily: DT.body }}>{toast}</span>
         )}
       </div>
 
       <p style={{
-        margin: '14px 0 0', fontSize: '12px', fontWeight: 600, lineHeight: 1.5,
+        margin: '14px 0 0', fontSize: '13px', fontWeight: 600, lineHeight: 1.5,
         color: DT.muted, fontFamily: DT.body,
       }}>
         La familia ve este nivel. Todavía no cambia los juegos del niño.

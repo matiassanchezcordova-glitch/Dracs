@@ -34,7 +34,7 @@ export default function RoleConflictModal({
       style={{
         position: 'fixed', inset: 0, background: 'rgba(51,48,42,0.55)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '24px', zIndex: 200, fontFamily: 'Nunito, sans-serif',
+        padding: '24px', zIndex: 200, fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
       }}
     >
       <div
@@ -55,13 +55,13 @@ export default function RoleConflictModal({
 
         <h2 style={{
           margin: '0 0 8px',
-          fontFamily: '"Fredoka", system-ui, sans-serif',
-          fontSize: '22px', fontWeight: 700, color: '#33302A',
+          fontFamily: "'Source Serif 4', Georgia, serif",
+          fontSize: '22px', fontWeight: 600, color: '#15191B',
         }}>
           Sesión activa como {currentRoleName}
         </h2>
         <p style={{
-          margin: '0 0 28px', fontSize: '14px', color: '#6B7280',
+          margin: '0 0 28px', fontSize: '14px', color: '#5E6468',
           lineHeight: 1.55,
         }}>
           Para acceder a <strong>{sectionName(targetRole)}</strong> necesitas
@@ -74,8 +74,8 @@ export default function RoleConflictModal({
             disabled={logging}
             style={{
               width: '100%', height: '52px', borderRadius: '14px', border: 'none',
-              background: '#F7C31C', color: '#33302A', fontSize: '16px',
-              fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 600,
+              background: '#F7C31C', color: '#15191B', fontSize: '16px',
+              fontFamily: "'IBM Plex Sans', system-ui, sans-serif", fontWeight: 600,
               cursor: logging ? 'default' : 'pointer', opacity: logging ? 0.7 : 1,
             }}
           >
@@ -87,8 +87,8 @@ export default function RoleConflictModal({
             style={{
               width: '100%', height: '52px', borderRadius: '14px',
               border: '1.5px solid #E5E7EB', background: '#ffffff',
-              color: '#33302A', fontSize: '16px',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+              color: '#15191B', fontSize: '16px',
+              fontFamily: "'IBM Plex Sans', system-ui, sans-serif", fontWeight: 600,
               cursor: logging ? 'default' : 'pointer', opacity: logging ? 0.7 : 1,
             }}
           >

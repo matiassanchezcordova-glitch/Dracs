@@ -19,9 +19,12 @@ export const SKILL_ORDER: string[] = [
   'autorregulacion', 'social', 'autonomia', 'motricidad_fina',
 ]
 
-// Nombres cálidos de los lugares reales del mundo (exercises.place).
+// Nombres de los lugares del mundo, indexados por exercises.place. Son los
+// mismos nombres que ve la familia (PLACE_META, por punto del mapa): el pool
+// "playa" es el castillo de arena y el pool "cielo" es el sol. Así un lugar se
+// llama igual en las tres vistas.
 export const PLACE_LABELS: Record<string, string> = {
-  mar: 'el mar', playa: 'la playa', casa: 'la casa', cielo: 'el cielo',
+  mar: 'el mar', playa: 'el castillo de arena', casa: 'la casa', cielo: 'el sol',
 }
 
 export function placeLabel(place: string | null | undefined): string {

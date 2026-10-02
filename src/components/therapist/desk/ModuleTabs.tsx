@@ -1,12 +1,16 @@
-// Barra de módulos del Escritorio: un segmented control con burbuja deslizante.
+// Barra de módulos del Escritorio. Dos tallas del mismo patrón:
+//   md  segmented control con burbuja deslizante en tinta (como el botón
+//       "Menú" de la web). Es la navegación principal del escritorio.
+//   sm  pestañas subrayadas, para la sub-barra de la Carpeta: se leen como
+//       subordinadas a la barra principal y no compiten con ella.
 //
 // La burbuja se mide del DOM (offsetLeft y offsetWidth del botón de destino) en
 // vez de calcularse con porcentajes, porque cada módulo tiene el ancho de su
 // texto. Se recalcula al montar, al cambiar de destino y cuando cambia el
 // tamaño del contenedor (ResizeObserver) o de la ventana.
 //
-// Al pasar el ratón por otro módulo, la burbuja se adelanta como vista previa y
-// vuelve al activo al salir. Con prefers-reduced-motion no desliza: salta.
+// Al pasar el ratón por otro módulo, su texto se oscurece; la burbuja se queda
+// en el activo. Con prefers-reduced-motion no desliza: salta.
 
 import { useEffect, useRef, useState } from 'react'
 import type { Icon } from '@phosphor-icons/react'
@@ -25,7 +29,8 @@ const CSS = `
 .mt-wrap::-webkit-scrollbar { display: none; }
 .mt-bubble { transition: transform 0.28s cubic-bezier(.2,.8,.2,1), width 0.28s cubic-bezier(.2,.8,.2,1); }
 .mt-tab    { transition: color 0.18s ease; }
-.mt-tab:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 3px; border-radius: 999px; }
+.mt-tab:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 3px; border-radius: 10px; }
+.mt-tab:not([aria-selected='true']):hover { color: ${DT.ink} !important; }
 @media (prefers-reduced-motion: reduce) {
   .mt-bubble, .mt-tab { transition: none !important; }
 }
@@ -34,8 +39,8 @@ const CSS = `
 // Dos tallas del mismo patrón. `sm` es para la sub-barra de la Carpeta: tiene
 // que leerse como subordinada a la barra de módulos, no competir con ella.
 const SIZES = {
-  md: { pad: 4, height: 38, padX: 16, font: '14px', icon: 16, gap: 7 },
-  sm: { pad: 3, height: 31, padX: 13, font: '12.5px', icon: 14, gap: 6 },
+  md: { pad: 4, height: 40, padX: 18, font: '15px', icon: 17, gap: 8 },
+  sm: { pad: 0, height: 46, padX: 2, font: '15px', icon: 17, gap: 7 },
 } as const
 
 interface Props {
@@ -50,14 +55,13 @@ interface Props {
 export default function ModuleTabs({ modules, active, onChange, panelId, size = 'md', label = 'Módulos del escritorio' }: Props) {
   const S = SIZES[size]
   const activeIndex = Math.max(0, modules.findIndex(m => m.id === active))
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const [bubble, setBubble] = useState<{ left: number; width: number } | null>(null)
 
   const listRef = useRef<HTMLDivElement>(null)
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([])
 
-  // Destino de la burbuja: el módulo bajo el ratón si lo hay, si no el activo.
-  const target = hoverIndex ?? activeIndex
+  // Destino de la burbuja: el módulo activo.
+  const target = activeIndex
 
   useEffect(() => {
     const measure = () => {
@@ -89,38 +93,46 @@ export default function ModuleTabs({ modules, active, onChange, panelId, size = 
     btnRefs.current[next]?.focus()
   }
 
+  const under = size === 'sm'
+
   return (
-    <div className="mt-wrap">
+    <div className="mt-wrap" style={under ? { borderBottom: `1px solid ${DT.line}` } : undefined}>
       <style>{CSS}</style>
       <div
         ref={listRef}
         role="tablist"
         aria-label={label}
         onKeyDown={handleKeyDown}
-        onMouseLeave={() => setHoverIndex(null)}
-        style={{
+        style={under ? {
+          position: 'relative', display: 'inline-flex', alignItems: 'flex-end', gap: '26px',
+        } : {
           position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '2px',
           padding: `${S.pad}px`, borderRadius: '999px',
-          background: DT.arena, border: `1px solid ${DT.line}`,
+          background: DT.white, border: `1px solid ${DT.line}`,
         }}
       >
-        {/* Burbuja: solo se pinta cuando ya tiene medida real, para que no salte
-            desde la posición 0 en el primer frame. */}
+        {/* Burbuja (md) o subrayado (sm): solo se pinta cuando ya tiene medida
+            real, para que no salte desde la posición 0 en el primer frame. El
+            subrayado sigue al activo, no al ratón. */}
         {bubble && (
           <span
             aria-hidden
             className="mt-bubble"
-            style={{
+            style={under ? {
+              position: 'absolute', bottom: 0, height: '2px', left: 0,
+              width: `${bubble.width}px`, transform: `translateX(${bubble.left}px)`,
+              borderRadius: '2px', background: DT.ink,
+            } : {
               position: 'absolute', top: `${S.pad}px`, bottom: `${S.pad}px`, left: 0,
               width: `${bubble.width}px`, transform: `translateX(${bubble.left}px)`,
-              borderRadius: '999px', background: DT.white,
-              boxShadow: '0 1px 2px rgba(51,48,42,0.06), 0 4px 12px rgba(51,48,42,0.10)',
+              borderRadius: '999px', background: DT.night,
             }}
           />
         )}
 
         {modules.map((m, i) => {
           const isActive = i === activeIndex
+          const onBubble = !under && isActive
           return (
             <button
               key={m.id}
@@ -128,19 +140,18 @@ export default function ModuleTabs({ modules, active, onChange, panelId, size = 
               type="button"
               role="tab"
               id={`tab-${m.id}`}
-              className="mt-tab"
+              className={`mt-tab${under ? ' mt-tab--sm' : ''}`}
               aria-selected={isActive}
               aria-controls={panelId(m.id)}
               tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(m.id)}
-              onMouseEnter={() => setHoverIndex(i)}
               style={{
                 position: 'relative', zIndex: 1,
                 display: 'inline-flex', alignItems: 'center', gap: `${S.gap}px`,
-                height: `${S.height}px`, padding: `0 ${S.padX}px`, borderRadius: '999px',
+                height: `${S.height}px`, padding: `0 ${S.padX}px`, borderRadius: under ? 0 : '999px',
                 border: 'none', background: 'transparent', cursor: 'pointer',
-                color: isActive ? DT.ink : DT.muted,
-                fontSize: S.font, fontWeight: 700, fontFamily: DT.display,
+                color: onBubble ? '#FFFFFF' : isActive ? DT.ink : DT.muted,
+                fontSize: S.font, fontWeight: isActive ? 600 : 500, fontFamily: DT.display,
                 whiteSpace: 'nowrap',
               }}
             >

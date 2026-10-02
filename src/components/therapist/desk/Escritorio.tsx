@@ -14,7 +14,8 @@ import {
 import { type Patient } from '../../../data/patients'
 import type { LinkRequestWithPatient } from '../../../lib/types'
 import { ACCENT, DT, type Accent } from './deskTokens'
-import { Avatar, Button, DragonWatermark, EmptyState } from './deskUI'
+import { Avatar, Button, EmptyState } from './deskUI'
+import { BRAND } from '../../../lib/brand'
 import { deskStatus, type StatusTone } from './patientStatus'
 import TuDia from './TuDia'
 import ModuleTabs, { type ModuleDef } from './ModuleTabs'
@@ -68,10 +69,10 @@ function LinkRequestBanner({ req, onAccept, onReject }: {
     }}>
       <Bell size={20} weight="regular" color={DT.mostazaInk} aria-hidden style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.display }}>
+        <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: DT.ink, fontFamily: DT.display }}>
           {p.child_name} ({p.child_age} años)
         </p>
-        <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: DT.muted, fontFamily: DT.body }}>
+        <p style={{ margin: '2px 0 0', fontSize: '14.5px', color: DT.muted, fontFamily: DT.body }}>
           quiere vincularse contigo{p.diagnosis ? ` · ${p.diagnosis}` : ''}
         </p>
       </div>
@@ -103,22 +104,22 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         // la línea de estado (azul/mostaza/arena). Da vida a la grilla sin
         // romper lo clínico: es un dato más, no decoración.
         borderLeft: `3px solid ${a.solid}`,
-        padding: '18px', boxShadow: hover ? DT.shadowLift : DT.shadow,
-        transform: hover ? 'translateY(-3px)' : 'translateY(0)',
-        display: 'flex', flexDirection: 'column', gap: '14px',
+        padding: '20px', boxShadow: hover ? DT.shadowLift : DT.shadow,
+        transform: hover ? 'translateY(-2px)' : 'translateY(0)',
+        display: 'flex', flexDirection: 'column', gap: '16px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <Avatar name={p.name} size={46} />
+        <Avatar name={p.name} size={44} />
         <span style={{ minWidth: 0, flex: 1, display: 'block' }}>
           <span style={{
-            display: 'block', fontSize: '16.5px', fontWeight: 700, color: DT.ink, fontFamily: DT.display,
+            display: 'block', fontSize: '20px', fontWeight: 600, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.2,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {p.name}
           </span>
           <span style={{
-            display: 'block', marginTop: '1px', fontSize: '12.5px', color: DT.muted, fontFamily: DT.body,
+            display: 'block', marginTop: '3px', fontSize: '14.5px', color: DT.muted, fontFamily: DT.body,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {p.age} años{p.condition ? ` · ${p.condition}` : ''}
@@ -131,7 +132,7 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
           de la izquierda, no en un relleno más. */}
       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <tone.Icon size={16} weight="regular" color={a.ink} style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
+        <span style={{ fontSize: '14.5px', fontWeight: 500, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
       </span>
 
       {/* Objetivo: pegado abajo con margin-top auto, para que quede en la misma
@@ -143,7 +144,7 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         }}>
           <Target size={14} weight="regular" color={DT.topo} style={{ flexShrink: 0 }} />
           <span style={{
-            minWidth: 0, flex: 1, fontSize: '12.5px', fontWeight: 700, color: DT.muted, fontFamily: DT.body,
+            minWidth: 0, flex: 1, fontSize: '14.5px', fontWeight: 400, color: DT.muted, fontFamily: DT.body,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {p.area}
@@ -165,21 +166,20 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
   useScrollTop(module, rootRef)
 
   return (
-    <div ref={rootRef} style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 48px', fontFamily: DT.body }}>
-      {/* Encabezado. La ÚNICA filigrana del dragón en toda la vista, y muy
-          transparente: la marca está, pero no se le nota el esfuerzo. */}
-      <header style={{ position: 'relative', overflow: 'hidden', marginBottom: '22px', paddingRight: '90px' }}>
-        <DragonWatermark size={170} opacity={0.03} top="-40px" right="-26px" rotate={10} />
-        <h1 style={{ margin: 0, fontSize: '30px', fontWeight: 600, color: DT.ink, fontFamily: DT.display, lineHeight: 1.15 }}>
+    <div ref={rootRef} className="dk-page" style={{ width: '100%', maxWidth: '1040px', margin: '0 auto', fontFamily: DT.body }}>
+      {/* Encabezado: título en serif, como las secciones de la web. La marca ya
+          está en la barra de arriba; aquí no hace falta otro dragón. */}
+      <header style={{ marginBottom: '28px' }}>
+        <h1 className="dk-h1" style={{ margin: 0, fontWeight: 600, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.08, letterSpacing: '-0.015em' }}>
           Escritorio
         </h1>
-        {/* En el showroom no decimos "hola, {nombre}": no hay terapeuta real. */}
+        {/* En la demo no decimos "hola, {nombre}": no hay profesional real. */}
         {isDemo ? (
-          <p style={{ margin: '7px 0 0', fontSize: '15px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55, maxWidth: '560px' }}>
-            {liveName ? <><strong style={{ color: DT.ink }}>{liveName}</strong> es el niño de esta demo.</> : null}
+          <p style={{ margin: '10px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55, maxWidth: '560px' }}>
+            {liveName ? <>Tu agenda y tus pacientes. <span style={{ color: DT.ink, fontWeight: 600 }}>{liveName}</span> es el niño de esta demo.</> : null}
           </p>
         ) : (
-          <p style={{ margin: '7px 0 0', fontSize: '15px', color: DT.muted, fontFamily: DT.body }}>
+          <p style={{ margin: '10px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body }}>
             Hola, {therapistName}.
           </p>
         )}
@@ -196,7 +196,7 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
       )}
 
       {/* Barra de módulos: solo se ve uno a la vez. */}
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <ModuleTabs modules={MODULES} active={module} onChange={onModule} panelId={panelId} />
       </div>
 
@@ -240,10 +240,10 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
                   onBlur={() => setSearchFocus(false)}
                   className="dk-press"
                   style={{
-                    width: '100%', boxSizing: 'border-box', height: '40px', padding: '0 12px 0 37px', borderRadius: DT.radiusSm,
-                    border: `1px solid ${searchFocus ? DT.azul : DT.line}`, background: DT.white, color: DT.ink,
-                    fontSize: '14px', fontWeight: 600, fontFamily: DT.body, outline: 'none',
-                    boxShadow: searchFocus ? '0 0 0 3px rgba(91,136,150,0.14)' : DT.shadowSoft,
+                    width: '100%', boxSizing: 'border-box', height: '44px', padding: '0 12px 0 38px', borderRadius: '10px',
+                    border: `1.5px solid ${searchFocus ? DT.azul : BRAND.lineStrong}`, background: DT.white, color: DT.ink,
+                    fontSize: '15px', fontWeight: 400, fontFamily: DT.body, outline: 'none',
+                    boxShadow: searchFocus ? '0 0 0 3px rgba(63,107,120,0.2)' : 'none',
                   }}
                 />
               </div>
@@ -259,7 +259,7 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
             ) : filtered.length === 0 ? (
               <EmptyState Icon={MagnifyingGlass} title={`Nada coincide con “${query}”`} compact />
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', alignItems: 'stretch', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', alignItems: 'stretch', gap: '16px' }}>
                 {filtered.map(p => <CarpetaCard key={p.id} p={p} onOpen={() => onOpen(p.id)} />)}
               </div>
             )}

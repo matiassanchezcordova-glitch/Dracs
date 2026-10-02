@@ -36,17 +36,16 @@ import {
 } from './copilotData'
 import type { Patient } from '../../../data/patients'
 
-const ONLINE = '#10B981'          // mismo verde de "en línea" que usa la familia
 const FAVICON = '/brand/dracs-favicon-cut.png'
 
-// Radios del sistema: tarjetas 20, panel 26, chips e inputs 13.
-const R_CARD = '20px'
-const R_PANEL = '26px'
-const R_CHIP = '13px'
+// Radios del sistema, los de la web: tarjetas 16, panel 20, chips e inputs 12.
+const R_CARD = '16px'
+const R_PANEL = '20px'
+const R_CHIP = '12px'
 
-// Sombras en capas (contacto corta + difusa larga). Nada duro, nada neumórfico.
-const SHADOW_LAUNCHER = '0 1px 2px rgba(51,48,42,0.06), 0 10px 28px rgba(51,48,42,0.13)'
-const SHADOW_PANEL = '0 2px 6px rgba(51,48,42,0.06), 0 24px 60px rgba(51,48,42,0.18)'
+// Sombras largas y suaves, como las de la web.
+const SHADOW_LAUNCHER = '0 2px 4px rgba(21,25,27,0.08), 0 18px 36px -14px rgba(21,25,27,0.4)'
+const SHADOW_PANEL = '0 2px 6px rgba(21,25,27,0.06), 0 30px 60px -20px rgba(21,25,27,0.35)'
 
 // Punto de color por línea del briefing: jugó / se atascó / no tocó.
 const BRIEF_TONES = [DT.azul, DT.mostaza, DT.topo]
@@ -68,7 +67,7 @@ const CHIP_ICON: Record<string, Icon> = {
 
 // El aviso legal vive UNA vez en el pie del escritorio. Aquí se repite solo en
 // pantalla completa, porque la capa tapa ese pie y el terapeuta ya no lo ve.
-const AVISO_LEGAL = 'Dracs no es un dispositivo médico. No valora ni diagnostica: el logopeda revisa y firma todo.'
+const AVISO_LEGAL = 'Dracs no es un dispositivo médico. No valora ni diagnostica: el profesional revisa y firma todo.'
 
 interface Msg {
   id: number
@@ -103,7 +102,8 @@ const CSS = `
 .dc-sug:hover:not(:disabled) { background: ${DT.white}; border-color: ${DT.line}; }
 .dc-strip { scrollbar-width: none; -ms-overflow-style: none; }
 .dc-strip::-webkit-scrollbar { display: none; }
-.dc-input:focus, .dc-input:focus-within { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(91,136,150,0.16); }
+.dc-input:focus, .dc-input:focus-within { border-color: ${DT.azul}; box-shadow: 0 0 0 3px rgba(63,107,120,0.2); }
+.dc-launch:hover { background: #1F3D47 !important; }
 .dc-btn:focus-visible, .dc-input:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .dc-dot, .dc-pulse, .dc-caret, .dc-in, .dc-halo, .dc-fade, .dc-rise { animation: none !important; }
@@ -224,11 +224,11 @@ function DistBars({ dist }: { dist: [string, number][] }) {
           <div style={{
             display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '5px',
           }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>
               {label}
             </span>
             <span style={{
-              fontSize: '13px', fontWeight: 700, color: DT.muted, fontFamily: DT.body,
+              fontSize: '14px', fontWeight: 600, color: DT.muted, fontFamily: DT.body,
               fontVariantNumeric: 'tabular-nums',
             }}>
               {pct}%
@@ -273,7 +273,7 @@ function DraftCard({ text }: { text: string }) {
       }} />
       <p style={{
         margin: '0 0 9px', display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '11px', fontWeight: 800, letterSpacing: '0.04em',
+        fontSize: '12.5px', fontWeight: 600, letterSpacing: '0.04em',
         textTransform: 'uppercase', color: DT.mostaza, fontFamily: DT.body,
       }}>
         <FileText size={14} weight="regular" /> Borrador · para la familia
@@ -293,7 +293,7 @@ function DraftCard({ text }: { text: string }) {
           onClick={copy}
           style={{
             height: '38px', padding: '0 15px', borderRadius: R_CHIP, border: 'none',
-            background: DT.yellow, color: DT.ink, fontSize: '13.5px', fontWeight: 700,
+            background: DT.yellow, color: DT.ink, fontSize: '14.5px', fontWeight: 600,
             fontFamily: DT.display, cursor: 'pointer',
             display: 'inline-flex', alignItems: 'center', gap: '7px',
           }}
@@ -320,7 +320,7 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
         }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
-            fontSize: '12px', fontWeight: 800, color: GROUP_TONE[g.tone] === DT.azul ? DT.azulInk : DT.topoInk,
+            fontSize: '13px', fontWeight: 600, color: GROUP_TONE[g.tone] === DT.azul ? DT.azulInk : DT.topoInk,
             fontFamily: DT.body,
           }}>
             <span aria-hidden style={{
@@ -330,7 +330,7 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
             {g.label}
           </span>
           <span style={{
-            flex: 1, minWidth: '120px', fontSize: '13.5px', fontWeight: 600,
+            flex: 1, minWidth: '120px', fontSize: '14.5px', fontWeight: 600,
             lineHeight: 1.5, color: DT.ink, fontFamily: DT.body,
           }}>
             {g.names.join(' · ')}
@@ -347,7 +347,7 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
 function SourceLine({ src }: { src: string }) {
   return (
     <p style={{
-      margin: '11px 0 0', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.45,
+      margin: '11px 0 0', fontSize: '13px', fontWeight: 600, lineHeight: 1.45,
       color: DT.muted, fontFamily: DT.body,
     }}>
       {src}
@@ -452,7 +452,7 @@ function Suggestion({ answer, disabled, nowrap, onPick }: {
         width: nowrap ? 'auto' : '100%', flexShrink: 0,
         padding: '8px 10px', borderRadius: R_CHIP,
         border: '1px solid transparent', background: 'transparent',
-        color: DT.ink, fontSize: '13px', fontWeight: 600, lineHeight: 1.4,
+        color: DT.ink, fontSize: '14px', fontWeight: 600, lineHeight: 1.4,
         fontFamily: DT.body, textAlign: 'left',
         whiteSpace: nowrap ? 'nowrap' : 'normal',
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.55 : 1,
@@ -524,7 +524,7 @@ function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; ch
           position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 3,
           padding: '4px 9px', borderRadius: '8px',
           background: DT.ink, color: DT.cream,
-          fontSize: '11px', fontWeight: 700, fontFamily: DT.body,
+          fontSize: '12.5px', fontWeight: 600, fontFamily: DT.body,
           whiteSpace: 'nowrap', pointerEvents: 'none',
           boxShadow: '0 2px 8px rgba(51,48,42,0.16)',
         }}>
@@ -559,7 +559,7 @@ function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; ch
           height: '34px', padding: chip ? '0 12px 0 9px' : '0 9px',
           borderRadius: R_CHIP, border: `1px solid ${DT.line}`,
           background: DT.white, color: DT.muted, cursor: 'default',
-          fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+          fontSize: '13.5px', fontWeight: 600, fontFamily: DT.body,
         }}
       >
         <I size={17} weight="regular" />
@@ -809,7 +809,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
           gap: text ? '6px' : 0,
           borderRadius: R_CHIP, flexShrink: 0,
           border: 'none', background: 'transparent', color: DT.muted, cursor: 'pointer',
-          fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+          fontSize: '13.5px', fontWeight: 600, fontFamily: DT.body,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
         onMouseEnter={e => { e.currentTarget.style.background = DT.arena }}
@@ -823,48 +823,36 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
 
   function renderHeader() {
     return (
-      <div style={{
-        flexShrink: 0,
-        background: `linear-gradient(180deg, ${DT.azulTint} 0%, rgba(223,234,238,0) 100%)`,
-      }}>
+      <div style={{ flexShrink: 0, background: DT.white, borderBottom: `1px solid ${DT.line}` }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '11px',
-          padding: isFull ? '14px 18px' : '13px 14px',
+          display: 'flex', alignItems: 'center', gap: '12px',
+          padding: isFull ? '16px 20px' : '14px 16px',
         }}>
-          <DracsMark size={40} radius={11} />
+          <DracsMark size={40} radius={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.display }}>
+            <p style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.15 }}>
               Dracs
             </p>
             <p style={{
-              margin: '1px 0 0', display: 'flex', alignItems: 'center', gap: '6px',
-              fontSize: '12.5px', fontWeight: 600, color: DT.muted, fontFamily: DT.body,
+              margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap',
+              fontSize: '14px', fontWeight: 400, color: DT.muted, fontFamily: DT.body,
             }}>
-              <span aria-hidden style={{
-                width: '7px', height: '7px', borderRadius: '50%', background: ONLINE, flexShrink: 0,
-              }} />
               Copiloto clínico
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                padding: '1px 8px', borderRadius: '999px', background: DT.cream,
+                fontSize: '13px', fontWeight: 500, color: DT.muted,
+              }}>
+                <Lock size={12} weight="regular" /> Vista previa
+              </span>
             </p>
           </div>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-            padding: '5px 10px', borderRadius: '999px',
-            background: DT.white, border: `1px solid ${DT.line}`,
-            color: DT.muted, fontSize: '11px', fontWeight: 800, fontFamily: DT.body,
-            letterSpacing: '0.02em',
-          }}>
-            <Lock size={13} weight="regular" /> Vista previa
-          </span>
           {isFull
             ? headerButton('Contraer al panel de esquina', () => setView('panel'), <ArrowsIn size={18} weight="regular" />, 'Contraer')
             : headerButton('Expandir a pantalla completa', () => setView('full'), <ArrowsOut size={18} weight="regular" />)}
           {/* Cerrar minimiza: el hilo se conserva y vuelve donde estaba. */}
           {headerButton('Minimizar el copiloto', () => setView('min'), <X size={18} weight="regular" />)}
         </div>
-        <div aria-hidden style={{
-          height: '1px',
-          background: `linear-gradient(90deg, transparent 0%, ${DT.azulTintLine} 18%, ${DT.azulTintLine} 82%, transparent 100%)`,
-        }} />
       </div>
     )
   }
@@ -907,7 +895,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
         }}>
           <p style={{
             margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px',
-            fontSize: '12px', fontWeight: 800, color: DT.mostazaInk, fontFamily: DT.body,
+            fontSize: '13px', fontWeight: 600, color: DT.mostazaInk, fontFamily: DT.body,
           }}>
             <Lightbulb size={13} weight="regular" /> Dracs puede
           </p>
@@ -1041,7 +1029,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
         {/* El pie legal del escritorio queda tapado por esta capa, así que aquí
             se dice una vez. En el panel de esquina no hace falta: se ve debajo. */}
         <p style={{
-          margin: '10px 2px 0', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.45,
+          margin: '10px 2px 0', fontSize: '13px', fontWeight: 600, lineHeight: 1.45,
           color: DT.faint, fontFamily: DT.body,
         }}>
           {AVISO_LEGAL}
@@ -1056,39 +1044,25 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
       <>
         <style>{CSS}</style>
         <div style={anchor}>
-          {/* Halo muy tenue (azul y amarillo) detrás del botón flotante */}
-          <span aria-hidden className="dc-halo" style={{
-            position: 'absolute', inset: '-30px -34px -32px -30px', pointerEvents: 'none',
-            borderRadius: '999px', filter: 'blur(12px)',
-            background:
-              'radial-gradient(58% 74% at 28% 52%, rgba(91,136,150,0.20), transparent 72%),' +
-              'radial-gradient(54% 70% at 78% 60%, rgba(247,195,28,0.18), transparent 72%)',
-          }} />
+          {/* El botón flotante: en tinta, como el botón "Menú" de la barra. */}
           <button
             ref={launcherRef}
             type="button"
-            className="dc-btn"
+            className="dc-btn dc-launch"
             onClick={() => setView('panel')}
             aria-label="Abrir el copiloto clínico de Dracs"
             style={{
               position: 'relative',
               display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '7px 18px 7px 8px', borderRadius: '999px',
-              background: DT.white, border: `1px solid ${DT.line}`, boxShadow: SHADOW_LAUNCHER,
-              cursor: 'pointer', fontFamily: DT.display,
+              padding: '6px 20px 6px 6px', borderRadius: '999px',
+              background: DT.night, border: 'none', boxShadow: SHADOW_LAUNCHER,
+              cursor: 'pointer', fontFamily: DT.display, transition: 'background 0.15s ease',
             }}
           >
-            <DracsMark size={44} radius={13} />
-            <span style={{ fontSize: '15px', fontWeight: 700, color: DT.ink }}>
+            <DracsMark size={38} radius={19} />
+            <span style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>
               Pregúntale a Dracs
             </span>
-            <span
-              className="dc-pulse"
-              aria-hidden
-              style={{
-                width: '9px', height: '9px', borderRadius: '50%', background: ONLINE, flexShrink: 0,
-              }}
-            />
           </button>
         </div>
       </>
@@ -1107,8 +1081,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
           className="dc-fade"
           style={{
             position: 'fixed', inset: 0, zIndex: 9000,
-            background: 'rgba(51,48,42,0.40)',
-            backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
+            background: 'rgba(21,25,27,0.48)',
             display: 'flex', justifyContent: 'center',
             padding: narrow ? '14px 12px' : '30px 24px',
           }}

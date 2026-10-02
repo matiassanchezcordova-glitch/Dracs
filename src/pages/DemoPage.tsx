@@ -22,10 +22,11 @@ import '../landing/landing.css'
 // Atajo para compartir: /demo?como=profesional (o familia, nino) entra directo por
 // esa puerta. Es el enlace que usan los botones "Probar la demo" de la landing.
 
-const DOORS: { role: Exclude<Role, 'demo'>; title: string; text: string; recommended?: boolean }[] = [
-  { role: 'therapist', title: 'Profesional', text: 'El escritorio con un paciente de ejemplo: agenda, carpeta, plan e informe.', recommended: true },
-  { role: 'child', title: 'Niño', text: 'El mapa y los juegos, tal como los ve el niño en casa.' },
-  { role: 'family', title: 'Familia', text: 'Lo que recibe la familia: la carta de la semana y una propuesta para hoy.' },
+// Mismo orden que el selector de vistas de la app: Profesional, Familia, Niño.
+const DOORS: { role: Exclude<Role, 'demo'>; title: string; text: string; img: string; recommended?: boolean }[] = [
+  { role: 'therapist', title: 'Profesional', text: 'Su agenda, su carpeta y el informe.', img: '/landing/demo-profesional.webp', recommended: true },
+  { role: 'family', title: 'Familia', text: 'La carta de la semana y una cosa para hoy.', img: '/landing/demo-familia.webp' },
+  { role: 'child', title: 'Niño', text: 'El mapa y los juegos, como en casa.', img: '/landing/demo-nino.webp' },
 ]
 
 const QUERY_TO_ROLE: Record<string, Exclude<Role, 'demo'>> = {
@@ -91,7 +92,8 @@ export default function DemoPage() {
   return (
     <div className="lp" style={{ minHeight: '100vh' }}>
       <header className="lp-nav">
-        <div className="lp-wrap">
+        {/* Mismo ancho que la barra de la app: el dragón no salta al entrar. */}
+        <div className="lp-wrap" style={{ maxWidth: 1040 }}>
           <div className="lp-nav__row">
             <Link className="lp-brand" to="/" aria-label="Volver a la web de Dracs">
               <img src="/landing/dragon.webp" alt="Dracs" width={40} height={52} />
@@ -103,12 +105,12 @@ export default function DemoPage() {
         </div>
       </header>
 
-      <main className="lp-section">
-        <div className="lp-wrap" style={{ maxWidth: 880 }}>
+      <main className="lp-section lp-demo">
+        <div className="lp-wrap" style={{ maxWidth: 1040 }}>
           <div className="lp-head">
-            <h1 className="lp-title">Elige cómo quieres ver Dracs.</h1>
+            <h1 className="lp-title">Elige una vista.</h1>
             <p className="lp-body">
-              Es una demo con datos de ejemplo. Un solo niño, Pol, aparece en las tres vistas: lo que juegue se guarda en este navegador.
+              Pol, 6 años, es el niño de ejemplo. Lo que juegue aparece al momento en las otras dos.
             </p>
           </div>
 
@@ -116,21 +118,26 @@ export default function DemoPage() {
             {DOORS.map(d => (
               <li key={d.role}>
                 <button type="button" className="lp-door" onClick={() => handleRoleSelect(d.role)}>
+                  <span className="lp-door__shot">
+                    <img src={d.img} alt="" width={800} height={600} />
+                    {d.recommended && <span className="lp-door__tag">Empieza aquí</span>}
+                  </span>
                   <span className="lp-door__text">
-                    <span className="lp-sub">{d.title}</span>
+                    <span className="lp-door__row">
+                      <span className="lp-sub">{d.title}</span>
+                      <svg className="lp-door__arrow" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
                     <span className="lp-door__desc">{d.text}</span>
                   </span>
-                  {d.recommended && <span className="lp-door__tag">Recomendado para profesionales</span>}
-                  <svg className="lp-door__arrow" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
                 </button>
               </li>
             ))}
           </ul>
 
-          <p className="lp-source" style={{ marginTop: 28 }}>
-            ¿Tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          <p className="lp-source" style={{ marginTop: 32 }}>
+            Todo se guarda solo en este navegador. ¿Tienes cuenta? <Link to="/login">Inicia sesión</Link>
           </p>
         </div>
       </main>

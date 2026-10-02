@@ -1,6 +1,6 @@
-import { type ReactNode, type CSSProperties, useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Gamepad2, BarChart2, Users, LogOut, X, ChevronDown, RotateCcw } from 'lucide-react'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Gamepad2, Stethoscope, Users, LogOut, RotateCcw, Info, ArrowUpRight } from 'lucide-react'
 import { type Role } from './components/RoleSelector'
 import { useAuth } from './context/AuthContext'
 import { TherapistProvider } from './context/TherapistContext'
@@ -9,7 +9,8 @@ import {
   dbRoleToUiRole,
   getLocalRole,
 } from './lib/role'
-import { DEMO_CHILD_NAME, resetDemo } from './lib/demo'
+import { DEMO_CHILD_NAME, enterDemo, resetDemo } from './lib/demo'
+import './appShell.css'
 
 type Tab = 'ejercicio' | 'terapeuta' | 'familia'
 
@@ -18,6 +19,64 @@ function pathToTab(pathname: string): Tab | null {
   if (pathname.startsWith('/app/terapeuta')) return 'terapeuta'
   if (pathname.startsWith('/app/familia')) return 'familia'
   return null
+}
+
+const TAB_ROLE: Record<Tab, Exclude<Role, 'demo'>> = {
+  terapeuta: 'therapist',
+  familia: 'family',
+  ejercicio: 'child',
+}
+
+// Las tres vistas de la demo, en el orden en que las lee un profesional: su
+// escritorio primero, después lo que recibe la familia y lo que juega el niño.
+const VIEWS: { tab: Tab; label: string; path: string; Icon: typeof Users }[] = [
+  { tab: 'terapeuta', label: 'Profesional', path: '/app/terapeuta', Icon: Stethoscope },
+  { tab: 'familia', label: 'Familia', path: '/app/familia', Icon: Users },
+  { tab: 'ejercicio', label: 'Niño', path: '/app/nino', Icon: Gamepad2 },
+]
+
+// Selector de las tres vistas con burbuja deslizante. La burbuja se mide del
+// DOM porque cada etiqueta tiene su ancho.
+function ViewSwitch({ active, onPick }: { active: Tab | null; onPick: (v: (typeof VIEWS)[number]) => void }) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([])
+  const [bubble, setBubble] = useState<{ left: number; width: number } | null>(null)
+  const index = VIEWS.findIndex(v => v.tab === active)
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = index >= 0 ? refs.current[index] : null
+      setBubble(el ? { left: el.offsetLeft, width: el.offsetWidth } : null)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    refs.current.forEach(el => el && ro.observe(el))
+    return () => ro.disconnect()
+  }, [index])
+
+  return (
+    <nav className="ax-views" aria-label="Vistas de la demo">
+      {bubble && (
+        <span
+          className="ax-views__bubble"
+          aria-hidden
+          style={{ width: bubble.width, transform: `translateX(${bubble.left - 4}px)`, left: 4 }}
+        />
+      )}
+      {VIEWS.map((v, i) => (
+        <button
+          key={v.tab}
+          ref={el => { refs.current[i] = el }}
+          type="button"
+          className="ax-view"
+          aria-current={v.tab === active ? 'page' : undefined}
+          onClick={() => onPick(v)}
+        >
+          <v.Icon size={16} strokeWidth={1.8} aria-hidden />
+          {v.label}
+        </button>
+      ))}
+    </nav>
+  )
 }
 
 function AppInner() {
@@ -36,27 +95,21 @@ function AppInner() {
 
   const childName = isDemo ? null : (patient?.child_name ?? null)
   const therapistName = isDemo ? null : (profile?.full_name ?? null)
+  const displayName = childName ?? therapistName ?? 'Invitado'
 
-  // En la demo el header dice quién eres en el triángulo, no un nombre inventado.
-  const demoName = role === 'therapist' ? 'Logopeda' : role === 'family' ? 'Familia' : DEMO_CHILD_NAME
-
-  // Nombre + inicial para el avatar del menú del header.
-  const displayName = childName ?? therapistName ?? (isDemo ? demoName : 'Invitado')
-  const avatarInitial = displayName.charAt(0).toUpperCase()
-
-  // Opciones directas del menú del avatar. En la demo se ven las tres vistas
-  // (es el punto del showroom: recorrer el triángulo entero). Con cuenta real,
-  // la segunda depende del rol: terapeuta → "Terapeuta"; resto → "Familia".
-  const GAMES_OPTION = { label: 'Juegos', icon: <Gamepad2 size={18} />, path: '/app/nino' }
-  const FAMILY_OPTION = { label: 'Familia', icon: <Users size={18} />, path: '/app/familia' }
-  const THERAPIST_OPTION = { label: 'Logopeda', icon: <BarChart2 size={18} />, path: '/app/terapeuta' }
-
-  const menuOptions: { label: string; icon: ReactNode; path: string }[] = isDemo
-    ? [GAMES_OPTION, FAMILY_OPTION, THERAPIST_OPTION]
-    : [GAMES_OPTION, role === 'therapist' ? THERAPIST_OPTION : FAMILY_OPTION]
+  // Con cuenta real, las vistas que corresponden a su rol.
+  const accountViews = VIEWS.filter(v =>
+    v.tab === 'ejercicio' || (role === 'therapist' ? v.tab === 'terapeuta' : v.tab === 'familia'),
+  )
 
   function closeMenu() {
     setMenuOpen(false)
+  }
+
+  function goToView(v: (typeof VIEWS)[number]) {
+    closeMenu()
+    if (isDemo) enterDemo(TAB_ROLE[v.tab])
+    navigate(v.path)
   }
 
   async function handleLogout() {
@@ -66,15 +119,17 @@ function AppInner() {
     navigate('/', { replace: true })
   }
 
-  // Reiniciar la demo: el visitante (o el terapeuta en una call) empieza de
-  // cero sin salir del showroom. Sólo borra el localStorage de este navegador.
+  // Reiniciar la demo: el visitante (o el profesional en una llamada) empieza
+  // de cero sin salir de la vista en la que está. Sólo borra el localStorage de
+  // este navegador.
   function handleResetDemo() {
     closeMenu()
     setShowDemoModal(false)
-    resetDemo(role)
+    const tab = activeTab ?? 'terapeuta'
+    resetDemo(TAB_ROLE[tab])
     // Recarga completa a propósito: el perfil y el historial viven en el estado
-    // de varios componentes, y así el showroom arranca realmente de cero.
-    window.location.assign('/app/nino')
+    // de varios componentes, y así la demo arranca realmente de cero.
+    window.location.assign(VIEWS.find(v => v.tab === tab)?.path ?? '/app/terapeuta')
   }
 
   function handleGoToLogin() {
@@ -82,243 +137,112 @@ function AppInner() {
     navigate('/login')
   }
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100svh',
-        background: '#FAF5E8',
-        animation: 'fadeIn 0.4s ease',
-      }}
-    >
-      {/* ── Navbar ──────────────────────────────────────────────── */}
-      <nav
-        style={{
-          // Navbar fundida con el body: misma crema, sin borde ni shadow. Al
-          // quedarse pegada arriba, el contenido pasa por debajo con un velo
-          // translúcido y desenfoque. Donde no hay backdrop-filter, el alfa
-          // 0.82 ya la deja legible.
-          backgroundColor: 'rgba(250,245,232,0.82)',
-          backdropFilter: 'saturate(1.5) blur(12px)',
-          WebkitBackdropFilter: 'saturate(1.5) blur(12px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0 24px',
-            height: '64px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+  const menuItems: ReactNode = isDemo ? (
+    <>
+      <button role="menuitem" onClick={() => { closeMenu(); setShowDemoModal(true) }}>
+        <Info size={18} strokeWidth={1.8} /> Sobre esta demo
+      </button>
+      <button role="menuitem" onClick={handleResetDemo}>
+        <RotateCcw size={18} strokeWidth={1.8} /> Empezar de cero
+      </button>
+      <hr />
+      <button role="menuitem" className="ax-menu__only-m" onClick={() => { closeMenu(); navigate('/#sumarme') }}>
+        <ArrowUpRight size={18} strokeWidth={1.8} /> Quiero sumarme
+      </button>
+      <button role="menuitem" onClick={handleLogout}>
+        <LogOut size={18} strokeWidth={1.8} /> Volver a la web
+      </button>
+    </>
+  ) : (
+    <>
+      {accountViews.map(v => (
+        <button
+          key={v.tab}
+          role="menuitem"
+          aria-current={v.tab === activeTab ? 'page' : undefined}
+          onClick={() => goToView(v)}
         >
-          {/* ── Left: logo ─────────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            {/* Marca de la app: SOLO el wordmark. El dragón queda reservado a
-                los momentos de personaje (el hero de la casa y Dragui), para
-                que no aparezcan dos dragones en la misma pantalla. */}
-            <button
-              onClick={() => navigate('/')}
-              aria-label="Dracs — inicio"
-              style={{
-                display: 'flex', alignItems: 'center',
-                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              }}
-            >
-              <img src="/brand/dracs-wordmark.svg" alt="Dracs" style={{ height: '24px', width: 'auto', display: 'block' }} />
-            </button>
+          <v.Icon size={18} strokeWidth={1.8} /> {v.label}
+        </button>
+      ))}
+      <hr />
+      <button role="menuitem" className="ax-menu__danger" onClick={handleLogout}>
+        <LogOut size={18} strokeWidth={1.8} />
+        {/* El niño nunca lee "sesión": para él, sólo "Salir". */}
+        {role === 'child' ? 'Salir' : 'Cerrar sesión'}
+      </button>
+    </>
+  )
 
+  return (
+    <div className={`ax${isDemo ? ' ax--views' : ''}`}>
+      <header className="ax-nav">
+        <div className="ax-nav__row">
+          <div className="ax-nav__left">
+            <Link className="ax-brand" to="/" aria-label="Dracs, volver a la web">
+              <img src="/landing/dragon.webp" alt="Dracs" width={40} height={52} />
+            </Link>
             {isDemo && (
-              <button
-                onClick={() => setShowDemoModal(true)}
-                style={{
-                  background: '#F7C31C', border: 'none', borderRadius: '6px',
-                  padding: '3px 10px', fontSize: '11px', fontWeight: 800,
-                  color: '#33302A', cursor: 'pointer', letterSpacing: '0.06em',
-                  fontFamily: 'Nunito, sans-serif',
-                }}
-              >
-                DEMO<span className="dracs-demo-extra"> · DATOS DE EJEMPLO</span>
+              <button type="button" className="ax-demo-tag" onClick={() => setShowDemoModal(true)}>
+                <i aria-hidden /> Demo con datos de ejemplo
               </button>
             )}
           </div>
 
-          {/* ── Right: avatar + nombre con menú ───────────────────── */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              onClick={() => setMenuOpen(o => !o)}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                background: menuOpen ? 'rgba(91,136,150,0.08)' : 'transparent',
-                border: 'none', borderRadius: '999px', padding: '4px 8px 4px 4px',
-                cursor: 'pointer', transition: 'background 0.2s ease',
-              }}
-            >
-              <div style={{
-                width: '40px', height: '40px', borderRadius: '50%',
-                backgroundColor: '#F7C31C', color: '#33302A',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '17px', fontWeight: 800, fontFamily: 'Nunito, sans-serif', flexShrink: 0,
-              }}>
-                {avatarInitial}
-              </div>
-              <span className="dracs-user-name" style={{
-                fontFamily: 'Nunito, sans-serif', fontWeight: 600,
-                fontSize: '15px', color: '#33302A',
-              }}>
-                {displayName}
-              </span>
-              <ChevronDown
-                size={18}
-                style={{
-                  color: '#6B7280', flexShrink: 0,
-                  transform: menuOpen ? 'rotate(180deg)' : 'rotate(0)',
-                  transition: 'transform 0.2s ease',
-                }}
-              />
-            </button>
+          {isDemo && (
+            <div className="ax-nav__center">
+              <ViewSwitch active={activeTab} onPick={goToView} />
+            </div>
+          )}
 
-            {menuOpen && (
-              <>
-                {/* Backdrop para cerrar al tocar afuera */}
-                <div
-                  onClick={closeMenu}
-                  style={{ position: 'fixed', inset: 0, zIndex: 60 }}
-                />
-                <div
-                  role="menu"
-                  style={{
-                    position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                    minWidth: '200px', background: '#FFFFFF',
-                    borderRadius: '14px', border: '1px solid #F1F5F9',
-                    boxShadow: '0 12px 32px rgba(0,0,0,0.14)',
-                    padding: '6px', zIndex: 70,
-                    fontFamily: 'Nunito, sans-serif',
-                    animation: 'wordSlideDown 0.18s ease',
-                  }}
-                >
-                  {/* 3 opciones directas, sin submenús */}
-                  {menuOptions.map(opt => {
-                    const active = location.pathname.startsWith(opt.path)
-                    return (
-                      <button
-                        key={opt.path}
-                        role="menuitem"
-                        onClick={() => { closeMenu(); navigate(opt.path) }}
-                        style={{
-                          ...menuItemStyle,
-                          color: active ? '#5B8896' : '#33302A',
-                          fontWeight: active ? 800 : 600,
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ display: 'flex', color: active ? '#5B8896' : '#94A3B8' }}>{opt.icon}</span>
-                          {opt.label}
-                        </span>
-                      </button>
-                    )
-                  })}
-
-                  <div style={{ height: '1px', background: '#F1F5F9', margin: '6px 4px' }} />
-
-                  {/* Reiniciar demo — discreto, sólo en el showroom */}
-                  {isDemo && (
-                    <button
-                      role="menuitem"
-                      onClick={handleResetDemo}
-                      style={{ ...menuItemStyle, color: '#6B7280' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <RotateCcw size={16} />
-                        Reiniciar demo
-                      </span>
-                    </button>
-                  )}
-
-                  {/* Salir */}
-                  <button
-                    role="menuitem"
-                    onClick={handleLogout}
-                    style={{ ...menuItemStyle, color: '#DC2626' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <LogOut size={16} />
-                      {/* El niño nunca lee "sesión" (§copy). En la demo, salir
-                          es salir del showroom; con cuenta, sólo "Salir". */}
-                      {isDemo ? 'Salir de la demo' : role === 'child' ? 'Salir' : 'Cerrar sesión'}
-                    </span>
-                  </button>
-                </div>
-              </>
+          <div className="ax-nav__right">
+            {isDemo && (
+              <Link className="ax-btn ax-btn--primary ax-nav__cta" to="/#sumarme">Quiero sumarme</Link>
             )}
+            <div className="ax-menu-wrap">
+              <button
+                type="button"
+                className="ax-btn ax-btn--night"
+                onClick={() => setMenuOpen(o => !o)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+              >
+                {isDemo ? 'Menú' : displayName}
+              </button>
+              {menuOpen && (
+                <>
+                  <div onClick={closeMenu} style={{ position: 'fixed', inset: 0, zIndex: 60 }} />
+                  <div role="menu" className="ax-menu">{menuItems}</div>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ── Demo modal ──────────────────────────────────────────── */}
       {showDemoModal && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(51,48,42,0.55)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '24px', zIndex: 200,
-          }}
-          onClick={() => setShowDemoModal(false)}
-        >
+        <div className="ax-modal-back" onClick={() => setShowDemoModal(false)}>
           <div
-            style={{
-              background: '#ffffff', borderRadius: '20px', padding: '28px 24px',
-              maxWidth: '340px', width: '100%', textAlign: 'center',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-              animation: 'wordSlideDown 0.22s ease',
-            }}
+            className="ax-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ax-modal-title"
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
-              <button onClick={() => setShowDemoModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}>
-                <X size={16} />
-              </button>
-            </div>
-            <div style={{ background: '#F7C31C', borderRadius: '8px', padding: '4px 12px', fontSize: '11px', fontWeight: 800, color: '#33302A', display: 'inline-block', letterSpacing: '0.06em', marginBottom: '12px' }}>
-              DEMO
-            </div>
-            <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#33302A', fontFamily: 'Nunito, sans-serif', fontWeight: 600, lineHeight: 1.5 }}>
-              Estás recorriendo Dracs sin cuenta. Lo que juegue {DEMO_CHILD_NAME} se guarda
-              en este navegador y aparece en las tres vistas. Lo marcado
-              como <strong>ejemplo</strong> es ilustrativo.
+            <h2 id="ax-modal-title">Una demo, un solo niño.</h2>
+            <p>
+              Recorres Dracs sin cuenta. {DEMO_CHILD_NAME} es el niño de ejemplo: lo que juegue en la
+              vista Niño aparece al momento en la de su profesional y en la de su familia. Todo se
+              guarda solo en este navegador.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                onClick={() => setShowDemoModal(false)}
-                style={{ width: '100%', height: '44px', borderRadius: '12px', border: 'none', background: '#F7C31C', color: '#33302A', fontSize: '15px', fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 600, cursor: 'pointer' }}
-              >
+            <div className="ax-modal__actions">
+              <button type="button" className="ax-btn ax-btn--primary" onClick={() => setShowDemoModal(false)}>
                 Seguir explorando
               </button>
-              <button
-                onClick={handleResetDemo}
-                style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1.5px solid #E5E7EB', background: '#ffffff', color: '#33302A', fontSize: '15px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Reiniciar demo
+              <button type="button" className="ax-btn ax-btn--ghost" onClick={handleResetDemo}>
+                Empezar de cero
               </button>
-              <button
-                onClick={handleGoToLogin}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#94A3B8', fontFamily: 'Nunito, sans-serif', fontWeight: 600, padding: '6px 0' }}
-              >
+              <button type="button" className="ax-modal__link" onClick={handleGoToLogin}>
                 ¿Tienes cuenta? Inicia sesión
               </button>
             </div>
@@ -326,16 +250,7 @@ function AppInner() {
         </div>
       )}
 
-      {/* ── Content ─────────────────────────────────────────────── */}
-      <main
-        key={activeTab ?? location.pathname}
-        className="tab-enter"
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          overflow: 'hidden', maxWidth: '1200px',
-          margin: '0 auto', width: '100%', position: 'relative',
-        }}
-      >
+      <main key={activeTab ?? location.pathname} className="ax-main tab-enter">
         <Outlet />
       </main>
     </div>
@@ -348,14 +263,4 @@ export default function App() {
       <AppInner />
     </TherapistProvider>
   )
-}
-
-// Estilo base de cada item del menú del avatar.
-const menuItemStyle: CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  width: '100%', gap: '8px', padding: '10px 12px',
-  background: 'transparent', border: 'none', borderRadius: '10px',
-  cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
-  fontSize: '14px', fontWeight: 600, color: '#33302A',
-  textAlign: 'left', transition: 'background 0.15s ease',
 }

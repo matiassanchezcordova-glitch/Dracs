@@ -39,7 +39,7 @@ export function doorSubline(childName: string, s: WeekSignal): string {
     return `${childName} viene visitando su mundo día tras día. Se nota el cariño.`
   }
   if (s.improving) {
-    return `Esta semana ${childName} volvió con más ganas que nunca.`
+    return `${childName} anduvo por su mundo esta semana. Pasa, mira cómo le fue.`
   }
   switch (s.band) {
     case 'strong': return `Fue una semana llena para ${childName}. Qué bueno tenerte en casa.`
@@ -58,7 +58,7 @@ export function cartaTitle(): string {
 
 export function cartaBody(childName: string, s: WeekSignal): string {
   if (s.firstTime) {
-    return `Todavía no nos conocemos del todo, pero el Bosque de las Palabras ya tiene un lugar guardado para ${childName}. Cuando quieras, abrimos la puerta juntos.`
+    return `Todavía no nos conocemos del todo, pero el mar, la casa y el faro ya tienen un lugar guardado para ${childName}. Cuando quieras, abrimos la puerta juntos.`
   }
   if (!s.hasActivityThisWeek) {
     return `Esta semana el mundo estuvo tranquilo esperando a ${childName}. No pasa nada: mañana es un gran día para volver a jugar, aunque sea un ratito.`
@@ -67,7 +67,7 @@ export function cartaBody(childName: string, s: WeekSignal): string {
     return `Esta semana ${childName} volvió a su mundo casi todos los días, y cada vez se lo vio un poquito más seguro. Esa constancia, en casa, vale muchísimo.`
   }
   if (s.improving) {
-    return `Esta semana ${childName} volvió al Bosque de las Palabras y cada vez esperó un poquito mejor su turno. Se lo notó más animado que la semana pasada.`
+    return `Esta semana ${childName} volvió a su mundo con más ganas que la semana pasada. Cada vuelta, un pasito más.`
   }
   switch (s.band) {
     case 'strong':
@@ -204,7 +204,7 @@ export interface MiniExercise {
   title: string
   skillTag: string
   Icon: Icon         // ícono Phosphor (sin emoji nativo)
-  gradient: string   // CSS gradient para el placeholder de imagen
+  gradient: string   // color de fondo de la tarjeta (el de un lugar del mundo)
 }
 
 // Cada chip → respuesta guionada + tarjeta de ejemplo. `reply` usa {name}.
@@ -220,25 +220,25 @@ export const ASSISTANT_CHIPS: ScriptedReply[] = [
     id: 'turnos',
     chip: 'Le cuesta esperar su turno',
     reply: 'Te preparé un jueguito de turnos: {name} y su dragón se van pasando la pelota, y el dragón espera para enseñarle que a veces toca esperar. Suave, sin apuros.',
-    exercise: { title: 'La pelota que va y viene', skillTag: 'Esperar el turno', Icon: Hourglass, gradient: 'linear-gradient(135deg, #3FB8C4, #1A8FB5)' },
+    exercise: { title: 'La pelota que va y viene', skillTag: 'Esperar el turno', Icon: Hourglass, gradient: '#3FB8C4' },
   },
   {
     id: 'colores',
     chip: 'Quiero trabajar los colores',
     reply: 'Armé un juego de colores para {name}: aparecen objetos de su mundo y hay que atrapar los del color que pide el dragón. Empezamos por tres colores y vamos sumando.',
-    exercise: { title: 'Atrapa el color', skillTag: 'Colores', Icon: Palette, gradient: 'linear-gradient(135deg, #F7C31C, #FF8551)' },
+    exercise: { title: 'Atrapa el color', skillTag: 'Colores', Icon: Palette, gradient: '#E8A93A' },
   },
   {
     id: 'vestirse',
-    chip: 'Le cuesta vestirse solo a la mañana',
-    reply: 'Preparé una rutina de la mañana en dibujos: {name} ordena los pasos para vestirse, de las medias al abrigo. Así la mañana se vuelve un juego conocido.',
-    exercise: { title: 'La mañana de {name}', skillTag: 'Rutina de vestirse', Icon: TShirt, gradient: 'linear-gradient(135deg, #9B8FD4, #7A6FBA)' },
+    chip: 'Le cuesta vestirse solo por la mañana',
+    reply: 'Preparé una rutina de la mañana en dibujos: {name} ordena los pasos para vestirse, de los calcetines al abrigo. Así la mañana se vuelve un juego conocido.',
+    exercise: { title: 'La mañana de {name}', skillTag: 'Rutina de vestirse', Icon: TShirt, gradient: '#9B8FD4' },
   },
   {
     id: 'mirada',
     chip: 'Trabajar el contacto visual',
     reply: 'Te dejé un juego de miraditas: el dragón aparece en distintos rincones y {name} lo encuentra con la mirada antes de tocarlo. Cortito y con mucho festejo.',
-    exercise: { title: 'Encuentra al dragón', skillTag: 'Contacto visual', Icon: Eye, gradient: 'linear-gradient(135deg, #4A3F73, #352C56)' },
+    exercise: { title: 'Encuentra al dragón', skillTag: 'Contacto visual', Icon: Eye, gradient: '#4A3F73' },
   },
 ]
 
@@ -249,7 +249,7 @@ export function fallbackReply(childName: string): ScriptedReply {
     id: 'generico',
     chip: '',
     reply: `¡Buenísimo! Con eso puedo armarle a ${childName} un juego a medida para practicarlo en casa, paso a paso y con mucho festejo.`,
-    exercise: { title: `Un juego para ${childName}`, skillTag: 'A medida', Icon: Sparkle, gradient: 'linear-gradient(135deg, #1A8FB5, #10B981)' },
+    exercise: { title: `Un juego para ${childName}`, skillTag: 'A medida', Icon: Sparkle, gradient: '#1E5FAA' },
   }
 }
 

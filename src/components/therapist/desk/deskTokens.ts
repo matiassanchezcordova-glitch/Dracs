@@ -1,69 +1,63 @@
-// Escritorio del Terapeuta — tokens y helpers puros (sin componentes, para que
+// Escritorio del profesional: tokens y helpers puros (sin componentes, para que
 // fast-refresh trate deskUI.tsx como archivo de sólo-componentes).
 //
-// Paleta oficial, sobria y cálida. El amarillo es el único pop y va sólo en la
-// acción primaria. El azul es la estructura; la mostaza y la arena entran sólo
-// donde codifican algo (el estado de un paciente, lo privado de una nota).
+// Los valores salen de src/lib/brand.ts, que es la paleta de la web: blanco y
+// gris papel, tinta casi negra, un azul petróleo para los datos y el amarillo
+// solo en la acción principal. Así la demo continúa la web sin saltos.
 //
-// Dos reglas de profundidad que mandan sobre cualquier estilo suelto:
-//   1. El color de una tarjeta NUNCA es el del fondo. La tarjeta va en blanco
-//      cálido, un punto por encima de la crema.
-//   2. Las tarjetas flotan: borde 1px cálido y sombra en capas. El fondo, en
-//      cambio, es crema lisa: la profundidad la ponen las tarjetas, no la
-//      textura.
-//
-// El color entra sólo donde codifica algo (el estado de un paciente, lo privado
-// de una nota). Donde no codifica nada, todo va en azul y punto.
+// Reglas que mandan sobre cualquier estilo suelto:
+//   1. La tarjeta es blanca sobre el gris papel del fondo, con borde fino y una
+//      sombra larga y suave. La profundidad la ponen las tarjetas.
+//   2. Los títulos van en Source Serif, como en la web. Todo lo demás (datos,
+//      botones, pestañas) en IBM Plex Sans.
+//   3. El color entra sólo donde codifica algo (el estado de un paciente, lo
+//      privado de una nota). Donde no codifica nada, todo va en tinta y azul.
 
 import type { CSSProperties } from 'react'
+import { BRAND } from '../../../lib/brand'
 
 export const DT = {
-  cream: '#FAF5E8',       // fondo de la superficie
-  // Blanco cálido de tarjeta. No es #FFFFFF (frío y de plantilla) ni la crema
-  // del fondo (papel recortado): queda justo encima de la crema y por eso la
-  // tarjeta se lee como objeto, no como recorte.
-  white: '#FFFDF7',
-  arena: '#EDE4D1',       // rellenos suaves (chips, rieles, avatares)
-  arenaDeep: '#E4D8C0',   // riel de gráfico sobre tarjeta blanca
-  line: '#DED2BA',        // borde cálido de tarjeta
-  lineSoft: '#EAE0CC',    // separadores internos, más discretos que el borde
-  ink: '#33302A',         // texto principal (Tinta)
-  muted: 'rgba(51,48,42,0.60)',   // texto secundario (Tinta 60% ≈ AA)
-  faint: 'rgba(51,48,42,0.42)',   // notas al pie
-  topo: '#9A8F7E',        // neutro para íconos/rellenos
-  azul: '#5B8896',        // estructura y acentos
-  yellow: '#F7C31C',      // único pop (activo, acción primaria)
-  mostaza: '#C7A24F',     // acento de atención (requiere mirada)
+  cream: BRAND.paper2,    // fondo de la superficie y rellenos de dato
+  white: BRAND.paper,     // tarjeta
+  arena: BRAND.paper3,    // rellenos suaves (chips, rieles, avatares)
+  arenaDeep: BRAND.line,  // riel de gráfico sobre tarjeta blanca
+  line: BRAND.line,       // borde de tarjeta
+  lineSoft: '#EDEEEA',    // separadores internos, más discretos que el borde
+  ink: BRAND.ink,
+  muted: BRAND.note,
+  faint: BRAND.faint,
+  topo: '#8E9496',        // neutro para íconos
+  azul: BRAND.data,       // estructura y acentos
+  night: BRAND.night,
+  yellow: BRAND.yellow,   // único pop (acción primaria)
+  mostaza: BRAND.ochre,   // acento de atención (requiere mirada)
 
-  // Familias de acento. Cada una trae su relleno suave, su borde y su tinta
-  // legible: con esto un badge, un chip y un filo hablan el mismo idioma sin
-  // inventar colores por el camino.
-  azulTint: '#DFEAEE',
-  azulTintLine: 'rgba(91,136,150,0.30)',
-  azulInk: '#3E6773',
+  // Familias de acento: relleno suave, borde y tinta legible.
+  azulTint: BRAND.dataTint,
+  azulTintLine: 'rgba(63,107,120,0.28)',
+  azulInk: BRAND.dataInk,
 
-  mostazaTint: '#F6EDD8',
-  mostazaTintLine: 'rgba(199,162,79,0.34)',
-  mostazaInk: '#7C6120',
+  mostazaTint: BRAND.ochreTint,
+  mostazaTintLine: 'rgba(185,137,42,0.34)',
+  mostazaInk: BRAND.ochreInk,
 
-  yellowTint: '#FDF3D4',
-  yellowTintLine: 'rgba(199,162,79,0.40)',
+  yellowTint: BRAND.yellowTint,
+  yellowTintLine: 'rgba(185,137,42,0.38)',
 
-  topoTint: '#EFE9DE',
-  topoTintLine: 'rgba(154,143,126,0.32)',
-  topoInk: '#6D6355',
+  topoTint: '#F0F1EE',
+  topoTintLine: 'rgba(142,148,150,0.32)',
+  topoInk: BRAND.note,
 
-  display: 'Fredoka, system-ui, sans-serif',
-  body: 'Nunito, sans-serif',
+  display: BRAND.sans,    // rótulos de interfaz: pestañas, botones, nombres
+  serif: BRAND.serif,     // títulos de página y de tarjeta
+  body: BRAND.sans,
 
-  radius: '20px',
-  radiusSm: '13px',
+  radius: BRAND.radius,
+  radiusSm: BRAND.radiusSm,
 
-  // Sombras en capas: contacto corta, media y difusa larga. Con una sola capa
-  // la tarjeta se leía pegada; con las tres flota sin endurecerse.
-  shadow: '0 1px 2px rgba(51,48,42,0.07), 0 4px 10px rgba(51,48,42,0.06), 0 16px 34px rgba(51,48,42,0.10)',
-  shadowSoft: '0 1px 2px rgba(51,48,42,0.05), 0 3px 8px rgba(51,48,42,0.05), 0 10px 22px rgba(51,48,42,0.07)',
-  shadowLift: '0 2px 4px rgba(51,48,42,0.08), 0 8px 18px rgba(51,48,42,0.09), 0 24px 46px rgba(51,48,42,0.14)',
+  shadow: BRAND.shadow,
+  shadowSoft: BRAND.shadowSoft,
+  shadowLift: BRAND.shadowLift,
 } as const
 
 // ── Acentos con nombre ───────────────────────────────────────────────────────
@@ -79,8 +73,7 @@ export const ACCENT: Record<Accent, { solid: string; tint: string; line: string;
 }
 
 // ── La superficie ────────────────────────────────────────────────────────────
-// Crema lisa. Nada de textura ni de resplandores: la profundidad la ponen las
-// tarjetas (blanco cálido, borde fino, sombra en capas), no el fondo.
+// Gris papel liso, el mismo de las secciones alternas de la web.
 export const SURFACE: CSSProperties = {
   backgroundColor: DT.cream,
 }
@@ -104,11 +97,11 @@ export const DRAGON = '/brand/dracs-dragon.png'
 // que escribir se sienta igual en el Plan, las Notas, la Familia y el Informe.
 export const FIELD: CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
-  border: `1px solid ${DT.line}`, background: DT.cream, color: DT.ink,
-  fontSize: '14px', fontFamily: DT.body, lineHeight: 1.6, outline: 'none',
+  border: `1.5px solid ${BRAND.lineStrong}`, background: DT.white, color: DT.ink,
+  fontSize: '15px', fontFamily: DT.body, lineHeight: 1.6, outline: 'none',
 }
 
 // La misma caja en una sola línea (fechas, horas, selects).
 export const FIELD_LINE: CSSProperties = {
-  ...FIELD, height: '42px', padding: '0 12px', fontWeight: 600, lineHeight: 1,
+  ...FIELD, height: '44px', padding: '0 12px', fontWeight: 500, lineHeight: 1,
 }

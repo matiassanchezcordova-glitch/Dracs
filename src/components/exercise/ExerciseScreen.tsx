@@ -15,6 +15,9 @@ interface Props {
   onComplete: (correct: number, total: number) => void
   onExit: () => void
   palette?: WorldPalette
+  // Nombre del lugar ("El mar"): va en una pastilla sobre la consigna, igual
+  // que en la demostración de la web.
+  placeName?: string
 }
 
 // ── Feedback pools ──────────────────────────────────────────────────────────
@@ -78,13 +81,16 @@ function FillBlankSentence({
 // ── Exit confirm dialog (inline) ────────────────────────────────────────────
 
 function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
+  // Lo seguro va primero y en amarillo: seguir jugando. Terminar queda como
+  // segunda opción, con borde, como en el resto de la app.
   return (
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby="exit-title"
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(15,23,42,0.55)',
+        background: 'rgba(21,25,27,0.48)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '24px', zIndex: 200,
       }}
@@ -92,39 +98,40 @@ function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm:
       <div
         style={{
           background: '#FFFFFF', borderRadius: '20px',
-          padding: '28px 24px', maxWidth: '340px', width: '100%',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.22)',
-          textAlign: 'center', fontFamily: 'Nunito, sans-serif',
+          padding: '28px 24px 24px', maxWidth: '360px', width: '100%',
+          boxShadow: '0 30px 60px -20px rgba(21,25,27,0.4)',
+          textAlign: 'center',
         }}
       >
-        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#1F2937' }}>
-          ¿Quieres terminar el juego?
+        <h3 id="exit-title" style={{ margin: '0 0 8px', fontSize: '24px', fontWeight: 600, color: '#15191B', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
+          ¿Terminamos por hoy?
         </h3>
-        <p style={{ margin: '0 0 22px', fontSize: '14px', color: '#6B7280', lineHeight: 1.5 }}>
-          Perderás el progreso de esta partida.
+        <p style={{ margin: '0 0 22px', fontSize: '16px', color: '#5E6468', lineHeight: 1.5, fontFamily: 'Nunito, sans-serif' }}>
+          Esta partida no se guarda si sales ahora.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button
-            onClick={onConfirm}
-            style={{
-              height: '46px', borderRadius: '14px', border: 'none',
-              background: '#F59E0B', color: '#FFFFFF',
-              fontSize: '15px', fontWeight: 800, cursor: 'pointer',
-              fontFamily: 'Nunito, sans-serif',
-            }}
-          >
-            Sí, terminar
-          </button>
-          <button
             onClick={onCancel}
+            autoFocus
             style={{
-              height: '46px', borderRadius: '14px',
-              border: '1.5px solid #E5E7EB', background: '#FFFFFF',
-              color: '#1F2937', fontSize: '15px', fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'Nunito, sans-serif',
+              height: '52px', borderRadius: '14px', border: 'none',
+              background: '#F7C31C', color: '#15191B',
+              fontSize: '18px', fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
             }}
           >
             Seguir jugando
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              height: '52px', borderRadius: '14px',
+              border: '1.5px solid #C9CBC6', background: '#FFFFFF',
+              color: '#15191B', fontSize: '18px', fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
+            }}
+          >
+            Volver al mapa
           </button>
         </div>
       </div>
@@ -135,7 +142,7 @@ function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm:
 // ── Main ────────────────────────────────────────────────────────────────────
 
 export default function ExerciseScreen({
-  exercises, childName, sessionNumber, onComplete, onExit, palette,
+  exercises, childName, sessionNumber, onComplete, onExit, palette, placeName,
 }: Props) {
   const pal = palette ?? getPaletteForHotspot(undefined)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -303,8 +310,18 @@ export default function ExerciseScreen({
           <X size={20} />
         </button>
 
-        {/* Enunciado gigante centrado verticalmente */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+        {/* Enunciado gigante centrado verticalmente, con el lugar encima. */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
+          {placeName && (
+            <span style={{
+              display: 'inline-block', padding: '5px 14px', borderRadius: '999px',
+              background: 'rgba(255,255,255,0.2)', color: pal.text,
+              fontFamily: 'Fredoka, system-ui, sans-serif', fontWeight: 600, fontSize: '15px',
+            }}>
+              {placeName}
+            </span>
+          )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
           <h1
             key={currentIndex}
             style={{
@@ -338,6 +355,7 @@ export default function ExerciseScreen({
               <Volume2 size={22} />
             </button>
           )}
+        </div>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
-// Objetivos — a dónde quiere llegar el logopeda con cada área que eligió.
+// Objetivos — a dónde quiere llegar el profesional con cada área que eligió.
 //
 // Dracs pone el dato (cómo va hoy esa área y el gráfico de las semanas que
-// vinieron después). El objetivo lo escribe el logopeda con sus palabras, y el
+// vinieron después). El objetivo lo escribe el profesional con sus palabras, y el
 // cumplimiento lo marca él. Dracs no dice "mejoró" ni "cumplió".
 //
 // Guarda solo, sin botón: navegador en la demo, columna focus_goals en cuenta
@@ -91,13 +91,13 @@ function AreaGoal({ area, goal, hoy, points, onChange, onRemove }: {
       padding: '14px 16px',
     }}>
       <p style={{
-        margin: 0, fontSize: '15px', fontWeight: 700, color: DT.ink, fontFamily: DT.display,
+        margin: 0, fontSize: '15px', fontWeight: 600, color: DT.ink, fontFamily: DT.display,
       }}>
         {name}
       </p>
 
       {hoy && (
-        <p style={{ margin: '4px 0 0', fontSize: '13px', color: DT.muted, fontFamily: DT.body }}>
+        <p style={{ margin: '4px 0 0', fontSize: '14px', color: DT.muted, fontFamily: DT.body }}>
           Hoy: {hoy.pct}% de aciertos
         </p>
       )}
@@ -129,7 +129,7 @@ function AreaGoal({ area, goal, hoy, points, onChange, onRemove }: {
           aria-label={`Fecha de revisión de ${name}`}
           style={{ ...FIELD_LINE, width: 'auto' }}
         />
-        {/* Lo marca el logopeda. Dracs no lo marca nunca solo. */}
+        {/* Lo marca el profesional. Dracs no lo marca nunca solo. */}
         <ToggleChip on={current.done} onClick={() => onChange({ ...current, done: !current.done })}>
           {current.done ? 'Cumplido' : 'Marcar cumplido'}
         </ToggleChip>
@@ -154,7 +154,7 @@ export default function Objetivos({
   const [goals, setGoals] = useState<FocusGoal[]>([])
   const [loaded, setLoaded] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
-  // Sólo se guarda lo que ha tocado el logopeda: cargar no dispara un guardado.
+  // Sólo se guarda lo que ha tocado el profesional: cargar no dispara un guardado.
   const dirty = useRef(false)
 
   // Las partidas por área: de Supabase en cuenta real, del historial en la demo.
@@ -214,7 +214,7 @@ export default function Objetivos({
       <SectionTitle Icon={Flag}>Objetivos</SectionTitle>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* Sólo las áreas de foco activas. Quitar un área no borra su objetivo:
-            vuelve si el logopeda vuelve a marcarla. */}
+            vuelve si el profesional vuelve a marcarla. */}
         {focusAreas.map(area => {
           const goal = byArea.get(area) ?? null
           return (
@@ -233,7 +233,7 @@ export default function Objetivos({
 
       {status && (
         <p className="dk-fade" style={{
-          margin: '14px 0 0', fontSize: '13px', fontWeight: 700,
+          margin: '14px 0 0', fontSize: '14px', fontWeight: 600,
           color: DT.azulInk, fontFamily: DT.body,
         }}>
           {status}

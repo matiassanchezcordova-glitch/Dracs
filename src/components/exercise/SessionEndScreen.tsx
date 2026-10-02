@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Star, BookOpen, CheckCircle2, Target, ArrowUp, BookMarked, RotateCcw, TrendingUp } from 'lucide-react'
+import { Star, ArrowUp, ArrowRight, BookMarked, RotateCcw, TrendingUp, Map as MapIcon } from 'lucide-react'
 import { type WorldPalette, getPaletteForHotspot } from '../../lib/worldColors'
 
 // ── Full-screen confetti (perfect session) ────────────────────────────────
 
-const CONFETTI_COLORS = ['#1A8FB5', '#F7C31C', '#059669', '#F97316', '#DC2626']
+const CONFETTI_COLORS = ['#1E5FAA', '#F7C31C', '#3FB8C4', '#FF8551', '#9B8FD4']
 
 function PerfectConfetti() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -48,12 +48,17 @@ interface Props {
   total: number
   levelChanged: 'up' | 'down' | null
   onRepeat: () => void
-  // "Ver mi progreso" → casa de la familia. Nunca pide cuenta: en el showroom
-  // el progreso del navegador se ve entero, sin login.
+  // Volver al mapa. Si no llega (modo antiguo sin mapa), va "Ver mi progreso".
+  onBackToMap?: () => void
+  // "Ver mi progreso" → casa de la familia (modo antiguo sin mapa).
   onViewProgress: () => void
   // Autoplay tipo Netflix: si se pasa, tras un countdown arranca otra partida del
-  // mismo hotspot automáticamente. Si está ausente, no hay countdown (legacy).
+  // mismo lugar automáticamente. Si está ausente, no hay countdown.
   onAutoPlayNext?: () => void
+  // Solo en la demo y para el adulto que la recorre: un enlace discreto al pie
+  // que abre esta misma partida en la carpeta del profesional. Es el momento
+  // en que se entiende Dracs: lo que juega el niño llega a quien lo acompaña.
+  demoBridge?: { label: string; onClick: () => void }
   palette?: WorldPalette
 }
 
@@ -64,44 +69,41 @@ function getMessage(pct: number): string {
   return '¡Sigue practicando!'
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────
-
-function StatCard({ icon, value, label, color = '#33302A' }: {
-  icon: React.ReactNode
-  value: number | string
-  label: string
-  color?: string
-}) {
+// Una estrella por juego: llena si acertó. Es lo que el niño entiende de un
+// vistazo, sin porcentajes ni palabras técnicas.
+function StarRow({ correct, total, color }: { correct: number; total: number; color: string }) {
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.95)',
-      borderRadius: '20px',
-      padding: '16px 20px',
-      minWidth: '90px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '6px',
-    }}>
-      <span style={{ color, display: 'flex' }}>{icon}</span>
-      <span style={{ fontSize: '28px', fontWeight: 700, color, lineHeight: 1, fontFamily: 'Fredoka, system-ui, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-      </span>
-      <span style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', fontFamily: 'Nunito, sans-serif' }}>
-        {label}
-      </span>
+    <div
+      role="img"
+      aria-label={`${correct} de ${total} juegos acertados`}
+      style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', maxWidth: '420px' }}
+    >
+      {Array.from({ length: total }, (_, i) => {
+        const lit = i < correct
+        return (
+          <Star
+            key={i}
+            size={34}
+            strokeWidth={1.8}
+            fill={lit ? color : 'transparent'}
+            style={{
+              color: lit ? color : 'rgba(255,255,255,0.55)',
+              animation: `metricIn 0.4s ease ${i * 70}ms both`,
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
 
-export default function SessionEndScreen({ correct, total, levelChanged, onRepeat, onViewProgress, onAutoPlayNext, palette }: Props) {
+export default function SessionEndScreen({
+  correct, total, levelChanged, onRepeat, onBackToMap, onViewProgress, onAutoPlayNext, demoBridge, palette,
+}: Props) {
   const pal     = palette ?? getPaletteForHotspot(undefined)
   const pct     = total > 0 ? Math.round((correct / total) * 100) : 0
   const message = getMessage(pct)
   const isPerfect = pct === 100
-  const [btn1H, setBtn1H] = useState(false)
-  const [btn2H, setBtn2H] = useState(false)
-  const [waitH, setWaitH] = useState(false)
 
   // Countdown Netflix
   const [secondsLeft, setSecondsLeft] = useState(5)
@@ -118,14 +120,15 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
   }, [secondsLeft, cancelled, onAutoPlayNext])
 
   // Cualquier acción manual cancela el countdown antes de su handler propio.
-  function handleRepeat() {
+  function run(fn: () => void) {
     setCancelled(true)
-    onRepeat()
+    fn()
   }
-  function handleViewProgress() {
-    setCancelled(true)
-    onViewProgress()
-  }
+
+  const kid = 'Fredoka, system-ui, sans-serif'
+  const secondary = onBackToMap
+    ? { label: 'Volver al mapa', Icon: MapIcon, onClick: onBackToMap }
+    : { label: 'Ver mi progreso', Icon: TrendingUp, onClick: onViewProgress }
 
   return (
     <div
@@ -136,217 +139,160 @@ export default function SessionEndScreen({ correct, total, levelChanged, onRepea
         display: 'flex',
         flexDirection: 'column',
         background: pal.cream,
-        fontFamily: 'Nunito, sans-serif',
       }}
     >
+      <style>{`
+        .se-btn { transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
+        .se-btn:hover { transform: translateY(-2px); }
+        .se-btn:focus-visible { outline: 3px solid #17313A; outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) { .se-btn { transition: none; } .se-btn:hover { transform: none; } }
+      `}</style>
       {isPerfect && <PerfectConfetti />}
 
-      {/* ── ZONA SUPERIOR: color del lugar, 40% ───────────────────────────── */}
+      {/* ── ZONA SUPERIOR: color del lugar ────────────────────────────────── */}
       <div
         style={{
-          flex: '0 0 40%',
+          flex: '0 0 44%',
           background: pal.primary,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '16px',
+          gap: '18px',
           padding: '24px',
           textAlign: 'center',
         }}
       >
-        <Star
-          size={52}
-          fill={pal.accent}
-          style={{
-            color: pal.accent,
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))',
-            animation: 'metricIn 0.5s ease',
-          }}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <h1
             style={{
-              fontSize: 'clamp(28px, 5vw, 40px)',
-              fontWeight: 700,
+              fontSize: 'clamp(32px, 5vw, 46px)',
+              fontWeight: 600,
               color: pal.text,
               lineHeight: 1.1,
               margin: 0,
-              fontFamily: 'Fredoka, system-ui, sans-serif',
-            }}
-          >
-            ¡Partida completada!
-          </h1>
-          <p
-            style={{
-              fontSize: '22px',
-              fontWeight: 800,
-              color: pal.text,
-              opacity: 0.92,
-              margin: 0,
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: kid,
             }}
           >
             {message}
+          </h1>
+          <p style={{ margin: 0, fontSize: '20px', fontWeight: 500, color: pal.text, opacity: 0.9, fontFamily: kid }}>
+            Partida completada
           </p>
         </div>
-
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <StatCard icon={<BookOpen size={22} />}     value={total}     label="juegos"    color={pal.primary} />
-          <StatCard icon={<CheckCircle2 size={22} />} value={correct}   label="aciertos"  color={pal.primary} />
-          <StatCard icon={<Target size={22} />}       value={`${pct}%`} label="precisión" color={pal.primary} />
-        </div>
+        <StarRow correct={correct} total={total} color={pal.accent} />
       </div>
 
-      {/* ── ZONA INFERIOR: cream, 60% ─────────────────────────────────────── */}
+      {/* ── ZONA INFERIOR ─────────────────────────────────────────────────── */}
       <div
         style={{
-          flex: '1 1 60%',
+          flex: '1 1 56%',
           background: pal.cream,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '16px',
-          padding: '32px 24px',
+          padding: demoBridge ? '28px 24px 88px' : '28px 24px',
           overflow: 'auto',
         }}
       >
-        {/* Level change */}
         {levelChanged && (
-          <div
+          <p
             style={{
-              background: '#ffffff',
-              border: `2px solid ${levelChanged === 'up' ? '#22C55E' : '#FBBF24'}`,
-              borderRadius: '20px',
-              padding: '14px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              maxWidth: '360px',
+              margin: 0, display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '12px 18px', borderRadius: '16px', background: '#FFFFFF', maxWidth: '340px',
+              border: '1.5px solid #E3E4E0', color: '#15191B',
+              fontSize: '17px', fontWeight: 500, fontFamily: kid,
             }}
           >
             {levelChanged === 'up'
-              ? <ArrowUp size={22} style={{ color: '#22C55E', flexShrink: 0 }} />
-              : <BookMarked size={22} style={{ color: '#D97706', flexShrink: 0 }} />
-            }
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 700,
-                color: levelChanged === 'up' ? '#15803D' : '#92400E',
-                fontFamily: 'Nunito, sans-serif',
-              }}
-            >
-              {levelChanged === 'up'
-                ? '¡Subiste de nivel en la próxima partida!'
-                : 'Vamos a practicar un poco más en este nivel'}
-            </span>
-          </div>
+              ? <ArrowUp size={20} style={{ color: pal.primary, flexShrink: 0 }} />
+              : <BookMarked size={20} style={{ color: pal.primary, flexShrink: 0 }} />}
+            {levelChanged === 'up'
+              ? 'La próxima partida, un poquito más difícil.'
+              : 'Vamos a practicar un poco más en este nivel.'}
+          </p>
         )}
 
-        {/* Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '320px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '340px' }}>
           <button
-            onClick={handleRepeat}
-            onMouseEnter={() => setBtn1H(true)}
-            onMouseLeave={() => setBtn1H(false)}
+            type="button"
+            className="se-btn"
+            onClick={() => run(onRepeat)}
             style={{
-              width: '100%',
-              padding: '18px',
-              borderRadius: '16px',
-              border: 'none',
-              background: pal.primary,
-              color: pal.text,
-              fontSize: '18px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontFamily: 'Fredoka, system-ui, sans-serif',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transform: btn1H ? 'translateY(-2px)' : 'translateY(0)',
-              transition: 'transform 0.2s ease',
+              width: '100%', height: '60px', borderRadius: '16px', border: 'none',
+              background: '#F7C31C', color: '#15191B',
+              fontSize: '20px', fontWeight: 600, cursor: 'pointer', fontFamily: kid,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
             }}
           >
-            <RotateCcw size={20} />
+            <RotateCcw size={22} />
             Otra partida
           </button>
           <button
-            onClick={handleViewProgress}
-            onMouseEnter={() => setBtn2H(true)}
-            onMouseLeave={() => setBtn2H(false)}
+            type="button"
+            className="se-btn"
+            onClick={() => run(secondary.onClick)}
             style={{
-              width: '100%',
-              padding: '18px',
-              borderRadius: '16px',
-              border: `2px solid ${pal.primary}`,
-              background: 'transparent',
-              color: pal.primary,
-              fontSize: '18px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'Fredoka, system-ui, sans-serif',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transform: btn2H ? 'translateY(-2px)' : 'translateY(0)',
-              transition: 'all 0.2s ease',
+              width: '100%', height: '60px', borderRadius: '16px',
+              border: '1.5px solid #C9CBC6', background: '#FFFFFF', color: '#15191B',
+              fontSize: '20px', fontWeight: 600, cursor: 'pointer', fontFamily: kid,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
             }}
           >
-            <TrendingUp size={20} />
-            Ver mi progreso
+            <secondary.Icon size={22} />
+            {secondary.label}
           </button>
         </div>
 
-        {/* Countdown Netflix — sólo en modo hotspot (onAutoPlayNext presente) */}
+        {/* Countdown: una línea y un "esperar", sin otro botón grande. */}
         {onAutoPlayNext && !cancelled && (
-          <div
-            style={{
-              marginTop: '4px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              fontFamily: 'Fredoka, system-ui, sans-serif',
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                fontSize: '20px',
-                fontWeight: 600,
-                color: pal.primary,
-              }}
-            >
-              Próxima partida en {secondsLeft}
-            </p>
+          <p style={{ margin: 0, fontSize: '17px', color: '#5E6468', fontFamily: kid }}>
+            Otra partida en {secondsLeft}
+            {' · '}
             <button
+              type="button"
               onClick={() => setCancelled(true)}
-              onMouseEnter={() => setWaitH(true)}
-              onMouseLeave={() => setWaitH(false)}
               style={{
-                padding: '8px 20px',
-                borderRadius: '14px',
-                border: '1.5px solid #CBD5E1',
-                background: waitH ? '#F1F5F9' : 'transparent',
-                color: '#64748B',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: 'Fredoka, system-ui, sans-serif',
-                transition: 'all 0.2s ease',
+                padding: 0, border: 0, background: 'none', cursor: 'pointer',
+                color: '#15191B', fontSize: '17px', fontWeight: 600, fontFamily: kid,
+                textDecoration: 'underline', textUnderlineOffset: '3px',
               }}
             >
               Esperar
             </button>
-          </div>
+          </p>
         )}
       </div>
+
+      {demoBridge && (
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center',
+          padding: '0 16px 18px', pointerEvents: 'none',
+        }}>
+          <button
+            type="button"
+            onClick={() => run(demoBridge.onClick)}
+            style={{
+              pointerEvents: 'auto', display: 'inline-flex', alignItems: 'center', gap: '10px',
+              minHeight: '46px', padding: '0 20px', borderRadius: '999px', border: 'none',
+              background: '#17313A', color: '#FFFFFF', cursor: 'pointer',
+              fontFamily: "'IBM Plex Sans', system-ui, sans-serif", fontSize: '15px', fontWeight: 600,
+              boxShadow: '0 18px 36px -14px rgba(21,25,27,0.45)',
+            }}
+          >
+            <span style={{
+              fontSize: '12px', fontWeight: 600, padding: '3px 8px', borderRadius: '999px',
+              background: '#F7C31C', color: '#15191B',
+            }}>
+              Demo
+            </span>
+            {demoBridge.label}
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

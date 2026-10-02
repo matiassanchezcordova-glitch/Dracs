@@ -1,38 +1,42 @@
-// Tokens compartidos de la Casa de la Familia. Reutilizan la paleta de marca
-// (§6) y las fuentes ya cargadas (Fredoka / Nunito). Se mantienen como objeto
-// para encajar con el idioma de estilos en línea del resto de la app.
+// Tokens de la Casa de la Familia. Salen de src/lib/brand.ts, la misma paleta
+// de la web y del escritorio del profesional: títulos en serif, texto en sans,
+// tarjetas blancas sobre gris papel. El color de verdad lo ponen los lugares
+// del mundo del niño (sus sellos, el lugar de hoy) y el amarillo del botón.
+// Se mantienen como objeto para encajar con los estilos en línea de la app.
+
+import { BRAND } from '../../../lib/brand'
 
 export const HT = {
-  cream: '#FAF5E8',
-  creamCard: '#FFFDF7',
-  sand: '#EDE4D1',
-  ink: '#33302A',
-  taupe: '#9A8F7E',
-  muted: '#6B7280',
-  line: '#EFE7D6',
+  cream: BRAND.paper2,
+  creamCard: BRAND.paper2,   // rellenos dentro de una tarjeta blanca
+  sand: BRAND.paper3,
+  ink: BRAND.ink,
+  taupe: BRAND.faint,
+  muted: BRAND.note,
+  line: BRAND.line,
   white: '#FFFFFF',
 
-  // Paleta oficial (PHASE 0): el azul-forward turquesa se retira. Estructura y
-  // acentos = Azul #5B8896; títulos/cuerpo = Tinta #33302A. El único pop es el
-  // amarillo. (El azul brillante #1A8FB5 sigue vivo sólo en la landing.)
-  blue: '#5B8896',       // Azul — sólo acentos, íconos y enlaces
-  blueDeep: '#33302A',   // Tinta — títulos y encabezados (alto contraste)
-  blueTint: '#EDE4D1',   // Arena (token oficial) — fondos de avatar/chip; texto en Tinta
-  yellow: '#F7C31C',
+  blue: BRAND.data,          // acentos, íconos y enlaces
+  blueDeep: BRAND.ink,       // títulos
+  blueTint: BRAND.paper3,    // fondos de avatar/chip
+  night: BRAND.night,
+  yellow: BRAND.yellow,
+  yellowHover: BRAND.yellowHover,
   yellowSoft: '#FBE7A6',
-  turquoise: '#5B8896',  // ex-turquesa, ahora Azul
+  turquoise: BRAND.data,
   mint: '#10B981',
-  orange: '#F59E0B',
+  orange: BRAND.ochre,
 
-  display: 'Fredoka, system-ui, sans-serif',
-  body: 'Nunito, sans-serif',
+  display: BRAND.sans,       // rótulos de interfaz y botones
+  serif: BRAND.serif,        // títulos y la voz de la carta
+  body: BRAND.sans,
 
-  radius: '22px',
-  radiusSm: '16px',
-  shadow: '0 6px 24px rgba(51,48,42,0.07)',
-  shadowSoft: '0 3px 14px rgba(51,48,42,0.05)',
-  shadowLift: '0 14px 36px rgba(51,48,42,0.13)',
+  radius: BRAND.radius,
+  radiusSm: BRAND.radiusSm,
+  shadow: BRAND.shadow,
+  shadowSoft: BRAND.shadowSoft,
+  shadowLift: BRAND.shadowLift,
 } as const
 
 // Ancho de la única columna cálida de la casa.
-export const COLUMN_MAX = 720
+export const COLUMN_MAX = 760

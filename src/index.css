@@ -207,16 +207,16 @@ html {
 
 html, body {
   max-width: 100vw;
-  /* Color base unificado: la app entera respira crema (#FAF5E8), sin bandas
-     grises/blancas asomando debajo del shell en ningún breakpoint. */
-  background-color: #FAF5E8;
+  /* Color base unificado: el gris papel de la web (#F4F4F1), sin bandas
+     asomando debajo del shell en ningún breakpoint. */
+  background-color: #F4F4F1;
 }
 
 body, #root {
   margin: 0;
-  background-color: #FAF5E8;
+  background-color: #F4F4F1;
   min-height: 100vh;
-  color: #33302A;
+  color: #15191B;
   font-family: var(--font-body);
 }
 
@@ -467,6 +467,23 @@ html, body {
   30%           { opacity: 1;    transform: translateY(-3px); }
 }
 
+/* Superficie de la casa: misma medida que el escritorio del profesional. */
+.casa-home { padding: 48px 24px 72px; }
+.casa-home .home-h1 { font-size: 52px; }
+.casa-home .home-letter { font-size: 23px; }
+.casa-home .home-card { padding: 28px 32px; }
+.casa-home .home-dragon { width: 96px; }
+.casa-home .home-cta { transition: background-color 150ms ease, transform 120ms ease; }
+.casa-home .home-cta:hover { background: #E9B50F !important; }
+.casa-home .home-cta:active { transform: scale(0.99); }
+.casa-home .home-cta:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+@media (max-width: 640px) {
+  .casa-home { padding: 28px 16px 56px; }
+  .casa-home .home-h1 { font-size: 38px; }
+  .casa-home .home-letter { font-size: 20px; }
+  .casa-home .home-card { padding: 22px 20px; }
+  .casa-home .home-dragon { width: 72px; }
+}
 .casa-home .home-rise   { animation: homeRise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .casa-home .home-float  { animation: homeFloat 4s ease-in-out infinite; }
 .casa-home .home-greet  { animation: dragonGreet 1.1s ease-in-out 1, homeFloat 4s ease-in-out 1.1s infinite; }

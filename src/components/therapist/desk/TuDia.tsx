@@ -40,6 +40,7 @@ const CSS = `
 /* El input de fecha existe sólo para abrir el selector del sistema desde el
    ícono: invisible y debajo del botón, para que el selector salga ahí. */
 .td-picker { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+@media (max-width: 480px) { .td-hide-m { display: none; } .td-week { font-size: 16px !important; } }
 @media (prefers-reduced-motion: reduce) {
   .td-in { animation: none !important; }
   .td-row, .td-day { transition: none !important; }
@@ -116,10 +117,10 @@ function FranjaDelDia({ day, slots, choca }: { day: string; slots: Ocupado[]; ch
                 padding: '6px 11px', borderRadius: '9px',
                 background: nueva ? DT.white : DT.arena,
                 border: `1px ${nueva ? 'dashed' : 'solid'} ${nueva ? DT.azul : 'transparent'}`,
-                color: DT.ink, fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body,
+                color: DT.ink, fontSize: '14.5px', fontWeight: 500, fontFamily: DT.body,
               }}
             >
-              <span style={{ color: DT.azulInk, fontVariantNumeric: 'tabular-nums', fontWeight: 800 }}>
+              <span style={{ color: DT.azulInk, fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                 {s.time}
               </span>
               {s.label}
@@ -133,7 +134,7 @@ function FranjaDelDia({ day, slots, choca }: { day: string; slots: Ocupado[]; ch
           margin: '11px 0 0', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '9px 11px', borderRadius: DT.radiusSm,
           background: DT.mostazaTint, border: `1px solid ${DT.mostazaTintLine}`,
-          fontSize: '12.5px', fontWeight: 700, lineHeight: 1.45, color: DT.ink, fontFamily: DT.body,
+          fontSize: '14px', fontWeight: 500, lineHeight: 1.45, color: DT.ink, fontFamily: DT.body,
         }}>
           <Warning size={16} weight="regular" color={DT.mostazaInk} style={{ flexShrink: 0 }} />
           Esa hora ya está ocupada.
@@ -174,7 +175,7 @@ function AgendarVideollamada({ patients, slotsDe, onSaved }: {
     setOpen(false)
   }
 
-  const label: React.CSSProperties = { fontSize: '12.5px', fontWeight: 800, color: DT.ink, fontFamily: DT.body }
+  const label: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }
   const line: React.CSSProperties = { ...FIELD_LINE, background: DT.white }
 
   if (!open) {
@@ -183,7 +184,7 @@ function AgendarVideollamada({ patients, slotsDe, onSaved }: {
 
   return (
     <div className="td-in" style={{
-      padding: '17px', borderRadius: DT.radiusSm, background: DT.cream, border: `1px solid ${DT.line}`,
+      padding: '20px', borderRadius: DT.radiusSm, background: DT.cream,
     }}>
       <SectionTitle Icon={VideoCamera}>Agendar videollamada</SectionTitle>
 
@@ -257,9 +258,9 @@ function SemanaNav({ day, onDay, busyOf, today }: {
           que parece botón en esta fila lo es. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '11px' }}>
         <IconButton Icon={CaretLeft} label="Semana anterior" onClick={() => onDay(shiftDays(day, -7))} />
-        <span style={{
-          flex: 1, minWidth: 0, textAlign: 'center', fontSize: '15px', fontWeight: 600,
-          color: DT.ink, fontFamily: DT.display, fontVariantNumeric: 'tabular-nums',
+        <span className="td-week" style={{
+          flex: 1, minWidth: 0, textAlign: 'center', fontSize: '19px', fontWeight: 600,
+          color: DT.ink, fontFamily: DT.serif, fontVariantNumeric: 'tabular-nums',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {weekLabel(days[0], days[6])}
@@ -285,12 +286,12 @@ function SemanaNav({ day, onDay, busyOf, today }: {
       </div>
 
       {/* Los 7 días son el selector de la semana. Cuatro estados y nada más:
-          activo (relleno), hoy (borde azul), con algo agendado (punto) y ya
-          pasado (atenuado). */}
+          activo (relleno en tinta), hoy (borde azul), con algo agendado (punto)
+          y ya pasado (atenuado). */}
       <div
         role="group"
         aria-label="Elige el día de la semana"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px' }}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '6px' }}
       >
         {days.map((iso, i) => {
           const active = iso === day
@@ -306,25 +307,25 @@ function SemanaNav({ day, onDay, busyOf, today }: {
               aria-pressed={active}
               aria-label={`${longDay(iso)}${isToday ? ', hoy' : ''}${busy ? ', con algo agendado' : ''}`}
               style={{
-                padding: '8px 0 7px', borderRadius: DT.radiusSm, cursor: 'pointer', boxSizing: 'border-box',
-                border: `1px solid ${active || isToday ? DT.azul : DT.line}`,
-                background: active ? DT.azul : DT.white,
-                color: active ? DT.white : past ? DT.faint : DT.ink,
+                padding: '9px 0 8px', borderRadius: DT.radiusSm, cursor: 'pointer', boxSizing: 'border-box',
+                border: `1.5px solid ${active ? DT.night : isToday ? DT.azul : DT.line}`,
+                background: active ? DT.night : DT.white,
+                color: active ? '#FFFFFF' : past ? DT.faint : DT.ink,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
               }}
             >
-              <span style={{ fontSize: '10.5px', fontWeight: 800, opacity: 0.75, fontFamily: DT.body }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, opacity: 0.8, fontFamily: DT.body }}>
                 {WEEK_INITIALS[i]}
               </span>
               <span style={{
-                fontSize: '16px', fontWeight: 600, fontFamily: DT.display,
+                fontSize: '18px', fontWeight: 600, fontFamily: DT.display,
                 fontVariantNumeric: 'tabular-nums', lineHeight: 1.1,
               }}>
                 {parseDay(iso).getDate()}
               </span>
               <span aria-hidden style={{
                 width: '5px', height: '5px', borderRadius: '50%',
-                background: busy ? (active ? DT.white : DT.azul) : 'transparent',
+                background: busy ? (active ? DT.yellow : DT.azul) : 'transparent',
               }} />
             </button>
           )
@@ -342,10 +343,17 @@ interface Props {
 
 export default function TuDia({ patients, isDemo, onOpen }: Props) {
   const today = localIso(new Date())
-  const [day, setDay] = useState(today)
-  const [calls, setCalls] = useState<Videollamada[]>(() => loadVideollamadas())
-
   const patientIds = useMemo(() => patients.map(p => p.id), [patients])
+  const [calls, setCalls] = useState<Videollamada[]>(() => loadVideollamadas())
+  // Se abre en hoy. Si hoy no hay nada (un domingo, por ejemplo), en el
+  // próximo día con algo agendado: la agenda nunca abre vacía si hay sesiones.
+  const [day, setDay] = useState(() => {
+    for (let i = 0; i < 14; i++) {
+      const d = shiftDays(today, i)
+      if ((isDemo && citasDe(d, patientIds).length > 0) || calls.some(c => c.day === d)) return d
+    }
+    return today
+  })
 
   // Sesiones del día elegido. En la demo salen de la agenda de la base; con
   // cuenta real, la agenda es lo que el terapeuta agenda aquí.
@@ -384,13 +392,13 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
   // Fila de la agenda: hora, quién y a su carpeta. Nada de resultados aquí.
   const filaBase: React.CSSProperties = {
     width: '100%', textAlign: 'left', boxSizing: 'border-box',
-    display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '10px 12px', borderRadius: DT.radiusSm,
+    display: 'flex', alignItems: 'center', gap: '14px',
+    padding: '12px 14px', borderRadius: DT.radiusSm,
   }
 
   const horaChip: React.CSSProperties = {
-    flexShrink: 0, padding: '5px 9px', borderRadius: '9px',
-    background: DT.arena, fontSize: '13px', fontWeight: 800, color: DT.azulInk,
+    flexShrink: 0, minWidth: '52px', textAlign: 'center', padding: '6px 0', borderRadius: '8px',
+    background: DT.arena, fontSize: '14px', fontWeight: 600, color: DT.ink,
     fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
   }
 
@@ -398,7 +406,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
     <section
       aria-label="Agenda de la semana"
       style={{
-        padding: '20px', background: DT.white, border: `1px solid ${DT.line}`,
+        padding: '24px', background: DT.white, border: `1px solid ${DT.line}`,
         borderRadius: DT.radius, boxShadow: DT.shadow, fontFamily: DT.body,
       }}
     >
@@ -407,12 +415,15 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
       <SemanaNav day={day} onDay={setDay} busyOf={busyOf} today={today} />
 
       {/* Lo agendado el día elegido. El día ya se ve marcado arriba. */}
+      <p style={{ margin: '4px 0 10px', fontSize: '14px', fontWeight: 500, color: DT.muted, fontFamily: DT.body }}>
+        {day === today ? 'Hoy' : longDay(day).replace(/^./, c => c.toUpperCase())} · {filas.length === 0 ? 'sin sesiones' : filas.length === 1 ? '1 cita' : `${filas.length} citas`}
+      </p>
       {filas.length === 0 ? (
         <div style={{ marginBottom: '8px' }}>
           <EmptyState Icon={CalendarBlank} title="Nada agendado este día" compact />
         </div>
       ) : (
-        <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {filas.map(f => f.kind === 'sesion' ? (
             <button
               key={f.key}
@@ -424,24 +435,24 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
               <span style={horaChip}>{f.time}</span>
               <Avatar name={f.sesion.patient.name} size={34} />
               <span style={{
-                flex: 1, minWidth: 0, fontSize: '14.5px', fontWeight: 700, color: DT.ink,
+                flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 600, color: DT.ink,
                 fontFamily: DT.display, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {f.sesion.patient.name}
               </span>
               <span style={{
                 flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontSize: '12.5px', fontWeight: 700, color: DT.azulInk, fontFamily: DT.body,
+                fontSize: '14px', fontWeight: 500, color: DT.azulInk, fontFamily: DT.body,
               }}>
-                Su carpeta <RowCaret size={14} weight="regular" />
+                <span className="td-hide-m">Su carpeta</span> <RowCaret size={14} weight="regular" />
               </span>
             </button>
           ) : (
-            // La videollamada es un dato, no un botón: va en crema y sin flecha.
-            <div key={f.key} style={{ ...filaBase, background: DT.cream, border: `1px solid ${DT.lineSoft}` }}>
+            // La videollamada es un dato, no un botón: va en gris papel y sin flecha.
+            <div key={f.key} style={{ ...filaBase, background: DT.cream }}>
               <span style={{ ...horaChip, background: DT.white }}>{f.time}</span>
               <VideoCamera size={17} weight="regular" color={DT.azulInk} style={{ flexShrink: 0 }} />
-              <span style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: 700, color: DT.ink, fontFamily: DT.body }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 500, color: DT.ink, fontFamily: DT.body }}>
                 Videollamada con la familia de {firstName(f.call.patientName)}
               </span>
             </div>
@@ -449,7 +460,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
         </div>
       )}
 
-      <div style={{ paddingTop: '16px', borderTop: `1px solid ${DT.lineSoft}` }}>
+      <div style={{ paddingTop: '18px', borderTop: `1px solid ${DT.lineSoft}` }}>
         <AgendarVideollamada
           patients={patients}
           slotsDe={slotsDe}

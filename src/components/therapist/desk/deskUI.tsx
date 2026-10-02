@@ -1,25 +1,25 @@
-// Escritorio del Terapeuta — primitivos de UI (sólo componentes).
+// Escritorio del profesional: primitivos de UI (sólo componentes).
 // Tokens y helpers puros viven en deskTokens.ts.
 //
-// Una sola línea visual, sobria y consistente. Lo que se toca se ve que se toca,
-// y lo que no, no lo parece: ni el ícono ni el título de una sección llevan caja
-// ni borde, porque no son botones.
+// El mismo lenguaje que la web: tarjetas blancas sobre gris papel, títulos en
+// serif, datos en sans. Lo que se toca se ve que se toca, y lo que no, no lo
+// parece.
 //
-//   Card           blanco cálido sobre la crema, borde fino y sombra en capas.
-//   SectionTitle   ícono de línea y título en Fredoka. Sin caja, sin bajada.
-//   FieldLabel     rótulo interno en tinta, con un filo azul.
-//   StatTile       una métrica, un ícono, un número. Sin color decorativo.
+//   Card           blanca sobre el gris papel, borde fino y sombra larga.
+//   SectionTitle   título de tarjeta en serif, con un ícono discreto.
+//   FieldLabel     rótulo interno de un grupo de controles.
+//   StatTile       una métrica: número grande en serif y su etiqueta.
 //   Chip           dato, no acción: relleno suave y sin borde.
-//   ToggleChip     opción que se marca: pastilla con borde, azul cuando está.
+//   ToggleChip     opción que se marca: pastilla con borde, tinta cuando está.
 //   Button         acción. Primaria en amarillo (una por tarjeta), el resto en
-//                  blanco con borde. Mismo alto, radio y tipografía en toda la
-//                  vista.
+//                  blanco con borde, como los botones de la web.
 //   IconButton     la misma acción, cuadrada y sólo con ícono (flechas, +/-).
 //   EmptyState     ícono de línea y una frase humana cuando no hay dato.
 
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 import type { Icon } from '@phosphor-icons/react'
 import { ACCENT, DRAGON, DT, initials, type Accent } from './deskTokens'
+import { BRAND } from '../../../lib/brand'
 
 // Animaciones y focos compartidos de la vista del terapeuta. Van en un solo
 // sitio para que la entrada de una tarjeta y el hover de otra se sientan del
@@ -32,19 +32,44 @@ export const DESK_CSS = `
 .dk-lift  { transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease, border-color 0.18s ease; }
 .dk-press { transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease; }
 .dk-focus:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
+.dk-page { padding: 48px 24px 56px; box-sizing: border-box; }
+.dk-foot { padding: 0 24px 104px; }
+.dk-h1 { font-size: 48px; }
+@media (max-width: 640px) {
+  .dk-page { padding: 28px 16px 40px; }
+  .dk-foot { padding: 0 16px 104px; }
+  .dk-h1 { font-size: 36px; }
+}
+.dk-split { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 20px; align-items: start; }
+.dk-split--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.dk-split--doc { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+.dk-stack { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.dk-sticky { position: sticky; top: 24px; }
+@media (max-width: 900px) {
+  .dk-split, .dk-split--even, .dk-split--doc { grid-template-columns: minmax(0, 1fr); }
+  .dk-sticky { position: static; }
+}
+.dk-back {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  margin: 0 0 20px -2px; padding: 4px 2px; border: 0; background: none; cursor: pointer;
+  color: ${DT.muted}; font-size: 15px; font-weight: 500; font-family: ${BRAND.sans};
+  border-radius: 6px;
+}
+.dk-back:hover { color: ${DT.ink}; }
 .dk-scroll { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
 .dk-scroll::-webkit-scrollbar { display: none; }
 .dk-btn { transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, color 0.14s ease; }
 .dk-btn:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
-.dk-btn-secondary:hover:not(:disabled) { border-color: ${DT.topo}; }
-.dk-btn-primary:hover:not(:disabled) { box-shadow: 0 1px 2px rgba(51,48,42,0.12), 0 6px 16px rgba(247,195,28,0.36); }
+.dk-btn-secondary:hover:not(:disabled) { border-color: ${DT.ink}; }
+.dk-btn-primary:hover:not(:disabled) { background: ${BRAND.yellowHover} !important; }
+.dk-chip:hover:not(:disabled) { border-color: ${DT.ink}; }
 @media (prefers-reduced-motion: reduce) {
   .dk-rise, .dk-fade { animation: none !important; }
   .dk-lift, .dk-press, .dk-btn { transition: none !important; }
 }
 `
 
-// Tarjeta base — blanco cálido sobre la crema, borde cálido y sombra en capas.
+// Tarjeta base: blanca sobre el gris papel, borde fino y sombra larga.
 // `edge` añade el filo de acento a la izquierda sólo cuando ese color significa
 // algo (el estado de un paciente, lo privado de una nota).
 export function Card({ children, style, className, edge }: {
@@ -58,16 +83,15 @@ export function Card({ children, style, className, edge }: {
       position: 'relative',
       background: DT.white, border: `1px solid ${DT.line}`, borderRadius: DT.radius,
       borderLeft: edge ? `3px solid ${ACCENT[edge].solid}` : undefined,
-      padding: '22px', boxShadow: DT.shadow, ...style,
+      padding: '24px', boxShadow: DT.shadow, ...style,
     }}>
       {children}
     </div>
   )
 }
 
-// Cabecera de sección: ícono de línea y título en Fredoka, y nada más. Sin caja
-// detrás del ícono, que lo hacía parecer un botón, y sin bajada explicando lo
-// que el título ya dice.
+// Cabecera de tarjeta: título en serif, como los de la web, con un ícono de
+// línea discreto delante. Sin caja detrás del ícono y sin bajada.
 export function SectionTitle({ Icon: I, children, right, size = 'md' }: {
   Icon: Icon
   children: ReactNode
@@ -80,19 +104,19 @@ export function SectionTitle({ Icon: I, children, right, size = 'md' }: {
     // baja a su propia línea en vez de estrujar el título en un móvil.
     <div style={{
       display: 'flex', alignItems: 'center', gap: '10px',
-      flexWrap: 'wrap', rowGap: '12px', marginBottom: '14px',
+      flexWrap: 'wrap', rowGap: '12px', marginBottom: '16px',
     }}>
       <I
-        size={big ? 21 : 18}
+        size={big ? 20 : 18}
         weight="regular"
-        color={DT.azulInk}
+        color={DT.azul}
         aria-hidden
         style={{ flexShrink: 0 }}
       />
       <h3 style={{
         flex: 1, minWidth: '140px', margin: 0,
-        fontSize: big ? '19px' : '16.5px', fontWeight: 700,
-        color: DT.ink, fontFamily: DT.display, lineHeight: 1.25,
+        fontSize: big ? '23px' : '20px', fontWeight: 600, letterSpacing: '-0.01em',
+        color: DT.ink, fontFamily: DT.serif, lineHeight: 1.2,
       }}>
         {children}
       </h3>
@@ -105,28 +129,23 @@ export function SectionTitle({ Icon: I, children, right, size = 'md' }: {
   )
 }
 
-// Rótulo interno de un grupo de controles. En tinta y con un filo azul: se lee
-// de verdad, al revés que el gris minúsculo de antes.
+// Rótulo interno de un grupo de controles: sans, peso medio, en tinta.
 export function FieldLabel({ children, style }: {
   children: ReactNode
   style?: CSSProperties
 }) {
   return (
     <p style={{
-      margin: '0 0 11px', display: 'flex', alignItems: 'center', gap: '8px',
-      fontSize: '13px', fontWeight: 800, color: DT.ink, fontFamily: DT.body, ...style,
+      margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '8px',
+      fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body, ...style,
     }}>
-      <span aria-hidden style={{
-        width: '3px', height: '14px', borderRadius: '999px', flexShrink: 0,
-        background: DT.azul,
-      }} />
       {children}
     </p>
   )
 }
 
-// Métrica: ícono de línea, número en Fredoka y su etiqueta. Todas iguales: el
-// color no codifica nada aquí, así que no hay un color por tile.
+// Métrica: número grande en serif y su etiqueta, como las cifras de la web.
+// Todas iguales: el color no codifica nada aquí.
 export function StatTile({ Icon: I, value, label }: {
   Icon: Icon
   value: string
@@ -135,20 +154,20 @@ export function StatTile({ Icon: I, value, label }: {
   return (
     <div style={{
       boxSizing: 'border-box',
-      background: DT.cream, border: `1px solid ${DT.line}`, borderRadius: DT.radiusSm,
-      padding: '14px',
+      background: DT.cream, borderRadius: DT.radiusSm,
+      padding: '16px 18px',
     }}>
       <div style={{
-        fontSize: '26px', fontWeight: 600, color: DT.ink, lineHeight: 1,
-        fontFamily: DT.display, fontVariantNumeric: 'tabular-nums',
+        fontSize: '34px', fontWeight: 500, color: DT.ink, lineHeight: 1, letterSpacing: '-0.02em',
+        fontFamily: DT.serif, fontVariantNumeric: 'tabular-nums',
       }}>
         {value}
       </div>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px',
-        fontSize: '12px', fontWeight: 700, color: DT.muted, fontFamily: DT.body,
+        display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px',
+        fontSize: '13px', fontWeight: 500, color: DT.muted, fontFamily: DT.body,
       }}>
-        <I size={13} weight="regular" color={DT.azulInk} style={{ flexShrink: 0 }} />
+        <I size={14} weight="regular" color={DT.azul} style={{ flexShrink: 0 }} />
         {label}
       </div>
     </div>
@@ -166,7 +185,7 @@ export function Chip({ children, Icon: I }: {
       display: 'inline-flex', alignItems: 'center', gap: '6px',
       padding: '5px 11px', borderRadius: '999px',
       background: DT.arena, color: DT.ink,
-      fontSize: '12.5px', fontWeight: 700, fontFamily: DT.body, whiteSpace: 'nowrap',
+      fontSize: '13px', fontWeight: 500, fontFamily: DT.body, whiteSpace: 'nowrap',
     }}>
       {I && <I size={13} weight="regular" color={DT.topoInk} style={{ flexShrink: 0 }} />}
       {children}
@@ -181,8 +200,8 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
     <span aria-hidden style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0, boxSizing: 'border-box',
       background: DT.azulTint, color: DT.azulInk, border: `1px solid ${DT.azulTintLine}`,
-      fontFamily: DT.body, fontWeight: 800,
-      fontSize: `${Math.round(size * 0.36)}px`, letterSpacing: '0.02em',
+      fontFamily: DT.body, fontWeight: 600,
+      fontSize: `${Math.round(size * 0.34)}px`, letterSpacing: '0.02em',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       {initials(name)}
@@ -233,14 +252,14 @@ export function EmptyState({ Icon: I, title, children, compact }: {
     }}>
       <I size={compact ? 24 : 28} weight="regular" color={DT.topo} aria-hidden style={{ marginBottom: '4px' }} />
       <p style={{
-        margin: 0, fontSize: compact ? '15px' : '16.5px', fontWeight: 700,
-        color: DT.ink, fontFamily: DT.display,
+        margin: 0, fontSize: compact ? '16px' : '18px', fontWeight: 600,
+        color: DT.ink, fontFamily: DT.serif,
       }}>
         {title}
       </p>
       {children && (
         <p style={{
-          margin: 0, fontSize: '13.5px', lineHeight: 1.6, color: DT.muted, fontFamily: DT.body,
+          margin: 0, fontSize: '14px', lineHeight: 1.6, color: DT.muted, fontFamily: DT.body,
         }}>
           {children}
         </p>
@@ -250,7 +269,7 @@ export function EmptyState({ Icon: I, title, children, compact }: {
 }
 
 // Opción que se marca y se desmarca (áreas de foco, período, versión). Tiene
-// borde porque se toca; marcada va en azul lleno.
+// borde porque se toca; marcada va en tinta llena, como la pestaña activa.
 export function ToggleChip({ on, onClick, children }: {
   on: boolean
   onClick: () => void
@@ -261,13 +280,13 @@ export function ToggleChip({ on, onClick, children }: {
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className="dk-btn dk-btn-secondary"
+      className="dk-btn dk-chip"
       style={{
-        minHeight: '38px', padding: '7px 14px', borderRadius: '999px', cursor: 'pointer',
-        border: `1px solid ${on ? DT.azul : DT.line}`,
-        background: on ? DT.azul : DT.white,
-        color: on ? DT.white : DT.ink,
-        fontSize: '13px', fontWeight: 700, fontFamily: DT.body,
+        minHeight: '38px', padding: '7px 15px', borderRadius: '999px', cursor: 'pointer',
+        border: `1.5px solid ${on ? DT.night : BRAND.lineStrong}`,
+        background: on ? DT.night : DT.white,
+        color: on ? '#FFFFFF' : DT.ink,
+        fontSize: '14px', fontWeight: 500, fontFamily: DT.body,
       }}
     >
       {children}
@@ -276,8 +295,8 @@ export function ToggleChip({ on, onClick, children }: {
 }
 
 const BUTTON_SIZE = {
-  md: { height: 40, padX: 16, font: '13.5px', icon: 16 },
-  sm: { height: 34, padX: 13, font: '13px', icon: 15 },
+  md: { height: 42, padX: 18, font: '14.5px', icon: 16 },
+  sm: { height: 36, padX: 14, font: '14px', icon: 15 },
 } as const
 
 // Botón de la vista. `primary` es la acción principal de su tarjeta, en
@@ -300,14 +319,12 @@ export function Button({
       className={`dk-btn dk-btn-${variant}${className ? ` ${className}` : ''}`}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-        height: `${S.height}px`, padding: `0 ${S.padX}px`, borderRadius: DT.radiusSm, flexShrink: 0,
-        border: primary ? '1px solid transparent' : `1px solid ${DT.line}`,
+        height: `${S.height}px`, padding: `0 ${S.padX}px`, borderRadius: '10px', flexShrink: 0,
+        border: primary ? '1.5px solid transparent' : `1.5px solid ${BRAND.lineStrong}`,
         background: primary ? DT.yellow : DT.white, color: DT.ink,
-        fontSize: S.font, fontWeight: 700, fontFamily: DT.display, whiteSpace: 'nowrap',
-        cursor: off ? 'default' : 'pointer', opacity: off ? 0.5 : 1,
-        boxShadow: off ? 'none' : primary
-          ? '0 1px 2px rgba(51,48,42,0.10), 0 5px 12px rgba(247,195,28,0.26)'
-          : DT.shadowSoft,
+        fontSize: S.font, fontWeight: 600, fontFamily: DT.display, whiteSpace: 'nowrap',
+        cursor: off ? 'default' : 'pointer', opacity: off ? 0.45 : 1,
+        boxShadow: 'none',
         ...style,
       }}
     >
@@ -333,13 +350,12 @@ export function IconButton({ Icon: I, label, style, active, ...rest }: {
       {...rest}
       className="dk-btn dk-btn-secondary"
       style={{
-        width: '34px', height: '34px', borderRadius: '11px', flexShrink: 0, padding: 0,
-        border: `1px solid ${active ? DT.azulTintLine : DT.line}`,
-        background: active ? DT.azulTint : DT.white,
-        color: active ? DT.azulInk : DT.ink,
+        width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0, padding: 0,
+        border: `1.5px solid ${active ? DT.night : BRAND.lineStrong}`,
+        background: active ? DT.night : DT.white,
+        color: active ? '#FFFFFF' : DT.ink,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: off ? 'default' : 'pointer', opacity: off ? 0.4 : 1,
-        boxShadow: off ? 'none' : DT.shadowSoft,
+        cursor: off ? 'default' : 'pointer', opacity: off ? 0.35 : 1,
         ...style,
       }}
     >
