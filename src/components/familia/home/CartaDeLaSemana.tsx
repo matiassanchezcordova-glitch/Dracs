@@ -14,7 +14,7 @@ function Label({ Icon, children, light }: { Icon: typeof Envelope; children: Rea
   return (
     <p style={{
       margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: '8px',
-      fontSize: '15px', fontWeight: 500, fontFamily: HT.body,
+      fontSize: '16px', fontWeight: 400, fontFamily: HT.body,
       color: light ? 'rgba(255,255,255,0.75)' : HT.muted,
     }}>
       <Icon size={18} weight="regular" aria-hidden /> {children}
@@ -40,13 +40,13 @@ export default function CartaDeLaSemana({
       >
         <Label Icon={Envelope}>{cartaTitle()}</Label>
         <p className="home-letter" style={{
-          margin: 0, fontWeight: 400, color: HT.ink,
+          margin: 0, fontWeight: 500, color: HT.ink,
           lineHeight: 1.5, fontFamily: HT.serif,
         }}>
           {cartaBody(childName, signal)}
         </p>
         <p style={{
-          margin: '16px 0 0', fontSize: '15px', fontWeight: 500, color: HT.muted, fontFamily: HT.body,
+          margin: '16px 0 0', fontSize: '16px', fontWeight: 400, color: HT.muted, fontFamily: HT.body,
         }}>
           {DRAGUI}, el dragón de {childName}
         </p>
@@ -55,12 +55,12 @@ export default function CartaDeLaSemana({
           <div style={{ marginTop: '24px', paddingTop: '22px', borderTop: `1px solid ${HT.line}` }}>
             <Label Icon={ChatCircleText}>Su profesional te escribe</Label>
             <p style={{
-              margin: 0, fontSize: '19px', lineHeight: 1.55, color: HT.ink, fontFamily: HT.serif,
+              margin: 0, fontSize: '24px', fontWeight: 500, lineHeight: 1.5, color: HT.ink, fontFamily: HT.serif,
               whiteSpace: 'pre-wrap',
             }}>
               {note.text}
             </p>
-            <p style={{ margin: '14px 0 0', fontSize: '15px', fontWeight: 500, color: HT.muted, fontFamily: HT.body }}>
+            <p style={{ margin: '14px 0 0', fontSize: '16px', fontWeight: 400, color: HT.muted, fontFamily: HT.body }}>
               {note.author}{note.date ? ` · ${note.date}` : ''}
             </p>
           </div>

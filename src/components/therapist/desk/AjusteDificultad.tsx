@@ -43,7 +43,7 @@ function Stepper({ label, value, onChange, disabled, min, max }: {
       <span
         aria-live="polite"
         style={{
-          minWidth: '26px', textAlign: 'center', fontSize: '17px', fontWeight: 600,
+          minWidth: '26px', textAlign: 'center', fontSize: '18px', fontWeight: 600,
           color: DT.ink, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums',
         }}
       >
@@ -120,7 +120,7 @@ export default function AjusteDificultad({
       </div>
 
       <p style={{
-        margin: '14px 0 0', fontSize: '13px', fontWeight: 600, lineHeight: 1.5,
+        margin: '14px 0 0', fontSize: '14px', fontWeight: 600, lineHeight: 1.5,
         color: DT.muted, fontFamily: DT.body,
       }}>
         La familia ve este nivel. Todavía no cambia los juegos del niño.

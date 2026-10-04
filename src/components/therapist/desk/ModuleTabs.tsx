@@ -39,8 +39,8 @@ const CSS = `
 // Dos tallas del mismo patrón. `sm` es para la sub-barra de la Carpeta: tiene
 // que leerse como subordinada a la barra de módulos, no competir con ella.
 const SIZES = {
-  md: { pad: 4, height: 40, padX: 18, font: '15px', icon: 17, gap: 8 },
-  sm: { pad: 0, height: 46, padX: 2, font: '15px', icon: 17, gap: 7 },
+  md: { pad: 4, height: 40, padX: 18, font: '16px', icon: 17, gap: 8 },
+  sm: { pad: 0, height: 46, padX: 2, font: '16px', icon: 17, gap: 7 },
 } as const
 
 interface Props {
@@ -151,7 +151,7 @@ export default function ModuleTabs({ modules, active, onChange, panelId, size = 
                 height: `${S.height}px`, padding: `0 ${S.padX}px`, borderRadius: under ? 0 : '999px',
                 border: 'none', background: 'transparent', cursor: 'pointer',
                 color: onBubble ? '#FFFFFF' : isActive ? DT.ink : DT.muted,
-                fontSize: S.font, fontWeight: isActive ? 600 : 500, fontFamily: DT.display,
+                fontSize: S.font, fontWeight: isActive ? 600 : 400, fontFamily: DT.display,
                 whiteSpace: 'nowrap',
               }}
             >

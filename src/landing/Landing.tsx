@@ -7,7 +7,6 @@ import MapExplorer from './MapExplorer'
 import DeskTabs from './DeskTabs'
 import Cinta from './Cinta'
 import Futuro from './Futuro'
-import DemoDoors from './DemoDoors'
 import { useInView } from './useInView'
 import './landing.css'
 
@@ -25,7 +24,7 @@ const DEMO_THERAPIST = '/demo?como=profesional'
 const MENU = [
   { href: '#como-funciona', label: 'Cómo funciona' },
   { href: '#decides', label: 'Lo que hace Dracs' },
-  { href: '#hoy', label: 'La demo' },
+  { href: '#hoy', label: 'Ya funciona hoy' },
   { href: '#futuro', label: 'Hacia dónde vamos' },
   { href: '#equipo', label: 'Equipo' },
   { href: '#preguntas', label: 'Preguntas' },
@@ -115,13 +114,16 @@ function Statement() {
       <p className="lp-statement__text">
         Dracs{' '}
         <span className="st-pill st-pill--dragon" aria-hidden="true"><img src="/landing/dragon.webp" alt="" width={40} height={52} /></span>{' '}
-        une a tres personas: el niño que juega{' '}
-        <span className="st-stack" aria-hidden="true">
-          <img src="/landing/ilus/pulpo.webp" alt="" width={80} height={80} />
-          <img src="/landing/ilus/caracola.webp" alt="" width={80} height={80} />
-          <img src="/landing/ilus/sol.webp" alt="" width={80} height={80} />
-        </span>
-        , el profesional que decide{' '}
+        une a tres personas: el niño que{' '}
+        <span style={{ whiteSpace: 'nowrap' }}>
+          juega{' '}
+          <span className="st-stack" aria-hidden="true">
+            <img src="/landing/ilus/pulpo.webp" alt="" width={80} height={80} />
+            <img src="/landing/ilus/caracola.webp" alt="" width={80} height={80} />
+            <img src="/landing/ilus/sol.webp" alt="" width={80} height={80} />
+          </span>,
+        </span>{' '}
+        el profesional que decide{' '}
         <span className="st-pill st-pill--night" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="44" height="44"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2h8.8A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
         </span>{' '}
@@ -253,16 +255,29 @@ function Decide() {
   )
 }
 
-// ── La demo: las mismas tres puertas que /demo ───────────────────────────
+// ── Ya funciona hoy: capturas reales de la demo, flotando ────────────────
 function Showcase() {
+  const cards = [
+    { title: 'Tus pacientes', img: '/landing/app-pacientes.webp', w: 2240, h: 1400, cls: 'sc--wide sc--low' },
+    { title: 'Pautas el foco', img: '/landing/plan.webp', w: 1344, h: 894, cls: 'sc--mid' },
+    { title: 'Juega en casa', img: '/landing/partida-caracola.webp', w: 760, h: 740, cls: 'sc--high' },
+    { title: 'El informe, con tu firma', img: '/landing/informe.webp', w: 1344, h: 1672, cls: 'sc--mid sc--tall' },
+    { title: 'La carta de la semana', img: '/landing/carta.webp', w: 1520, h: 406, cls: 'sc--wide sc--low' },
+  ]
   return (
     <section className="lp-show" id="hoy">
-      <div className="lp-wrap" style={{ maxWidth: 1040 }}>
-        <div className="lp-center">
-          <h2 className="lp-title lp-center">Ya se puede probar.</h2>
-          <p className="lp-lead">Abierta y sin registro. Pol, 6 años, es el niño de ejemplo en las tres vistas.</p>
-        </div>
-        <DemoDoors />
+      <div className="lp-wrap lp-center">
+        <h2 className="lp-title lp-center">Ya funciona hoy.</h2>
+        <p className="lp-lead">Todo lo que ves en esta página se puede probar ahora en la demo.</p>
+        <Link className="lp-btn lp-btn--dark" to={DEMO_THERAPIST}>Probar la demo</Link>
+      </div>
+      <div className="sc-row">
+        {cards.map(c => (
+          <figure key={c.title} className={`sc ${c.cls}`}>
+            <figcaption>{c.title}</figcaption>
+            <div className="sc__img"><img src={c.img} alt={c.title} width={c.w} height={c.h} loading="lazy" /></div>
+          </figure>
+        ))}
       </div>
     </section>
   )

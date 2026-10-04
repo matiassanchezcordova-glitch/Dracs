@@ -33,7 +33,7 @@ export default function HomeSkeleton() {
       <Block h={120} />
       <Block h={300} />
       <p style={{
-        textAlign: 'center', margin: 0, fontSize: '13px', fontWeight: 700,
+        textAlign: 'center', margin: 0, fontSize: '14px', fontWeight: 700,
         color: HT.taupe, fontFamily: HT.body,
       }}>
         {LOADING_HINT}

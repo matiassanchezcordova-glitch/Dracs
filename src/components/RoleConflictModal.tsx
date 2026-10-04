@@ -56,7 +56,7 @@ export default function RoleConflictModal({
         <h2 style={{
           margin: '0 0 8px',
           fontFamily: "'Source Serif 4', Georgia, serif",
-          fontSize: '22px', fontWeight: 600, color: '#15191B',
+          fontSize: '22px', fontWeight: 500, color: '#15191B',
         }}>
           Sesión activa como {currentRoleName}
         </h2>

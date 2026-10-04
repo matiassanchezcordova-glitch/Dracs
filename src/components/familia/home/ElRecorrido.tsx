@@ -51,7 +51,7 @@ function FlechaSemana({ dir, disabled, onClick }: {
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <p style={{
-      margin: '0 0 12px', fontSize: '15px', fontWeight: 600, color: HT.ink, fontFamily: HT.body,
+      margin: '0 0 12px', fontSize: '16px', fontWeight: 600, color: HT.ink, fontFamily: HT.body,
     }}>
       {children}
     </p>
@@ -84,7 +84,7 @@ function Piedra({ day, selected, onSelect }: {
       }}
     >
       <span style={{
-        fontSize: '13px', fontWeight: 500, fontFamily: HT.body,
+        fontSize: '14px', fontWeight: 400, fontFamily: HT.body,
         color: day.thisWeek ? HT.ink : HT.taupe,
       }}>
         {day.label}
@@ -109,7 +109,7 @@ function Piedra({ day, selected, onSelect }: {
       </span>
       {/* Con 7 días entra el número: ancla la tira al "Semana del 17 al 23". */}
       <span style={{
-        fontSize: '13px', fontWeight: day.isToday ? 600 : 400, fontFamily: HT.body,
+        fontSize: '14px', fontWeight: day.isToday ? 600 : 400, fontFamily: HT.body,
         color: day.isToday ? HT.ink : HT.taupe,
         fontVariantNumeric: 'tabular-nums',
       }}>
@@ -144,7 +144,7 @@ function Sello({ id, visited }: { id: keyof typeof PLACE_META; visited: boolean 
         <meta.Icon size={26} weight="duotone" color={visited ? '#FFFFFF' : HT.taupe} />
       </span>
       <span style={{
-        fontSize: '13px', fontWeight: visited ? 500 : 400, fontFamily: HT.body,
+        fontSize: '14px', fontWeight: visited ? 600 : 400, fontFamily: HT.body,
         color: visited ? HT.ink : HT.taupe, textAlign: 'center', lineHeight: 1.25,
       }}>
         {meta.name.charAt(0).toUpperCase() + meta.name.slice(1)}
@@ -192,7 +192,7 @@ export default function ElRecorrido({
         {/* Encabezado: título en serif y, debajo, la constancia dicha en cálido. */}
         <div>
           <h2 style={{
-            margin: 0, fontSize: '28px', fontWeight: 600, color: HT.ink, letterSpacing: '-0.01em',
+            margin: 0, fontSize: '24px', fontWeight: 500, color: HT.ink, letterSpacing: '-0.01em',
             fontFamily: HT.serif, lineHeight: 1.15,
           }}>
             {recorridoTitle(childName)}
@@ -213,7 +213,7 @@ export default function ElRecorrido({
             borderRadius: HT.radiusSm, padding: '16px',
           }}>
             <Sparkle size={19} weight="fill" color={HT.yellow} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <p style={{ margin: 0, fontSize: '14.5px', color: HT.ink, fontFamily: HT.body, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: '16px', color: HT.ink, fontFamily: HT.body, lineHeight: 1.55 }}>
               {recorridoEmpty(childName)}
             </p>
           </div>
@@ -229,8 +229,8 @@ export default function ElRecorrido({
               }}>
                 <FlechaSemana dir="prev" disabled={!week.canGoBack} onClick={() => goWeek(-1)} />
                 <p style={{
-                  flex: 1, margin: 0, textAlign: 'center', fontSize: '15px',
-                  fontWeight: 500, color: HT.ink, fontFamily: HT.body,
+                  flex: 1, margin: 0, textAlign: 'center', fontSize: '16px',
+                  fontWeight: 400, color: HT.ink, fontFamily: HT.body,
                 }}>
                   {week.label}
                 </p>
@@ -249,7 +249,7 @@ export default function ElRecorrido({
               </div>
               {/* Al tocar un día, una línea cálida. Sin tocar nada, la pista. */}
               <p style={{
-                margin: '14px 0 0', fontSize: '15px', fontFamily: HT.body, lineHeight: 1.5,
+                margin: '14px 0 0', fontSize: '16px', fontFamily: HT.body, lineHeight: 1.5,
                 color: selected ? HT.ink : HT.muted,
                 fontWeight: selected ? 500 : 400,
                 minHeight: '21px',

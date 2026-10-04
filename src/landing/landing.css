@@ -555,7 +555,7 @@
 }
 .sc { margin: 0; background: #fff; border-radius: 32px; padding: 20px; box-shadow: 0 30px 60px -36px rgba(21, 25, 27, 0.4); flex-shrink: 0; }
 .lp .sc figcaption { font-size: 16px; font-weight: 600; margin: 2px 4px 14px; text-align: left; }
-.sc__img { border-radius: 18px; overflow: hidden; background: #faf5e8; }
+.sc__img { border-radius: 18px; overflow: hidden; background: var(--lp-paper-2); }
 .sc__img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 .sc { width: 290px; }
 .sc--wide { width: 380px; }
@@ -719,5 +719,59 @@
 /* ── v7: botón del hero y puertas de la demo en la web ─────────────────── */
 .lp-hero__actions { display: flex; justify-content: center; }
 .lp-hero__actions .lp-btn--dark { margin-top: 28px; }
-.lp-show .lp-doors { margin-top: 48px; }
-@media (max-width: 900px) { .lp-show .lp-doors { margin-left: auto; margin-right: auto; } }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Escala tipográfica única (va al final y manda sobre lo anterior)
+   Tres familias y nada más:
+     Source Serif 4  títulos y cifras, siempre peso 500
+     IBM Plex Sans   todo el texto y la interfaz, pesos 400 y 600
+     Fredoka         solo dentro de las pantallas del juego del niño
+   Ocho tamaños: 4 de serif (display, h2, h3, h4) y 4 de sans (lead, cuerpo,
+   interfaz, pequeño). Las fichas de las capturas simuladas usan además 12px.
+   ══════════════════════════════════════════════════════════════════════════ */
+.lp {
+  --t-display: clamp(44px, 7vw, 104px);
+  --t-h2: 56px;
+  --t-h3: 40px;
+  --t-h4: 24px;
+  --t-lead: 20px;
+  --t-body: 18px;
+  --t-ui: 16px;
+  --t-small: 14px;
+}
+@media (max-width: 720px) {
+  .lp { --t-h2: 36px; --t-h3: 30px; --t-h4: 21px; --t-lead: 18px; --t-body: 17px; }
+}
+
+/* Serif */
+.lp .lp-display { font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-display); }
+.lp .lp-title, .lp .lp-statement__text, .lp .lp-bigfoot__links a {
+  font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-h2); letter-spacing: -0.02em;
+}
+.lp .lp-title--hero { font-size: var(--t-h2); }
+.lp .lp-statement__text { line-height: 1.2; }
+.lp .lp-h, .lp .lp-minifig__n, .lp .lp-menu__card ul a {
+  font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-h3); letter-spacing: -0.02em; line-height: 1.1;
+}
+.lp .lp-sub, .lp .lp-faq summary, .lp .fu-title {
+  font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-h4); letter-spacing: -0.01em; line-height: 1.25;
+}
+.lp .lp-bigfoot__mark { font-family: var(--lp-serif); font-weight: 500; letter-spacing: -0.04em; pointer-events: none; user-select: none; }
+
+/* Sans: lead, cuerpo, interfaz, pequeño */
+.lp .lp-lead { font-size: var(--t-lead); }
+.lp, .lp .lp-p, .lp .lp-body, .lp .lp-decide__col li, .lp .fu-text, .lp .lp-way__what { font-size: var(--t-body); }
+.lp .lp-btn, .lp .lp-btn--small, .lp .lp-menu-btn, .lp .lp-link, .lp .lp-label, .lp .lp-nav__links a,
+.lp .lp-field label, .lp .lp-field legend, .lp .lp-check, .lp .lp-input, .lp .lp-dock__text,
+.lp .lp-decide__head, .lp .sc figcaption, .lp .lp-minifig__t, .lp .wk-rowlabel, .lp .lp-door__desc,
+.lp .lp-form__error, .lp .lp-way__time, .lp .lp-next, .lp .lp-person__mono {
+  font-size: var(--t-ui);
+}
+.lp .lp-source, .lp .lp-check--consent, .lp .wk-day, .lp .wk-note, .lp .lp-future__tag, .lp .lp-door__tag,
+.lp .hd-place, .lp .hd-folder__name, .lp .hd-folder__meta, .lp .hd-empty, .lp .hd-row__game, .lp .hd-row__res, .lp .hd-hint,
+.lp .hd-avatar, .lp .mx-card__place, .lp .fu-small, .lp .fu-verdict, .lp .fu-msg, .lp .dt-tab, .lp .lp-banner {
+  font-size: var(--t-small);
+}
+/* Sólo dos pesos de sans */
+.lp .lp-nav__links a, .lp .lp-banner, .lp .lp-check { font-weight: 400; }
+.lp .hd-chip, .lp .fu-verdict strong, .lp strong, .lp b { font-weight: 600; }

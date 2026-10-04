@@ -58,12 +58,12 @@ function MiniExerciseCard({ ex, name }: { ex: MiniExercise; name: string }) {
       <div style={{ padding: '14px 16px 16px' }}>
         <span style={{
           display: 'inline-block', marginBottom: '8px', padding: '3px 10px', borderRadius: '20px',
-          background: HT.sand, color: HT.ink, fontSize: '13px', fontWeight: 500,
+          background: HT.sand, color: HT.ink, fontSize: '14px', fontWeight: 400,
           fontFamily: HT.body,
         }}>
           {fill(ex.skillTag, name)}
         </span>
-        <p style={{ margin: '0 0 12px', fontSize: '19px', fontWeight: 600, color: HT.ink, fontFamily: HT.serif }}>
+        <p style={{ margin: '0 0 12px', fontSize: '24px', fontWeight: 500, color: HT.ink, fontFamily: HT.serif }}>
           {fill(ex.title, name)}
         </p>
         {/* Botón inerte: se ve real (vende el video) pero no hace nada. */}
@@ -73,7 +73,7 @@ function MiniExerciseCard({ ex, name }: { ex: MiniExercise; name: string }) {
           onClick={e => e.preventDefault()}
           style={{
             width: '100%', height: '44px', border: 'none', borderRadius: '12px',
-            background: HT.yellow, color: HT.ink, fontSize: '15px', fontWeight: 600,
+            background: HT.yellow, color: HT.ink, fontSize: '16px', fontWeight: 600,
             fontFamily: HT.body, cursor: 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}
@@ -180,10 +180,10 @@ export default function DraguiAssistant({
         }}>
           <DragonAvatar size={48} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: HT.ink, fontFamily: HT.serif, lineHeight: 1.15 }}>
+            <p style={{ margin: 0, fontSize: '24px', fontWeight: 500, color: HT.ink, fontFamily: HT.serif, lineHeight: 1.15 }}>
               {DRAGUI}
             </p>
-            <p style={{ margin: '3px 0 0', fontSize: '15px', fontWeight: 400, color: HT.muted, fontFamily: HT.body }}>
+            <p style={{ margin: '3px 0 0', fontSize: '16px', fontWeight: 400, color: HT.muted, fontFamily: HT.body }}>
               {ASSISTANT_SUBTITLE}
             </p>
           </div>
@@ -191,7 +191,7 @@ export default function DraguiAssistant({
             display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
             padding: '5px 12px', borderRadius: '999px', background: HT.cream,
             border: `1px solid ${HT.line}`,
-            color: HT.muted, fontSize: '13px', fontWeight: 500, fontFamily: HT.body,
+            color: HT.muted, fontSize: '14px', fontWeight: 400, fontFamily: HT.body,
           }}>
             <Lock size={13} weight="regular" /> {ASSISTANT_PREVIEW_BADGE}
           </span>
@@ -217,7 +217,7 @@ export default function DraguiAssistant({
                   style={{
                     padding: '9px 15px', minHeight: '40px', borderRadius: '999px',
                     border: '1.5px solid #C9CBC6', background: HT.white,
-                    color: HT.ink, fontSize: '15px', fontWeight: 500, fontFamily: HT.body,
+                    color: HT.ink, fontSize: '16px', fontWeight: 400, fontFamily: HT.body,
                     cursor: typing ? 'default' : 'pointer', transition: 'border-color 0.15s ease',
                   }}
                   onMouseEnter={e => { if (!typing) e.currentTarget.style.borderColor = HT.ink }}
@@ -236,7 +236,7 @@ export default function DraguiAssistant({
               background: HT.white, border: `1px solid ${HT.line}`,
             }}>
               <p style={{
-                margin: '0 0 12px', fontSize: '15px', fontWeight: 400, color: HT.ink,
+                margin: '0 0 12px', fontSize: '16px', fontWeight: 400, color: HT.ink,
                 lineHeight: 1.55, fontFamily: HT.body,
                 display: 'flex', gap: '8px', alignItems: 'flex-start',
               }}>
@@ -245,7 +245,7 @@ export default function DraguiAssistant({
               </p>
               {waitlisted ? (
                 <p style={{
-                  margin: 0, fontSize: '15px', fontWeight: 600, color: HT.blue,
+                  margin: 0, fontSize: '16px', fontWeight: 600, color: HT.blue,
                   fontFamily: HT.body,
                 }}>
                   {WAITLIST_THANKS}
@@ -256,7 +256,7 @@ export default function DraguiAssistant({
                   onClick={() => setWaitlisted(true)}
                   style={{
                     height: '44px', padding: '0 20px', borderRadius: '12px', border: 'none',
-                    background: HT.night, color: HT.white, fontSize: '15px', fontWeight: 600,
+                    background: HT.night, color: HT.white, fontSize: '16px', fontWeight: 600,
                     fontFamily: HT.body, cursor: 'pointer',
                   }}
                 >
@@ -285,7 +285,7 @@ export default function DraguiAssistant({
               aria-label="Escribir a Dragui (disponible muy pronto)"
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                fontSize: '15px', fontFamily: HT.body, color: HT.taupe, cursor: 'not-allowed',
+                fontSize: '16px', fontFamily: HT.body, color: HT.taupe, cursor: 'not-allowed',
               }}
             />
           </div>

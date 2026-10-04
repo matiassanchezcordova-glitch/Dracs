@@ -117,7 +117,7 @@ function FranjaDelDia({ day, slots, choca }: { day: string; slots: Ocupado[]; ch
                 padding: '6px 11px', borderRadius: '9px',
                 background: nueva ? DT.white : DT.arena,
                 border: `1px ${nueva ? 'dashed' : 'solid'} ${nueva ? DT.azul : 'transparent'}`,
-                color: DT.ink, fontSize: '14.5px', fontWeight: 500, fontFamily: DT.body,
+                color: DT.ink, fontSize: '14px', fontWeight: 400, fontFamily: DT.body,
               }}
             >
               <span style={{ color: DT.azulInk, fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
@@ -134,7 +134,7 @@ function FranjaDelDia({ day, slots, choca }: { day: string; slots: Ocupado[]; ch
           margin: '11px 0 0', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '9px 11px', borderRadius: DT.radiusSm,
           background: DT.mostazaTint, border: `1px solid ${DT.mostazaTintLine}`,
-          fontSize: '14px', fontWeight: 500, lineHeight: 1.45, color: DT.ink, fontFamily: DT.body,
+          fontSize: '14px', fontWeight: 400, lineHeight: 1.45, color: DT.ink, fontFamily: DT.body,
         }}>
           <Warning size={16} weight="regular" color={DT.mostazaInk} style={{ flexShrink: 0 }} />
           Esa hora ya está ocupada.
@@ -259,7 +259,7 @@ function SemanaNav({ day, onDay, busyOf, today }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '11px' }}>
         <IconButton Icon={CaretLeft} label="Semana anterior" onClick={() => onDay(shiftDays(day, -7))} />
         <span className="td-week" style={{
-          flex: 1, minWidth: 0, textAlign: 'center', fontSize: '19px', fontWeight: 600,
+          flex: 1, minWidth: 0, textAlign: 'center', fontSize: '24px', fontWeight: 500,
           color: DT.ink, fontFamily: DT.serif, fontVariantNumeric: 'tabular-nums',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
@@ -314,7 +314,7 @@ function SemanaNav({ day, onDay, busyOf, today }: {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
               }}
             >
-              <span style={{ fontSize: '13px', fontWeight: 500, opacity: 0.8, fontFamily: DT.body }}>
+              <span style={{ fontSize: '14px', fontWeight: 400, opacity: 0.8, fontFamily: DT.body }}>
                 {WEEK_INITIALS[i]}
               </span>
               <span style={{
@@ -415,7 +415,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
       <SemanaNav day={day} onDay={setDay} busyOf={busyOf} today={today} />
 
       {/* Lo agendado el día elegido. El día ya se ve marcado arriba. */}
-      <p style={{ margin: '4px 0 10px', fontSize: '14px', fontWeight: 500, color: DT.muted, fontFamily: DT.body }}>
+      <p style={{ margin: '4px 0 10px', fontSize: '14px', fontWeight: 400, color: DT.muted, fontFamily: DT.body }}>
         {day === today ? 'Hoy' : longDay(day).replace(/^./, c => c.toUpperCase())} · {filas.length === 0 ? 'sin sesiones' : filas.length === 1 ? '1 cita' : `${filas.length} citas`}
       </p>
       {filas.length === 0 ? (
@@ -442,7 +442,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
               </span>
               <span style={{
                 flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontSize: '14px', fontWeight: 500, color: DT.azulInk, fontFamily: DT.body,
+                fontSize: '14px', fontWeight: 400, color: DT.azulInk, fontFamily: DT.body,
               }}>
                 <span className="td-hide-m">Su carpeta</span> <RowCaret size={14} weight="regular" />
               </span>
@@ -452,7 +452,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
             <div key={f.key} style={{ ...filaBase, background: DT.cream }}>
               <span style={{ ...horaChip, background: DT.white }}>{f.time}</span>
               <VideoCamera size={17} weight="regular" color={DT.azulInk} style={{ flexShrink: 0 }} />
-              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 500, color: DT.ink, fontFamily: DT.body }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 400, color: DT.ink, fontFamily: DT.body }}>
                 Videollamada con la familia de {firstName(f.call.patientName)}
               </span>
             </div>

@@ -207,7 +207,7 @@ export default function TherapistTab() {
       <footer className="dk-foot" style={{ maxWidth: '1040px', margin: '0 auto', boxSizing: 'border-box' }}>
         <p style={{
           margin: 0, paddingTop: '20px', borderTop: `1px solid ${DT.line}`,
-          fontSize: '13px', fontWeight: 400, lineHeight: 1.5,
+          fontSize: '14px', fontWeight: 400, lineHeight: 1.5,
           color: DT.muted, fontFamily: DT.body,
         }}>
           Dracs no es un dispositivo médico. No valora ni diagnostica: el profesional

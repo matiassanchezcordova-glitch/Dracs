@@ -37,9 +37,8 @@
 
 /* ── Tailwind theme ───────────────────────────────────────────────────── */
 @theme {
-  --font-nunito: 'Nunito', sans-serif;
   --font-display: 'Fredoka', system-ui, sans-serif;
-  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* ── Marca (brand board 2026) ──────────────────────────────────────
      Sólo para la web/landing y el chrome de marca. Las pantallas del
@@ -189,7 +188,7 @@
 
 /* ── Stat number class (todos los números métrica principal) ─────────── */
 .stat-number {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: 'Source Serif 4', Georgia, serif !important;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
@@ -469,8 +468,8 @@ html, body {
 
 /* Superficie de la casa: misma medida que el escritorio del profesional. */
 .casa-home { padding: 48px 24px 72px; }
-.casa-home .home-h1 { font-size: 52px; }
-.casa-home .home-letter { font-size: 23px; }
+.casa-home .home-h1 { font-size: 56px; }
+.casa-home .home-letter { font-size: 24px; }
 .casa-home .home-card { padding: 28px 32px; }
 .casa-home .home-dragon { width: 96px; }
 .casa-home .home-cta { transition: background-color 150ms ease, transform 120ms ease; }
@@ -479,8 +478,8 @@ html, body {
 .casa-home .home-cta:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
 @media (max-width: 640px) {
   .casa-home { padding: 28px 16px 56px; }
-  .casa-home .home-h1 { font-size: 38px; }
-  .casa-home .home-letter { font-size: 20px; }
+  .casa-home .home-h1 { font-size: 36px; }
+  .casa-home .home-letter { font-size: 21px; }
   .casa-home .home-card { padding: 22px 20px; }
   .casa-home .home-dragon { width: 72px; }
 }

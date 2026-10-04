@@ -69,10 +69,10 @@ function LinkRequestBanner({ req, onAccept, onReject }: {
     }}>
       <Bell size={20} weight="regular" color={DT.mostazaInk} aria-hidden style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: DT.ink, fontFamily: DT.display }}>
+        <p style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: DT.ink, fontFamily: DT.display }}>
           {p.child_name} ({p.child_age} años)
         </p>
-        <p style={{ margin: '2px 0 0', fontSize: '14.5px', color: DT.muted, fontFamily: DT.body }}>
+        <p style={{ margin: '2px 0 0', fontSize: '16px', color: DT.muted, fontFamily: DT.body }}>
           quiere vincularse contigo{p.diagnosis ? ` · ${p.diagnosis}` : ''}
         </p>
       </div>
@@ -114,13 +114,13 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         <Avatar name={p.name} size={44} />
         <span style={{ minWidth: 0, flex: 1, display: 'block' }}>
           <span style={{
-            display: 'block', fontSize: '20px', fontWeight: 600, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.2,
+            display: 'block', fontSize: '24px', fontWeight: 500, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.2,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {p.name}
           </span>
           <span style={{
-            display: 'block', marginTop: '3px', fontSize: '14.5px', color: DT.muted, fontFamily: DT.body,
+            display: 'block', marginTop: '3px', fontSize: '16px', color: DT.muted, fontFamily: DT.body,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {p.age} años{p.condition ? ` · ${p.condition}` : ''}
@@ -133,7 +133,7 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
           de la izquierda, no en un relleno más. */}
       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <tone.Icon size={16} weight="regular" color={a.ink} style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: '14.5px', fontWeight: 500, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
+        <span style={{ fontSize: '16px', fontWeight: 400, color: DT.ink, fontFamily: DT.body }}>{st.text}</span>
       </span>
 
       {/* Objetivo: pegado abajo con margin-top auto, para que quede en la misma
@@ -145,7 +145,7 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         }}>
           <Target size={14} weight="regular" color={DT.topo} style={{ flexShrink: 0 }} />
           <span style={{
-            minWidth: 0, flex: 1, fontSize: '14.5px', fontWeight: 400, color: DT.muted, fontFamily: DT.body,
+            minWidth: 0, flex: 1, fontSize: '16px', fontWeight: 400, color: DT.muted, fontFamily: DT.body,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {p.area}
@@ -171,16 +171,16 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
       {/* Encabezado: título en serif, como las secciones de la web. La marca ya
           está en la barra de arriba; aquí no hace falta otro dragón. */}
       <header style={{ marginBottom: '28px' }}>
-        <h1 className="dk-h1" style={{ margin: 0, fontWeight: 600, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.08, letterSpacing: '-0.015em' }}>
+        <h1 className="dk-h1" style={{ margin: 0, fontWeight: 500, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.08, letterSpacing: '-0.015em' }}>
           Escritorio
         </h1>
         {/* En la demo no decimos "hola, {nombre}": no hay profesional real. */}
         {isDemo ? (
-          <p style={{ margin: '10px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55, maxWidth: '560px' }}>
+          <p style={{ margin: '10px 0 0', fontSize: '18px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55, maxWidth: '560px' }}>
             {liveName ? <><span style={{ color: DT.ink, fontWeight: 600 }}>{liveName}</span> es el niño de esta demo: lo que juegue aparece en su carpeta.</> : null}
           </p>
         ) : (
-          <p style={{ margin: '10px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body }}>
+          <p style={{ margin: '10px 0 0', fontSize: '18px', color: DT.muted, fontFamily: DT.body }}>
             Hola, {therapistName}.
           </p>
         )}
@@ -243,7 +243,7 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
                   style={{
                     width: '100%', boxSizing: 'border-box', height: '44px', padding: '0 12px 0 38px', borderRadius: '10px',
                     border: `1.5px solid ${searchFocus ? DT.azul : BRAND.lineStrong}`, background: DT.white, color: DT.ink,
-                    fontSize: '15px', fontWeight: 400, fontFamily: DT.body, outline: 'none',
+                    fontSize: '16px', fontWeight: 400, fontFamily: DT.body, outline: 'none',
                     boxShadow: searchFocus ? '0 0 0 3px rgba(63,107,120,0.2)' : 'none',
                   }}
                 />

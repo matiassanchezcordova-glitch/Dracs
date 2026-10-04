@@ -77,7 +77,7 @@ function Toast({ message }: { message: string }) {
     <div style={{
       position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
       background: DT.night, color: '#FFFFFF', padding: '13px 22px', borderRadius: '999px',
-      fontSize: '15px', fontWeight: 500, fontFamily: DT.body, zIndex: 100, whiteSpace: 'nowrap',
+      fontSize: '16px', fontWeight: 400, fontFamily: DT.body, zIndex: 100, whiteSpace: 'nowrap',
       boxShadow: '0 16px 32px -12px rgba(21,25,27,0.4)',
     }}>
       {message}
@@ -94,12 +94,12 @@ function Identidad({ patient }: { patient: Patient }) {
       <Avatar name={patient.name} size={60} />
       <div style={{ minWidth: 0, flex: 1 }}>
         <h1 className="dk-h1" style={{
-          margin: 0, fontWeight: 600, color: DT.ink, letterSpacing: '-0.015em',
+          margin: 0, fontWeight: 500, color: DT.ink, letterSpacing: '-0.015em',
           fontFamily: DT.serif, lineHeight: 1.05,
         }}>
           {patient.name}
         </h1>
-        <p style={{ margin: '8px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body }}>
+        <p style={{ margin: '8px 0 0', fontSize: '18px', color: DT.muted, fontFamily: DT.body }}>
           {patient.age} años{patient.condition ? ` · ${patient.condition}` : ''}
         </p>
       </div>
@@ -441,7 +441,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                   {areas.map(a => (
                     <div key={a.slug}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '7px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 500, color: DT.ink, fontFamily: DT.body, lineHeight: 1.35 }}>{a.label}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 400, color: DT.ink, fontFamily: DT.body, lineHeight: 1.35 }}>{a.label}</span>
                         <span style={{ fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body, fontVariantNumeric: 'tabular-nums' }}>{a.pct}%</span>
                       </div>
                       <div style={{ height: '8px', background: DT.arena, borderRadius: '999px', overflow: 'hidden' }}>
@@ -537,7 +537,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                       </p>
                     )}
                     <p style={{
-                      margin: 0, fontSize: '15px', color: DT.ink, fontFamily: DT.body,
+                      margin: 0, fontSize: '16px', color: DT.ink, fontFamily: DT.body,
                       lineHeight: 1.6, whiteSpace: 'pre-wrap',
                     }}>
                       {n.text}
@@ -578,13 +578,13 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
           }}>
             <p style={{
               margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: '8px',
-              fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.72)', fontFamily: DT.body,
+              fontSize: '14px', fontWeight: 400, color: 'rgba(255,255,255,0.72)', fontFamily: DT.body,
             }}>
               <House size={16} weight="regular" aria-hidden /> Lo que ve la familia
             </p>
             {published ? (
               <>
-                <p style={{ margin: 0, fontSize: '19px', lineHeight: 1.5, fontFamily: DT.serif, color: '#FFFFFF' }}>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 500, lineHeight: 1.5, fontFamily: DT.serif, color: '#FFFFFF' }}>
                   {published.text}
                 </p>
                 <p style={{ margin: '16px 0 0', fontSize: '14px', color: 'rgba(255,255,255,0.72)', fontFamily: DT.body }}>
@@ -592,7 +592,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                 </p>
               </>
             ) : (
-              <p style={{ margin: 0, fontSize: '17px', lineHeight: 1.55, fontFamily: DT.serif, color: 'rgba(255,255,255,0.82)' }}>
+              <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.6, fontFamily: DT.body, color: 'rgba(255,255,255,0.82)' }}>
                 Esta semana todavía no le escribiste. Lo que publiques aparece aquí, tal como lo lee la familia.
               </p>
             )}

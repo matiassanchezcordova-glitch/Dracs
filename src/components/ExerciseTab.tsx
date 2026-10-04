@@ -68,7 +68,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        padding: '40px 24px', fontFamily: 'Nunito, sans-serif',
+        padding: '40px 24px', fontFamily: 'Fredoka, system-ui, sans-serif',
         textAlign: 'center', gap: '16px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -85,7 +85,7 @@ export default function ExerciseTab({ onNavigateToFamilia, onNavigateToTerapeuta
           style={{
             marginTop: '8px', padding: '12px 24px', borderRadius: '12px',
             border: 'none', background: '#1A8FB5', color: '#ffffff',
-            fontSize: '15px', fontWeight: 700, fontFamily: 'Nunito, sans-serif', cursor: 'pointer',
+            fontSize: '15px', fontWeight: 700, fontFamily: 'Fredoka, system-ui, sans-serif', cursor: 'pointer',
           }}
         >
           Ir al panel clínico

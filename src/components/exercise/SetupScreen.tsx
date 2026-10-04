@@ -10,7 +10,7 @@ const AGES = [3, 4, 5, 6, 7, 8, 9, 10]
 // Marca nueva: dragón nuevo (logo-dracs.png), Fredoka en títulos, Nunito en
 // el resto, fondo crema (#FAF5E8) y botón amarillo (#F7C31C).
 const TITLE_FONT = 'Fredoka, system-ui, sans-serif'
-const BODY_FONT = 'Nunito, sans-serif'
+const BODY_FONT = 'Fredoka, system-ui, sans-serif'
 
 const CTA_STYLE: React.CSSProperties = {
   display: 'flex',

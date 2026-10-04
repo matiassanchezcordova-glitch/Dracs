@@ -251,7 +251,7 @@ export default function Informe({
                   value={custom[field]}
                   max={localIso(new Date())}
                   onChange={e => setCustom(prev => ({ ...prev, [field]: e.target.value }))}
-                  style={{ ...FIELD, height: '44px', padding: '0 12px', width: 'auto', fontWeight: 500 }}
+                  style={{ ...FIELD, height: '44px', padding: '0 12px', width: 'auto', fontWeight: 400 }}
                 />
               </label>
             ))}
@@ -287,7 +287,7 @@ export default function Informe({
             style={{ display: 'block', width: '30px', height: 'auto', marginBottom: '14px' }}
           />
           <p style={{
-            margin: 0, fontSize: '30px', fontWeight: 600, color: DT.ink, letterSpacing: '-0.01em',
+            margin: 0, fontSize: '40px', fontWeight: 500, color: DT.ink, letterSpacing: '-0.01em',
             fontFamily: DT.serif, lineHeight: 1.15,
           }}>
             {title}
@@ -306,7 +306,7 @@ export default function Informe({
               <p style={{
                 margin: '0 0 8px',
                 fontSize: warm ? '19px' : '12px',
-                fontWeight: 600,
+                fontWeight: warm ? 500 : 600,
                 letterSpacing: warm ? '-0.005em' : '0.06em',
                 textTransform: warm ? 'none' : 'uppercase',
                 color: warm ? DT.ink : DT.muted,
@@ -338,7 +338,7 @@ export default function Informe({
               <p style={{
                 margin: '0 0 8px',
                 fontSize: warm ? '19px' : '12px',
-                fontWeight: 600,
+                fontWeight: warm ? 500 : 600,
                 letterSpacing: warm ? '-0.005em' : '0.06em',
                 textTransform: warm ? 'none' : 'uppercase',
                 color: warm ? DT.ink : DT.muted,
@@ -367,11 +367,11 @@ export default function Informe({
           <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: DT.ink, fontFamily: DT.body }}>
             {signature}
           </p>
-          <p style={{ margin: '10px 0 0', fontSize: '13.5px', fontWeight: 400, lineHeight: 1.5, color: DT.muted, fontFamily: DT.body }}>
+          <p style={{ margin: '10px 0 0', fontSize: '14px', fontWeight: 400, lineHeight: 1.5, color: DT.muted, fontFamily: DT.body }}>
             {LEGAL}
           </p>
           {savedAt && (
-            <p className="no-print" style={{ margin: '10px 0 0', fontSize: '13px', color: DT.faint, fontFamily: DT.body }}>
+            <p className="no-print" style={{ margin: '10px 0 0', fontSize: '14px', color: DT.faint, fontFamily: DT.body }}>
               Guardado el {longDate(new Date(savedAt))}.
             </p>
           )}

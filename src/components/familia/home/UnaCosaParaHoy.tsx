@@ -50,7 +50,7 @@ export default function UnaCosaParaHoy({
         boxShadow: HT.shadow,
       }}>
         <p style={{
-          margin: '0 0 18px', fontSize: '15px', fontWeight: 500,
+          margin: '0 0 18px', fontSize: '16px', fontWeight: 400,
           color: 'rgba(255,255,255,0.75)', fontFamily: HT.body,
         }}>
           {TODAY_KICKER}
@@ -67,7 +67,7 @@ export default function UnaCosaParaHoy({
           </span>
           <div style={{ minWidth: 0 }}>
             <p style={{
-              margin: 0, fontSize: '32px', fontWeight: 600, color: '#FFFFFF', letterSpacing: '-0.01em',
+              margin: 0, fontSize: '40px', fontWeight: 500, color: '#FFFFFF', letterSpacing: '-0.01em',
               fontFamily: HT.serif, lineHeight: 1.1,
             }}>
               {view.name}
@@ -88,7 +88,7 @@ export default function UnaCosaParaHoy({
           style={{
             marginTop: '22px', height: '56px', width: '100%',
             border: 'none', borderRadius: '12px', cursor: 'pointer',
-            background: HT.yellow, color: HT.ink, fontSize: '17px', fontWeight: 600, fontFamily: HT.body,
+            background: HT.yellow, color: HT.ink, fontSize: '18px', fontWeight: 600, fontFamily: HT.body,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
           }}
         >

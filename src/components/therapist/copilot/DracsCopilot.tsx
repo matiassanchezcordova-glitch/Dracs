@@ -162,7 +162,7 @@ function MessageBody({ text }: { text: string }) {
       {blocks.map((block, bi) => block.kind === 'p' ? (
         <p key={bi} style={{
           margin: bi === 0 ? 0 : '10px 0 0', whiteSpace: 'pre-wrap',
-          fontSize: '14.5px', fontWeight: 500, lineHeight: 1.55,
+          fontSize: '16px', fontWeight: 400, lineHeight: 1.55,
           color: DT.ink, fontFamily: DT.body,
         }}>
           {block.items[0]}
@@ -270,13 +270,13 @@ function DraftCard({ text }: { text: string }) {
       }} />
       <p style={{
         margin: '0 0 9px', display: 'flex', alignItems: 'center', gap: '6px',
-        fontSize: '12.5px', fontWeight: 600, letterSpacing: '0.04em',
+        fontSize: '14px', fontWeight: 600, letterSpacing: '0.04em',
         textTransform: 'uppercase', color: DT.mostaza, fontFamily: DT.body,
       }}>
         <FileText size={14} weight="regular" /> Borrador · para la familia
       </p>
       <p style={{
-        margin: 0, fontSize: '14px', fontWeight: 500, lineHeight: 1.6,
+        margin: 0, fontSize: '14px', fontWeight: 400, lineHeight: 1.6,
         color: DT.ink, fontFamily: DT.body, whiteSpace: 'pre-wrap',
       }}>
         {text}
@@ -290,7 +290,7 @@ function DraftCard({ text }: { text: string }) {
           onClick={copy}
           style={{
             height: '38px', padding: '0 15px', borderRadius: R_CHIP, border: 'none',
-            background: DT.yellow, color: DT.ink, fontSize: '14.5px', fontWeight: 600,
+            background: DT.yellow, color: DT.ink, fontSize: '16px', fontWeight: 600,
             fontFamily: DT.display, cursor: 'pointer',
             display: 'inline-flex', alignItems: 'center', gap: '7px',
           }}
@@ -317,7 +317,7 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
         }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
-            fontSize: '13px', fontWeight: 600, color: GROUP_TONE[g.tone] === DT.azul ? DT.azulInk : DT.topoInk,
+            fontSize: '14px', fontWeight: 600, color: GROUP_TONE[g.tone] === DT.azul ? DT.azulInk : DT.topoInk,
             fontFamily: DT.body,
           }}>
             <span aria-hidden style={{
@@ -327,7 +327,7 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
             {g.label}
           </span>
           <span style={{
-            flex: 1, minWidth: '120px', fontSize: '14.5px', fontWeight: 600,
+            flex: 1, minWidth: '120px', fontSize: '16px', fontWeight: 600,
             lineHeight: 1.5, color: DT.ink, fontFamily: DT.body,
           }}>
             {g.names.join(' · ')}
@@ -344,7 +344,7 @@ function StatusGroups({ groups }: { groups: AnswerGroup[] }) {
 function SourceLine({ src }: { src: string }) {
   return (
     <p style={{
-      margin: '11px 0 0', fontSize: '13px', fontWeight: 600, lineHeight: 1.45,
+      margin: '11px 0 0', fontSize: '14px', fontWeight: 600, lineHeight: 1.45,
       color: DT.muted, fontFamily: DT.body,
     }}>
       {src}
@@ -391,7 +391,7 @@ function Bubble({ msg }: { msg: Msg }) {
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{
           maxWidth: '86%', padding: '11px 14px', borderRadius: '18px 18px 6px 18px',
-          background: DT.yellow, color: DT.ink, fontSize: '14.5px', fontWeight: 600,
+          background: DT.yellow, color: DT.ink, fontSize: '16px', fontWeight: 600,
           lineHeight: 1.55, fontFamily: DT.body, whiteSpace: 'pre-wrap',
         }}>
           {msg.shown}
@@ -521,7 +521,7 @@ function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; ch
           position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 3,
           padding: '4px 9px', borderRadius: '8px',
           background: DT.ink, color: DT.cream,
-          fontSize: '12.5px', fontWeight: 600, fontFamily: DT.body,
+          fontSize: '14px', fontWeight: 600, fontFamily: DT.body,
           whiteSpace: 'nowrap', pointerEvents: 'none',
           boxShadow: '0 2px 8px rgba(51,48,42,0.16)',
         }}>
@@ -556,7 +556,7 @@ function PreviewAction({ Icon: I, label, chip }: { Icon: Icon; label: string; ch
           height: '34px', padding: chip ? '0 12px 0 9px' : '0 9px',
           borderRadius: R_CHIP, border: `1px solid ${DT.line}`,
           background: DT.white, color: DT.muted, cursor: 'default',
-          fontSize: '13.5px', fontWeight: 600, fontFamily: DT.body,
+          fontSize: '14px', fontWeight: 600, fontFamily: DT.body,
         }}
       >
         <I size={17} weight="regular" />
@@ -806,7 +806,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
           gap: text ? '6px' : 0,
           borderRadius: R_CHIP, flexShrink: 0,
           border: 'none', background: 'transparent', color: DT.muted, cursor: 'pointer',
-          fontSize: '13.5px', fontWeight: 600, fontFamily: DT.body,
+          fontSize: '14px', fontWeight: 600, fontFamily: DT.body,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
         onMouseEnter={e => { e.currentTarget.style.background = DT.arena }}
@@ -827,7 +827,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
         }}>
           <DracsMark size={40} radius={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.15 }}>
+            <p style={{ margin: 0, fontSize: '24px', fontWeight: 500, color: DT.ink, fontFamily: DT.serif, lineHeight: 1.15 }}>
               Dracs
             </p>
             <p style={{
@@ -838,7 +838,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
                 padding: '1px 8px', borderRadius: '999px', background: DT.cream,
-                fontSize: '13px', fontWeight: 500, color: DT.muted,
+                fontSize: '14px', fontWeight: 400, color: DT.muted,
               }}>
                 <Lock size={12} weight="regular" /> Vista previa
               </span>
@@ -892,7 +892,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
         }}>
           <p style={{
             margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px',
-            fontSize: '13px', fontWeight: 600, color: DT.mostazaInk, fontFamily: DT.body,
+            fontSize: '14px', fontWeight: 600, color: DT.mostazaInk, fontFamily: DT.body,
           }}>
             <Lightbulb size={13} weight="regular" /> Dracs puede
           </p>
@@ -981,7 +981,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
           border: isFull ? 'none' : `1px solid ${DT.line}`,
           outline: 'none',
           fontSize: isFull ? '15.5px' : '14.5px',
-          fontFamily: DT.body, fontWeight: 500, color: DT.ink, lineHeight: 1.45,
+          fontFamily: DT.body, fontWeight: 400, color: DT.ink, lineHeight: 1.45,
         }}
       />
     )
@@ -1026,7 +1026,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
         {/* El pie legal del escritorio queda tapado por esta capa, así que aquí
             se dice una vez. En el panel de esquina no hace falta: se ve debajo. */}
         <p style={{
-          margin: '10px 2px 0', fontSize: '13px', fontWeight: 600, lineHeight: 1.45,
+          margin: '10px 2px 0', fontSize: '14px', fontWeight: 600, lineHeight: 1.45,
           color: DT.faint, fontFamily: DT.body,
         }}>
           {AVISO_LEGAL}
@@ -1057,7 +1057,7 @@ export default function DracsCopilot({ patients, isDemo }: { patients: Patient[]
             }}
           >
             <DracsMark size={38} radius={19} />
-            <span style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>
+            <span style={{ fontSize: '16px', fontWeight: 600, color: '#FFFFFF' }}>
               Pregúntale a Dracs
             </span>
           </button>

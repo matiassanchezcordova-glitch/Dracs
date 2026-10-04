@@ -179,7 +179,7 @@ export default function ExerciseCard({
               justifyContent: 'center',
               fontSize: '14px',
               fontWeight: 800,
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
               boxShadow: '0 2px 8px rgba(15,23,42,0.18)',
             }}
           >

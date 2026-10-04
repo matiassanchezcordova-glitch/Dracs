@@ -30,7 +30,7 @@ export default function WelcomeScreen({ profile, onStart, errorMessage, palette 
         display: 'flex',
         flexDirection: 'column',
         background: pal.cream,
-        fontFamily: 'Nunito, sans-serif',
+        fontFamily: 'Fredoka, system-ui, sans-serif',
       }}
     >
       {/* ── ZONA SUPERIOR: color del lugar, 40% ───────────────────────────── */}
@@ -68,7 +68,7 @@ export default function WelcomeScreen({ profile, onStart, errorMessage, palette 
               color: pal.text,
               opacity: 0.85,
               margin: 0,
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
             }}
           >
             {LEVEL_LABELS[profile.level]}
@@ -117,7 +117,7 @@ export default function WelcomeScreen({ profile, onStart, errorMessage, palette 
               padding: '12px 18px',
               maxWidth: '360px',
               textAlign: 'center',
-              fontFamily: 'Nunito, sans-serif',
+              fontFamily: 'Fredoka, system-ui, sans-serif',
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: 1.4,
@@ -186,7 +186,7 @@ function StatBox({ icon, value, label, valueColor }: {
           fontWeight: 800,
           color: valueColor,
           lineHeight: 1,
-          fontFamily: 'Nunito, sans-serif',
+          fontFamily: 'Fredoka, system-ui, sans-serif',
           fontVariantNumeric: 'tabular-nums',
         }}
       >
@@ -197,7 +197,7 @@ function StatBox({ icon, value, label, valueColor }: {
           fontSize: '11px',
           fontWeight: 700,
           color: '#9CA3AF',
-          fontFamily: 'Nunito, sans-serif',
+          fontFamily: 'Fredoka, system-ui, sans-serif',
           textAlign: 'center',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',

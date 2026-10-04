@@ -16,7 +16,7 @@ export default function NotFoundPage() {
       />
       <h1 style={{
         fontFamily: "'Source Serif 4', Georgia, serif",
-        fontSize: '48px', fontWeight: 600, color: '#15191B',
+        fontSize: '48px', fontWeight: 500, color: '#15191B',
         margin: '0 0 8px',
       }}>
         404

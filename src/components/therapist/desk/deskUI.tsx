@@ -34,7 +34,7 @@ export const DESK_CSS = `
 .dk-focus:focus-visible { outline: 2px solid ${DT.azul}; outline-offset: 2px; }
 .dk-page { padding: 48px 24px 56px; box-sizing: border-box; }
 .dk-foot { padding: 0 24px 104px; }
-.dk-h1 { font-size: 48px; }
+.dk-h1 { font-size: 56px; }
 @media (max-width: 640px) {
   .dk-page { padding: 28px 16px 40px; }
   .dk-foot { padding: 0 16px 104px; }
@@ -52,7 +52,7 @@ export const DESK_CSS = `
 .dk-back {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
   margin: 0 0 20px -2px; padding: 4px 2px; border: 0; background: none; cursor: pointer;
-  color: ${DT.muted}; font-size: 15px; font-weight: 500; font-family: ${BRAND.sans};
+  color: ${DT.muted}; font-size: 16px; font-weight: 400; font-family: ${BRAND.sans};
   border-radius: 6px;
 }
 .dk-back:hover { color: ${DT.ink}; }
@@ -116,7 +116,7 @@ export function SectionTitle({ Icon: I, children, right, size = 'md' }: {
       />
       <h3 style={{
         flex: 1, minWidth: '140px', margin: 0,
-        fontSize: big ? '23px' : '20px', fontWeight: 600, letterSpacing: '-0.01em',
+        fontSize: '24px', fontWeight: 500, letterSpacing: '-0.01em',
         color: DT.ink, fontFamily: DT.serif, lineHeight: 1.2,
       }}>
         {children}
@@ -159,14 +159,14 @@ export function StatTile({ Icon: I, value, label }: {
       padding: '16px 18px',
     }}>
       <div style={{
-        fontSize: '34px', fontWeight: 500, color: DT.ink, lineHeight: 1, letterSpacing: '-0.02em',
+        fontSize: '40px', fontWeight: 500, color: DT.ink, lineHeight: 1, letterSpacing: '-0.02em',
         fontFamily: DT.serif, fontVariantNumeric: 'tabular-nums',
       }}>
         {value}
       </div>
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px',
-        fontSize: '13px', fontWeight: 500, color: DT.muted, fontFamily: DT.body,
+        fontSize: '14px', fontWeight: 400, color: DT.muted, fontFamily: DT.body,
       }}>
         <I size={14} weight="regular" color={DT.azul} style={{ flexShrink: 0 }} />
         {label}
@@ -186,7 +186,7 @@ export function Chip({ children, Icon: I }: {
       display: 'inline-flex', alignItems: 'center', gap: '6px',
       padding: '5px 11px', borderRadius: '999px',
       background: DT.arena, color: DT.ink,
-      fontSize: '13px', fontWeight: 500, fontFamily: DT.body, whiteSpace: 'nowrap',
+      fontSize: '14px', fontWeight: 400, fontFamily: DT.body, whiteSpace: 'nowrap',
     }}>
       {I && <I size={13} weight="regular" color={DT.topoInk} style={{ flexShrink: 0 }} />}
       {children}
@@ -253,8 +253,8 @@ export function EmptyState({ Icon: I, title, children, compact }: {
     }}>
       <I size={compact ? 24 : 28} weight="regular" color={DT.topo} aria-hidden style={{ marginBottom: '4px' }} />
       <p style={{
-        margin: 0, fontSize: compact ? '16px' : '18px', fontWeight: 600,
-        color: DT.ink, fontFamily: DT.serif,
+        margin: 0, fontSize: '16px', fontWeight: 600,
+        color: DT.ink, fontFamily: DT.body,
       }}>
         {title}
       </p>
@@ -287,7 +287,7 @@ export function ToggleChip({ on, onClick, children }: {
         border: `1.5px solid ${on ? DT.night : BRAND.lineStrong}`,
         background: on ? DT.night : DT.white,
         color: on ? '#FFFFFF' : DT.ink,
-        fontSize: '14px', fontWeight: 500, fontFamily: DT.body,
+        fontSize: '14px', fontWeight: 400, fontFamily: DT.body,
       }}
     >
       {children}
@@ -296,7 +296,7 @@ export function ToggleChip({ on, onClick, children }: {
 }
 
 const BUTTON_SIZE = {
-  md: { height: 42, padX: 18, font: '14.5px', icon: 16 },
+  md: { height: 42, padX: 18, font: '16px', icon: 16 },
   sm: { height: 36, padX: 14, font: '14px', icon: 15 },
 } as const
 

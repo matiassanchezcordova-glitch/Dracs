@@ -144,7 +144,7 @@ export default function EnfocarMundo({
                 border: `1px solid ${pinned ? DT.azulTintLine : DT.lineSoft}`,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 600, color: DT.ink, fontFamily: DT.display }}>{g.title}</p>
+                  <p style={{ margin: '0 0 3px', fontSize: '16px', fontWeight: 600, color: DT.ink, fontFamily: DT.display }}>{g.title}</p>
                   <p style={{ margin: 0, fontSize: '14px', color: DT.muted, fontFamily: DT.body, display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                     <MapPin size={13} weight="regular" color={DT.azulInk} /> {g.rationale}
                   </p>

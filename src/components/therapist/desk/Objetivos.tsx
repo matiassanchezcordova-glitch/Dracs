@@ -91,7 +91,7 @@ function AreaGoal({ area, goal, hoy, points, onChange, onRemove }: {
       padding: '14px 16px',
     }}>
       <p style={{
-        margin: 0, fontSize: '15px', fontWeight: 600, color: DT.ink, fontFamily: DT.display,
+        margin: 0, fontSize: '16px', fontWeight: 600, color: DT.ink, fontFamily: DT.display,
       }}>
         {name}
       </p>

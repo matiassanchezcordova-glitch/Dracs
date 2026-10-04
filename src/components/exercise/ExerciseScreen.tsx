@@ -106,7 +106,7 @@ function ExitConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm:
         <h3 id="exit-title" style={{ margin: '0 0 8px', fontSize: '24px', fontWeight: 600, color: '#15191B', fontFamily: 'Fredoka, system-ui, sans-serif' }}>
           ¿Terminamos por hoy?
         </h3>
-        <p style={{ margin: '0 0 22px', fontSize: '16px', color: '#5E6468', lineHeight: 1.5, fontFamily: 'Nunito, sans-serif' }}>
+        <p style={{ margin: '0 0 22px', fontSize: '16px', color: '#5E6468', lineHeight: 1.5, fontFamily: 'Fredoka, system-ui, sans-serif' }}>
           Esta partida no se guarda si sales ahora.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -254,7 +254,7 @@ export default function ExerciseScreen({
         display: 'flex',
         flexDirection: 'column',
         background: pal.cream,
-        fontFamily: 'Nunito, sans-serif',
+        fontFamily: 'Fredoka, system-ui, sans-serif',
       }}
     >
       {/* Inline animations + shake keyframes for ExerciseCard */}

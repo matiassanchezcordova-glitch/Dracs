@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
 
-// Las tres vistas de la demo, como tarjetas con su pantalla real. Son las
-// mismas en la web (sección "Ya se puede probar") y en /demo: un solo
-// componente para que digan exactamente lo mismo en los dos sitios.
+// Las tres vistas de la demo, como tarjetas con su pantalla real (/demo).
 //
 // Mismo orden y mismos nombres que el selector de vistas de la app:
 // Profesional, Familia, Niño.

@@ -142,7 +142,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
       margin: '0 0 8px',
       fontFamily: "'Source Serif 4', Georgia, serif",
       fontSize: '26px',
-      fontWeight: 600,
+      fontWeight: 500,
       color: '#15191B',
       lineHeight: 1.2,
       textAlign: 'center',

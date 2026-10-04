@@ -54,7 +54,7 @@ export default function CasaDeLaFamilia({ onNavigateToPlace, onNavigateToTerapeu
           justifyContent: 'center', textAlign: 'center', gap: '16px', padding: '40px 24px',
         }}>
           <ClipboardText size={40} weight="regular" color={HT.blue} />
-          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 600, color: HT.ink, fontFamily: HT.serif }}>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 500, color: HT.ink, fontFamily: HT.serif }}>
             Elige un paciente
           </h2>
           <p style={{ margin: 0, fontSize: '16px', color: HT.muted, maxWidth: '380px', lineHeight: 1.6 }}>
@@ -94,7 +94,7 @@ export default function CasaDeLaFamilia({ onNavigateToPlace, onNavigateToTerapeu
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0,
                 display: 'inline-flex', alignItems: 'center', gap: '5px',
-                fontSize: '14px', fontWeight: 500, color: HT.muted, fontFamily: HT.body,
+                fontSize: '14px', fontWeight: 400, color: HT.muted, fontFamily: HT.body,
               }}
             >
               <CaretLeft size={14} weight="regular" />
@@ -106,7 +106,7 @@ export default function CasaDeLaFamilia({ onNavigateToPlace, onNavigateToTerapeu
             </span>
             <span style={{
               marginLeft: 'auto', background: HT.night, color: HT.white, flexShrink: 0,
-              fontSize: '13px', fontWeight: 500, fontFamily: HT.body, padding: '4px 12px', borderRadius: '999px',
+              fontSize: '14px', fontWeight: 400, fontFamily: HT.body, padding: '4px 12px', borderRadius: '999px',
             }}>
               Vista del profesional
             </span>

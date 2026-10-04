@@ -98,10 +98,10 @@ export const DRAGON = '/landing/dragon.webp'
 export const FIELD: CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: DT.radiusSm,
   border: `1.5px solid ${BRAND.lineStrong}`, background: DT.white, color: DT.ink,
-  fontSize: '15px', fontFamily: DT.body, lineHeight: 1.6, outline: 'none',
+  fontSize: '16px', fontFamily: DT.body, lineHeight: 1.6, outline: 'none',
 }
 
 // La misma caja en una sola línea (fechas, horas, selects).
 export const FIELD_LINE: CSSProperties = {
-  ...FIELD, height: '44px', padding: '0 12px', fontWeight: 500, lineHeight: 1,
+  ...FIELD, height: '44px', padding: '0 12px', fontWeight: 400, lineHeight: 1,
 }

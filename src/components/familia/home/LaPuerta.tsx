@@ -13,7 +13,7 @@ export default function LaPuerta({ childName, signal }: { childName: string; sig
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <h1 className="home-h1" style={{
-          margin: 0, fontWeight: 600, letterSpacing: '-0.015em',
+          margin: 0, fontWeight: 500, letterSpacing: '-0.015em',
           color: HT.ink, lineHeight: 1.05, fontFamily: HT.serif,
         }}>
           {doorTitle(childName)}
