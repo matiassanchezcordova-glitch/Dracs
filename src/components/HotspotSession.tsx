@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { MapHotspot } from '../types/mapHotspot'
 import type { HotspotFilter } from '../data/exercises'
@@ -10,6 +10,13 @@ import LoadingSpinner from './LoadingSpinner'
 export default function HotspotSession() {
   const { hotspotId } = useParams<{ hotspotId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Volver al mapa: si se llegó desde el mapa, es volver atrás (así el botón
+  // atrás del navegador no repite el mapa); si no, se reemplaza esta entrada.
+  const backToMap = () => {
+    if ((location.state as { fromMap?: boolean } | null)?.fromMap) navigate(-1)
+    else navigate('/app/nino', { replace: true })
+  }
   const [hotspot, setHotspot] = useState<MapHotspot | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -85,11 +92,17 @@ export default function HotspotSession() {
   if (error || !hotspot) {
     return (
       <div
-        className="w-full flex flex-col items-center justify-center gap-4 p-8 text-center"
+        className="w-full flex flex-col items-center justify-center gap-3 p-8 text-center"
         style={{ flex: 1 }}
       >
-        <p className="text-red-700">{error ?? 'No encontramos ese lugar del mapa.'}</p>
-        <button onClick={() => navigate('/app/nino')} className="underline">
+        <p style={{ margin: 0, fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '24px', fontWeight: 600, color: '#17313A' }}>
+          {error ?? 'No encontramos ese lugar del mapa.'}
+        </p>
+        <button
+          type="button"
+          onClick={backToMap}
+          style={{ height: '48px', padding: '0 24px', borderRadius: '12px', border: 'none', background: '#F7C31C', color: '#15191B', fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '18px', fontWeight: 600, cursor: 'pointer' }}
+        >
           Volver al mapa
         </button>
       </div>
@@ -105,7 +118,7 @@ export default function HotspotSession() {
     <ExerciseTab
       hotspotFilter={filter}
       hotspotId={hotspot.id}
-      onBackToMap={() => navigate('/app/nino')}
+      onBackToMap={backToMap}
       onNavigateToFamilia={() => navigate('/app/familia')}
       onNavigateToTerapeuta={() => navigate('/app/terapeuta')}
     />

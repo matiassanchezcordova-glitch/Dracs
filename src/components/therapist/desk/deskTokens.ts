@@ -91,7 +91,7 @@ export function initials(name: string): string {
 
 // El dragón de la marca. Una sola filigrana en toda la vista (la cabecera del
 // escritorio); su otro sitio es el copiloto.
-export const DRAGON = '/brand/dracs-dragon.png'
+export const DRAGON = '/landing/dragon.webp'
 
 // Campo de texto de la vista: textarea, input de fecha, select. Uno solo, para
 // que escribir se sienta igual en el Plan, las Notas, la Familia y el Informe.

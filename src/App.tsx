@@ -1,4 +1,4 @@
-import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Gamepad2, Stethoscope, Users, LogOut, RotateCcw, Info, ArrowUpRight } from 'lucide-react'
 import { type Role } from './components/RoleSelector'
@@ -93,6 +93,12 @@ function AppInner() {
   const isDemo = !user
   const activeTab = pathToTab(location.pathname)
 
+  // Título de la pestaña del navegador: la vista en la que estás.
+  useEffect(() => {
+    const view = VIEWS.find(v => v.tab === activeTab)
+    document.title = view ? `Dracs · Demo · ${view.label}` : 'Dracs · Demo'
+  }, [activeTab])
+
   const childName = isDemo ? null : (patient?.child_name ?? null)
   const therapistName = isDemo ? null : (profile?.full_name ?? null)
   const displayName = childName ?? therapistName ?? 'Invitado'
@@ -130,11 +136,6 @@ function AppInner() {
     // Recarga completa a propósito: el perfil y el historial viven en el estado
     // de varios componentes, y así la demo arranca realmente de cero.
     window.location.assign(VIEWS.find(v => v.tab === tab)?.path ?? '/app/terapeuta')
-  }
-
-  function handleGoToLogin() {
-    setShowDemoModal(false)
-    navigate('/login')
   }
 
   const menuItems: ReactNode = isDemo ? (
@@ -241,9 +242,6 @@ function AppInner() {
               </button>
               <button type="button" className="ax-btn ax-btn--ghost" onClick={handleResetDemo}>
                 Empezar de cero
-              </button>
-              <button type="button" className="ax-modal__link" onClick={handleGoToLogin}>
-                ¿Tienes cuenta? Inicia sesión
               </button>
             </div>
           </div>

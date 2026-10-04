@@ -81,8 +81,9 @@ export function Card({ children, style, className, edge }: {
   return (
     <div className={className} style={{
       position: 'relative',
-      background: DT.white, border: `1px solid ${DT.line}`, borderRadius: DT.radius,
-      borderLeft: edge ? `3px solid ${ACCENT[edge].solid}` : undefined,
+      background: DT.white, borderRadius: DT.radius,
+      borderStyle: 'solid', borderWidth: edge ? '1px 1px 1px 3px' : '1px',
+      borderColor: edge ? `${DT.line} ${DT.line} ${DT.line} ${ACCENT[edge].solid}` : DT.line,
       padding: '24px', boxShadow: DT.shadow, ...style,
     }}>
       {children}

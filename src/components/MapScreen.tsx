@@ -83,7 +83,7 @@ export default function MapScreen() {
               draggable={false}
             />
             {hotspots.map((h) => (
-              <HotspotButton key={h.id} hotspot={h} onTap={() => navigate(`/app/nino/jugar/${h.id}`)} />
+              <HotspotButton key={h.id} hotspot={h} onTap={() => navigate(`/app/nino/jugar/${h.id}`, { state: { fromMap: true } })} />
             ))}
           </div>
         </div>

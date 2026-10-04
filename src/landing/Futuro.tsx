@@ -1,8 +1,8 @@
 import { useInView } from './useInView'
 
 // Hacia dónde vamos. Cuatro cosas que todavía no existen y que queremos
-// construir, cada una con una demostración animada. Nada de esto está en la
-// demo, y la página lo dice. Sin promesas de resultados: se describe qué hará.
+// construir, cada una con una demostración animada. La etiqueta "En desarrollo"
+// lo dice. Sin promesas de resultados: se describe qué hará.
 
 function Pedir() {
   return (
@@ -78,7 +78,7 @@ export default function Futuro() {
       <div className="lp-wrap">
         <p className="lp-future__tag">En desarrollo</p>
         <h2 className="lp-title lp-center">Hacia dónde vamos.</h2>
-        <p className="lp-lead">Lo que estamos construyendo. Todavía no está en la demo.</p>
+        <p className="lp-lead">Lo que estamos construyendo ahora.</p>
         <div className={`fu-grid${inView ? ' is-in' : ''}`} ref={ref}>
           {ITEMS.map(it => (
             <article key={it.title} className="fu-card">

@@ -99,11 +99,12 @@ function CarpetaCard({ p, onOpen }: { p: Patient; onOpen: () => void }) {
         textAlign: 'left', cursor: 'pointer', width: '100%',
         // Altura completa: la grilla estira y todas las filas quedan a la par.
         height: '100%', boxSizing: 'border-box',
-        background: DT.white, border: `1px solid ${hover ? a.line : DT.line}`, borderRadius: DT.radius,
+        background: DT.white, borderRadius: DT.radius,
         // Acento de estado: un filo fino a la izquierda con el color que ya usa
-        // la línea de estado (azul/mostaza/arena). Da vida a la grilla sin
-        // romper lo clínico: es un dato más, no decoración.
-        borderLeft: `3px solid ${a.solid}`,
+        // la línea de estado (azul/mostaza/arena). Lados por separado: mezclar
+        // `border` y `borderLeft` hace que React pierda uno al pasar el ratón.
+        borderStyle: 'solid', borderWidth: '1px 1px 1px 3px',
+        borderColor: `${hover ? a.line : DT.line} ${hover ? a.line : DT.line} ${hover ? a.line : DT.line} ${a.solid}`,
         padding: '20px', boxShadow: hover ? DT.shadowLift : DT.shadow,
         transform: hover ? 'translateY(-2px)' : 'translateY(0)',
         display: 'flex', flexDirection: 'column', gap: '16px',
@@ -176,7 +177,7 @@ export default function Escritorio({ patients, module, onModule, onOpen, linkReq
         {/* En la demo no decimos "hola, {nombre}": no hay profesional real. */}
         {isDemo ? (
           <p style={{ margin: '10px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body, lineHeight: 1.55, maxWidth: '560px' }}>
-            {liveName ? <>Tu agenda y tus pacientes. <span style={{ color: DT.ink, fontWeight: 600 }}>{liveName}</span> es el niño de esta demo.</> : null}
+            {liveName ? <><span style={{ color: DT.ink, fontWeight: 600 }}>{liveName}</span> es el niño de esta demo: lo que juegue aparece en su carpeta.</> : null}
           </p>
         ) : (
           <p style={{ margin: '10px 0 0', fontSize: '17px', color: DT.muted, fontFamily: DT.body }}>

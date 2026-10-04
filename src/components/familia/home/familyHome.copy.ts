@@ -28,24 +28,11 @@ export interface WeekSignal {
   streakDays: number          // días seguidos jugando (para la voz, no se muestra)
 }
 
+// Subtítulo de la casa: dice qué hay aquí y nada más. Cómo fue la semana lo
+// cuenta la carta, justo debajo; repetirlo aquí era decir lo mismo dos veces.
 export function doorSubline(childName: string, s: WeekSignal): string {
-  if (s.firstTime) {
-    return `${childName} está por abrir la puerta de su mundo por primera vez.`
-  }
-  if (!s.hasActivityThisWeek) {
-    return `El mundo de ${childName} lo espera despierto. Cualquier ratito de hoy vale.`
-  }
-  if (s.streakDays >= 3) {
-    return `${childName} viene visitando su mundo día tras día. Se nota el cariño.`
-  }
-  if (s.improving) {
-    return `${childName} anduvo por su mundo esta semana. Pasa, mira cómo le fue.`
-  }
-  switch (s.band) {
-    case 'strong': return `Fue una semana llena para ${childName}. Qué bueno tenerte en casa.`
-    case 'steady': return `${childName} anduvo por su mundo esta semana. Pasa, mira cómo le fue.`
-    default:       return `${childName} dio sus primeros pasitos esta semana. Vamos de a poco.`
-  }
+  if (s.firstTime) return `${childName} está por abrir la puerta de su mundo por primera vez.`
+  return `Cómo le fue a ${childName} esta semana y una cosa para hacer hoy.`
 }
 
 // ── Carta de la semana ───────────────────────────────────────────────────────
@@ -53,7 +40,7 @@ export function doorSubline(childName: string, s: WeekSignal): string {
 // (actividad, racha, tendencia) pero jamás enuncia un número.
 
 export function cartaTitle(): string {
-  return 'La carta de esta semana'
+  return 'La carta de la semana'
 }
 
 export function cartaBody(childName: string, s: WeekSignal): string {

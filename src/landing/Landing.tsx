@@ -7,6 +7,7 @@ import MapExplorer from './MapExplorer'
 import DeskTabs from './DeskTabs'
 import Cinta from './Cinta'
 import Futuro from './Futuro'
+import DemoDoors from './DemoDoors'
 import { useInView } from './useInView'
 import './landing.css'
 
@@ -19,12 +20,12 @@ import './landing.css'
 
 const DEMO_THERAPIST = '/demo?como=profesional'
 
+// Una entrada por sección, con el nombre que la sección lleva en la página.
+// "Quiero sumarme" y "Probar la demo" van como botones al pie del menú.
 const MENU = [
-  { href: '#inicio', label: 'Inicio' },
   { href: '#como-funciona', label: 'Cómo funciona' },
-  { href: '#escritorio', label: 'Para profesionales' },
-  { href: '#familia', label: 'Para familias' },
-  { href: '#hoy', label: 'Lo que ya existe' },
+  { href: '#decides', label: 'Lo que hace Dracs' },
+  { href: '#hoy', label: 'La demo' },
   { href: '#futuro', label: 'Hacia dónde vamos' },
   { href: '#equipo', label: 'Equipo' },
   { href: '#preguntas', label: 'Preguntas' },
@@ -71,7 +72,8 @@ function Menu() {
               ))}
             </ul>
             <div className="lp-menu__foot">
-              <Link className="lp-btn lp-btn--primary" to={DEMO_THERAPIST}>Probar la demo</Link>
+              <a className="lp-btn lp-btn--primary" href="#sumarme" onClick={() => setOpen(false)}>Quiero sumarme</a>
+              <Link className="lp-btn lp-btn--ghost" to={DEMO_THERAPIST}>Probar la demo</Link>
               <p className="lp-source">dracs@dracs.health</p>
             </div>
           </div>
@@ -95,6 +97,9 @@ function Hero() {
       <section className="lp-hero">
         <h1 className="lp-display">El niño juega.<br />Tú decides.</h1>
         <p className="lp-lead">Juegos de lenguaje y cognición para niños de 3 a 10 años. Cada partida llega al profesional que lo acompaña.</p>
+        <div className="lp-hero__actions">
+          <Link className="lp-btn lp-btn--dark" to={DEMO_THERAPIST}>Probar la demo</Link>
+        </div>
         <HeroDemo />
       </section>
     </div>
@@ -102,25 +107,27 @@ function Hero() {
 }
 
 // ── Frase grande con píldoras de imagen ──────────────────────────────────
+// Las tres personas de Dracs, las mismas tres vistas de la demo, en el orden
+// de las secciones de abajo.
 function Statement() {
   return (
     <section className="lp-statement" aria-label="Qué es Dracs">
       <p className="lp-statement__text">
         Dracs{' '}
         <span className="st-pill st-pill--dragon" aria-hidden="true"><img src="/landing/dragon.webp" alt="" width={40} height={52} /></span>{' '}
-        convierte lo que el niño juega en casa{' '}
+        une a tres personas: el niño que juega{' '}
         <span className="st-stack" aria-hidden="true">
           <img src="/landing/ilus/pulpo.webp" alt="" width={80} height={80} />
           <img src="/landing/ilus/caracola.webp" alt="" width={80} height={80} />
           <img src="/landing/ilus/sol.webp" alt="" width={80} height={80} />
-        </span>{' '}
-        en una carpeta{' '}
+        </span>
+        , el profesional que decide{' '}
         <span className="st-pill st-pill--night" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="44" height="44"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2h8.8A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
         </span>{' '}
-        que su profesional lee antes de cada sesión. El criterio sigue siendo tuyo{' '}
+        y la familia que acompaña{' '}
         <span className="st-pill st-pill--yellow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="40" height="40"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#15191b" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <svg viewBox="0 0 24 24" width="40" height="40"><path d="M4 11.5L12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z" fill="none" stroke="#15191b" strokeWidth="2" strokeLinejoin="round" /></svg>
         </span>
       </p>
     </section>
@@ -201,7 +208,7 @@ function Features() {
         title="Cada niño, una carpeta."
         link={{ to: DEMO_THERAPIST, label: 'Abrir el escritorio' }}
       >
-        <p className="lp-p">Su semana por área, tu plan, tus objetivos y el informe con tu firma. Se lee en dos minutos.</p>
+        <p className="lp-p">Su semana por área, tu plan y el informe con tu firma.</p>
       </Feature>
 
       <Feature
@@ -215,9 +222,9 @@ function Features() {
           </div>
         )}
         title="La familia sabe qué hacer hoy."
-        link={{ to: '/demo?como=familia', label: 'Ver lo que ve la familia' }}
+        link={{ to: '/demo?como=familia', label: 'Abrir la casa de la familia' }}
       >
-        <p className="lp-p">Una propuesta al día y una carta a la semana. Sin números clínicos.</p>
+        <p className="lp-p">Una cosa para hoy y la carta de la semana. Sin números clínicos.</p>
       </Feature>
     </div>
   )
@@ -233,11 +240,11 @@ function Decide() {
         <h2 className="lp-title lp-center">Lo que hace Dracs.<br />Y lo que no.</h2>
         <div className="lp-decide">
           <div className="lp-decide__col">
-            <p className="lp-decide__head"><span className="lp-dot lp-dot--yes" aria-hidden="true" />Lo que hace Dracs</p>
+            <p className="lp-decide__head"><span className="lp-dot lp-dot--yes" aria-hidden="true" />Hace</p>
             <ul>{does.map(d => <li key={d}>{d}</li>)}</ul>
           </div>
           <div className="lp-decide__col">
-            <p className="lp-decide__head"><span className="lp-dot lp-dot--no" aria-hidden="true" />Lo que no hace</p>
+            <p className="lp-decide__head"><span className="lp-dot lp-dot--no" aria-hidden="true" />No hace</p>
             <ul>{doesNot.map(d => <li key={d}>{d}</li>)}</ul>
           </div>
         </div>
@@ -246,29 +253,16 @@ function Decide() {
   )
 }
 
-// ── Funciona hoy: tarjetas reales flotando ───────────────────────────────
+// ── La demo: las mismas tres puertas que /demo ───────────────────────────
 function Showcase() {
-  const cards = [
-    { title: 'Tus pacientes', img: '/landing/app-pacientes.webp', w: 2240, h: 1400, cls: 'sc--wide sc--low' },
-    { title: 'Pautas el foco', img: '/landing/plan.webp', w: 1344, h: 894, cls: 'sc--mid' },
-    { title: 'Juega en casa', img: '/landing/partida-caracola.webp', w: 760, h: 740, cls: 'sc--high' },
-    { title: 'El informe, con tu firma', img: '/landing/informe.webp', w: 1344, h: 1672, cls: 'sc--mid sc--tall' },
-    { title: 'La carta de la semana', img: '/landing/carta.webp', w: 1520, h: 406, cls: 'sc--wide sc--low' },
-  ]
   return (
     <section className="lp-show" id="hoy">
-      <div className="lp-wrap lp-center">
-        <h2 className="lp-title lp-center">Ya se puede probar.</h2>
-        <p className="lp-lead">Todo lo que viste hasta aquí está en la demo, abierta y sin registro.</p>
-        <Link className="lp-btn lp-btn--dark" to={DEMO_THERAPIST}>Probar la demo</Link>
-      </div>
-      <div className="sc-row">
-        {cards.map(c => (
-          <figure key={c.title} className={`sc ${c.cls}`}>
-            <figcaption>{c.title}</figcaption>
-            <div className="sc__img"><img src={c.img} alt={c.title} width={c.w} height={c.h} loading="lazy" /></div>
-          </figure>
-        ))}
+      <div className="lp-wrap" style={{ maxWidth: 1040 }}>
+        <div className="lp-center">
+          <h2 className="lp-title lp-center">Ya se puede probar.</h2>
+          <p className="lp-lead">Abierta y sin registro. Pol, 6 años, es el niño de ejemplo en las tres vistas.</p>
+        </div>
+        <DemoDoors />
       </div>
     </section>
   )
@@ -310,7 +304,7 @@ function Equipo() {
           <article className="lp-person lp-person--open">
             <span className="lp-person__mono" aria-hidden="true">+</span>
             <h3 className="lp-sub">Perfil clínico</h3>
-            <p className="lp-label">Buscamos socia o socio</p>
+            <p className="lp-label">Socia o socio</p>
             <p className="lp-p">Buscamos a quien lidere el criterio clínico de Dracs desde el primer día.</p>
             <div><a className="lp-btn lp-btn--ghost lp-btn--small" href="#sumarme">Quiero hablarlo</a></div>
           </article>
@@ -332,8 +326,8 @@ function Equipo() {
 
 function Preguntas() {
   const faq = [
-    { q: '¿Dracs es un producto sanitario?', a: 'No. Es una herramienta de práctica en casa y de seguimiento. No diagnostica ni trata, y no dice si un niño mejoró: eso lo valora el profesional.' },
-    { q: '¿Dónde se guardan los datos de los niños?', a: 'En una base de datos con acceso restringido por cuenta: cada profesional ve solo a sus pacientes y cada familia solo a su hijo. La familia no ve aciertos ni niveles.' },
+    { q: '¿Dracs es un producto sanitario?', a: 'No. Es una herramienta de práctica en casa y de seguimiento, no un dispositivo médico.' },
+    { q: '¿Dónde se guardan los datos de los niños?', a: 'En una base de datos con acceso restringido por cuenta: cada profesional ve solo a sus pacientes y cada familia solo a su hijo.' },
     { q: '¿Qué dispositivos hacen falta?', a: 'En tablet, móvil y ordenador, desde el navegador. No hay que instalar nada.' },
     { q: '¿Está en catalán?', a: 'Todavía no. Está en desarrollo.' },
     { q: '¿Para qué niños está pensado?', a: 'Para niños de 3 a 10 años que trabajan lenguaje y cognición con un profesional: logopedia, psicología, terapia ocupacional o atención temprana. Las áreas van del lenguaje receptivo y expresivo a la atención, la autorregulación y la autonomía.' },
@@ -390,9 +384,10 @@ export default function Landing() {
 
   useEffect(() => {
     document.title = 'Dracs · El niño juega. Tú decides.'
-    // Llegada con ancla desde otra ruta (por ejemplo /#sumarme desde /demo).
+    // Primera carga con ancla (un enlace compartido a /#sumarme). Al llegar
+    // desde otra ruta de la web, el ancla la resuelve ScrollManager.
     const id = window.location.hash.slice(1)
-    if (id) document.getElementById(id)?.scrollIntoView()
+    if (id) document.getElementById(id)?.scrollIntoView({ behavior: 'instant', block: 'start' })
   }, [])
 
   return (

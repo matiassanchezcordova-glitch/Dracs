@@ -36,7 +36,6 @@ import {
 } from './copilotData'
 import type { Patient } from '../../../data/patients'
 
-const FAVICON = '/brand/dracs-favicon-cut.png'
 
 // Radios del sistema, los de la web: tarjetas 16, panel 20, chips e inputs 12.
 const R_CARD = '16px'
@@ -124,18 +123,16 @@ function useMediaQuery(query: string): boolean {
   )
 }
 
-// ── Símbolo de Dracs (favicon recortado, fondo transparente) ─────────────────
+// ── Símbolo de Dracs: el mismo dragón de la web, en un círculo blanco ────────
 function DracsMark({ size, radius }: { size: number; radius: number }) {
   return (
-    <img
-      src={FAVICON}
-      alt=""
-      aria-hidden
-      style={{
-        width: size, height: size, borderRadius: radius,
-        objectFit: 'contain', flexShrink: 0, display: 'block',
-      }}
-    />
+    <span aria-hidden style={{
+      width: size, height: size, borderRadius: radius, flexShrink: 0,
+      background: '#FFFFFF', border: `1px solid ${DT.line}`, boxSizing: 'border-box',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+    }}>
+      <img src="/landing/dragon.webp" alt="" style={{ width: '64%', height: 'auto', display: 'block' }} />
+    </span>
   )
 }
 
@@ -358,7 +355,7 @@ function SourceLine({ src }: { src: string }) {
 function AssistantRow({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-      <DracsMark size={26} radius={8} />
+      <DracsMark size={28} radius={14} />
       <div style={{ maxWidth: 'calc(100% - 42px)' }}>{children}</div>
     </div>
   )

@@ -18,11 +18,13 @@ export function useScrollTop(dep: unknown, ref: RefObject<HTMLElement | null>) {
       if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
         // scrollTo y no scrollTop = 0: asignar sobre un nodo que viene de una
         // ref hace saltar la regla de inmutabilidad, y esto no muta props.
-        node.scrollTo({ top: 0 })
+        node.scrollTo({ top: 0, behavior: 'instant' })
         break
       }
       node = node.parentElement
     }
-    window.scrollTo(0, 0)
+    // Instantáneo: el html tiene scroll suave para las anclas de la web, y
+    // aquí no queremos ver la página subir.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [dep, ref])
 }

@@ -8,7 +8,7 @@
 // generados con el mismo motor.
 
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { type Patient as MockPatient } from '../../data/patients'
 import { buildDemoCaseload } from '../../data/demoCaseload'
 import { loadHistory } from '../../hooks/useChildProfile'
@@ -98,10 +98,13 @@ export default function TherapistTab() {
   const [realPatients, setRealPatients] = useState<MockPatient[]>([])
   const [linkRequests, setLinkRequests] = useState<LinkRequestWithPatient[]>([])
   const [loadingReal, setLoadingReal] = useState(isReal)
-  // ?carpeta=<id> abre directo esa carpeta: es el enlace del final de una
-  // partida en la demo ("Ver esta partida en la carpeta de Pol").
-  const [params] = useSearchParams()
-  const [openId, setOpenId] = useState<string | null>(() => params.get('carpeta'))
+  // La carpeta abierta vive en la URL (?carpeta=<id>): así el botón "atrás"
+  // del navegador o del móvil vuelve al escritorio en vez de salir de la demo,
+  // y el final de una partida puede abrir la carpeta de Pol directamente.
+  const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const openId = params.get('carpeta')
   // El módulo del escritorio vive aquí y no en el Escritorio: al volver de una
   // carpeta abierta desde Pacientes, se vuelve a Pacientes y no a la Agenda.
   const [deskModule, setDeskModule] = useState('agenda')
@@ -165,7 +168,7 @@ export default function TherapistTab() {
   const openPatient = openId ? patients.find(p => p.id === openId) ?? null : null
 
   function openCarpeta(id: string) {
-    setOpenId(id)
+    setParams({ carpeta: id }, { state: { fromDesk: true } })
     if (isReal) setSelectedPatientId(id)
   }
 
@@ -178,7 +181,12 @@ export default function TherapistTab() {
         <Carpeta
           patient={openPatient}
           supabasePatientId={isReal ? openPatient.id : undefined}
-          onBack={() => setOpenId(null)}
+          onBack={() => {
+            // Si se abrió desde el escritorio, "Escritorio" es volver atrás;
+            // si se llegó directo, se reemplaza la entrada por el escritorio.
+            if ((location.state as { fromDesk?: boolean } | null)?.fromDesk) navigate(-1)
+            else setParams({}, { replace: true })
+          }}
         />
       ) : (
         <Escritorio

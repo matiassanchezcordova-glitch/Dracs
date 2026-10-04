@@ -42,7 +42,7 @@
 }
 
 .lp-wrap { max-width: var(--lp-wrap); margin: 0 auto; padding: 0 var(--lp-gutter); }
-.lp-section { padding: var(--lp-section) 0; scroll-margin-top: 64px; }
+.lp-section { padding: var(--lp-section) 0; scroll-margin-top: 0; }
 .lp-section--alt { background: var(--lp-paper-2); }
 .lp-section--night { background: var(--lp-night); color: #fff; }
 
@@ -205,7 +205,7 @@
 .lp-doors { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .lp .lp-door {
   width: 100%; height: 100%; display: flex; flex-direction: column; text-align: left;
-  padding: 0; cursor: pointer; overflow: hidden;
+  padding: 0; cursor: pointer; overflow: hidden; text-decoration: none;
   background: #fff; color: var(--lp-ink);
   border: 1px solid var(--lp-line); border-radius: 16px;
   box-shadow: 0 1px 2px rgba(21,25,27,0.04), 0 10px 28px -14px rgba(21,25,27,0.16);
@@ -215,7 +215,7 @@
 .lp-door__shot { position: relative; aspect-ratio: 4 / 3; background: var(--lp-paper-2); border-bottom: 1px solid var(--lp-line); overflow: hidden; }
 .lp .lp-door__shot img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 .lp .lp-door__tag {
-  position: absolute; top: 12px; left: 12px;
+  position: absolute; top: 12px; right: 12px;
   font-size: 13px; font-weight: 600; background: var(--lp-yellow); padding: 5px 11px; border-radius: 999px; white-space: nowrap;
 }
 .lp-door__text { display: grid; gap: 6px; padding: 20px 22px 22px; flex: 1; }
@@ -442,7 +442,7 @@
   background: var(--lp-paper-2); display: flex; align-items: center; justify-content: center;
 }
 .lp-feature__media--night { background: radial-gradient(120% 90% at 30% 0%, #26505c 0%, var(--lp-night) 60%); padding: 32px; }
-.lp-feature__media--cream { background: #faf5e8; }
+.lp-feature__media--cream { background: var(--lp-paper-2); }
 .lp-feature__media--sun { background: linear-gradient(160deg, #fbe7a3 0%, #f7c31c 100%); padding: 40px; }
 .lp-feature__text { display: grid; gap: 20px; align-content: center; }
 .lp .lp-h { margin: 0; font-family: var(--lp-sans); font-weight: 600; font-size: 44px; line-height: 1.06; letter-spacing: -0.035em; }
@@ -546,7 +546,7 @@
 @media (max-width: 720px) { .lp-decide { grid-template-columns: 1fr; } .lp-decide__col { padding: 24px; border-radius: 24px; } }
 
 /* ── Funciona hoy: tarjetas flotando ──────────────────────────────────── */
-.lp-show { padding: var(--lp-section) 0; background: var(--lp-paper-2); overflow: hidden; scroll-margin-top: 24px; }
+.lp-show { padding: var(--lp-section) 0; background: var(--lp-paper-2); overflow: hidden; scroll-margin-top: 0; }
 .lp .lp-btn--dark { background: var(--lp-ink); color: #fff; border-radius: 999px; margin-top: 28px; padding: 0 28px; min-height: 52px; }
 .lp .lp-btn--dark:hover { background: #000; }
 .sc-row {
@@ -642,7 +642,7 @@
 .lp .lp-faq details .lp-p { max-width: none; padding-right: 40px; margin: 0 0 22px; }
 
 /* ── Hacia dónde vamos ────────────────────────────────────────────────── */
-.lp-future { padding: var(--lp-section) 0; background: radial-gradient(120% 80% at 50% 0%, #26505c 0%, var(--lp-night) 55%); color: #fff; scroll-margin-top: 24px; }
+.lp-future { padding: var(--lp-section) 0; background: radial-gradient(120% 80% at 50% 0%, #26505c 0%, var(--lp-night) 55%); color: #fff; scroll-margin-top: 0; }
 .lp .lp-future__tag { display: table; margin: 0 auto 20px; font-size: 14px; font-weight: 600; color: var(--lp-ink); background: var(--lp-yellow); padding: 6px 14px; border-radius: 999px; }
 .lp-future .lp-title.lp-center { margin-bottom: 0; }
 .lp-future .lp-lead { color: #fff; }
@@ -663,18 +663,20 @@
 .lp .fu-msg { margin: 0; font-size: 14px; line-height: 1.45; padding: 10px 14px; border-radius: 16px; max-width: 88%; }
 .lp .fu-msg--me { align-self: flex-end; background: var(--lp-night); color: #fff; border-bottom-right-radius: 4px; }
 .fu-msg--dracs { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; box-shadow: 0 6px 16px -10px rgba(0,0,0,.3); }
-.fu-typing { display: flex; gap: 4px; padding: 4px 0; overflow: hidden; height: 14px; }
+.fu-msg--dracs { display: grid; }
+.fu-msg--dracs > * { grid-area: 1 / 1; }
+.fu-typing { display: flex; gap: 4px; padding: 4px 0; height: 14px; align-self: start; }
 .fu-typing i { width: 6px; height: 6px; border-radius: 50%; background: #9ca09a; animation: fuDot 1s ease-in-out infinite; }
 .fu-typing i:nth-child(2) { animation-delay: 150ms; }
 .fu-typing i:nth-child(3) { animation-delay: 300ms; }
-.fu-reply { display: none; }
+.fu-reply { opacity: 0; }
 .fu-reply p { margin: 0 0 8px; }
-.fu-grid.is-in .fu-typing { animation: fuHide 0s linear 1.6s forwards; }
-.fu-grid.is-in .fu-reply { display: block; opacity: 0; animation: fuShow 400ms ease 1.6s forwards; }
+.fu-grid.is-in .fu-typing { animation: fuHide 0.2s linear 1.6s forwards; }
+.fu-grid.is-in .fu-reply { animation: fuShow 400ms ease 1.6s forwards; }
 .fu-games { display: flex; gap: 8px; margin-bottom: 8px; }
 .fu-games img { width: 52px; height: 52px; border-radius: 10px; border: 1px solid var(--lp-line); background: #fff; }
 @keyframes fuDot { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
-@keyframes fuHide { to { opacity: 0; height: 0; padding: 0; } }
+@keyframes fuHide { to { opacity: 0; } }
 @keyframes fuShow { to { opacity: 1; } }
 
 /* Dibujo */
@@ -707,9 +709,15 @@
   .fu-grid.is-in .fu-stroke, .fu-grid.is-in .fu-wave span, .fu-typing i { animation: none; }
   .fu-verdict { opacity: 1; transition: none; }
   .fu-typing { display: none; }
-  .fu-reply { display: block; opacity: 1; }
+  .fu-reply { opacity: 1; }
   .fu-grid.is-in .fu-reply { animation: none; opacity: 1; }
   .fu-photos img { opacity: 1; transform: none; }
 }
 .lp-demo.lp-section { padding: 64px 0 96px; }
 @media (max-width: 720px) { .lp-demo.lp-section { padding: 40px 0 64px; } }
+
+/* ── v7: botón del hero y puertas de la demo en la web ─────────────────── */
+.lp-hero__actions { display: flex; justify-content: center; }
+.lp-hero__actions .lp-btn--dark { margin-top: 28px; }
+.lp-show .lp-doors { margin-top: 48px; }
+@media (max-width: 900px) { .lp-show .lp-doors { margin-left: auto; margin-right: auto; } }

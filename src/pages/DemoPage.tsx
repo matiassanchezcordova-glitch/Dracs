@@ -1,33 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import type { Role } from '../components/RoleSelector'
-import RoleConflictModal from '../components/RoleConflictModal'
-import { useAuth } from '../context/AuthContext'
 import { enterDemo } from '../lib/demo'
-import {
-  clearAllDracsStorage,
-  dbRoleToUiRole,
-  isRoleConflict,
-  roleToPath,
-} from '../lib/role'
-import type { Profile } from '../lib/types'
+import { roleToPath } from '../lib/role'
+import DemoDoors from '../landing/DemoDoors'
 import '../landing/landing.css'
 
 // Entrada al showroom (/demo). Mismo sistema visual que la landing.
 //
-// Las tres puertas entran DIRECTO en modo demo, sin login. Quien ya tiene
-// cuenta entra por el enlace de abajo y recorre el camino real de siempre
-// (Supabase, roles, conflictos); ese camino queda intacto.
+// Las tres puertas entran directo en la demo, sin registro. La web pública no
+// tiene acceso con cuenta.
 //
-// Atajo para compartir: /demo?como=profesional (o familia, nino) entra directo por
-// esa puerta. Es el enlace que usan los botones "Probar la demo" de la landing.
-
-// Mismo orden que el selector de vistas de la app: Profesional, Familia, Niño.
-const DOORS: { role: Exclude<Role, 'demo'>; title: string; text: string; img: string; recommended?: boolean }[] = [
-  { role: 'therapist', title: 'Profesional', text: 'Su agenda, su carpeta y el informe.', img: '/landing/demo-profesional.webp', recommended: true },
-  { role: 'family', title: 'Familia', text: 'La carta de la semana y una cosa para hoy.', img: '/landing/demo-familia.webp' },
-  { role: 'child', title: 'Niño', text: 'El mapa y los juegos, como en casa.', img: '/landing/demo-nino.webp' },
-]
+// /demo?como=profesional (o familia, nino) entra directo en esa vista. Es el
+// enlace de las tarjetas, de este /demo y de la web.
 
 const QUERY_TO_ROLE: Record<string, Exclude<Role, 'demo'>> = {
   profesional: 'therapist',
@@ -39,55 +24,19 @@ const QUERY_TO_ROLE: Record<string, Exclude<Role, 'demo'>> = {
 }
 
 export default function DemoPage() {
-  const { user, profile, logout } = useAuth()
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [conflict, setConflict] = useState<{
-    profileRole: Profile['role']
-    targetRole: Role
-  } | null>(null)
 
-  function handleRoleSelect(r: Role) {
-    // Con sesión real: el camino de siempre (rol del perfil, conflictos, etc.).
-    if (user && profile) {
-      if (isRoleConflict(profile.role, r)) {
-        setConflict({ profileRole: profile.role, targetRole: r })
-        return
-      }
-      // Terapeuta que toca la puerta "Familia" → casa de la familia
-      if (r === 'family' && profile.role === 'therapist') {
-        navigate('/app/familia')
-        return
-      }
-      const uiRole = dbRoleToUiRole(profile.role)
-      navigate(`/app/${roleToPath(uiRole)}`)
-      return
-    }
-
-    // Sin sesión: showroom directo. Se asegura el niño demo (Pol) una sola vez
-    // y se entra por la puerta elegida. Cero fricción, cero login.
-    const door: Role = r === 'demo' ? 'child' : r
-    enterDemo(door)
-    navigate(`/app/${roleToPath(door)}`)
-  }
-
-  // Enlace directo (?como=profesional): sin sesión, entra sin pasar por las puertas.
+  // Enlace directo (?como=profesional): entra sin pasar por las puertas.
   const como = params.get('como')?.toLowerCase() ?? null
   const directRole = como ? QUERY_TO_ROLE[como] : undefined
+  useEffect(() => { document.title = 'Dracs · Demo' }, [])
+
   useEffect(() => {
-    if (!directRole || user) return
+    if (!directRole) return
     enterDemo(directRole)
     navigate(`/app/${roleToPath(directRole)}`, { replace: true })
-  }, [directRole, user, navigate])
-
-  async function handleConflictLogout() {
-    if (!conflict) return
-    const targetRole = conflict.targetRole
-    if (user) await logout()
-    clearAllDracsStorage()
-    setConflict(null)
-    navigate(`/login?role=${targetRole}`)
-  }
+  }, [directRole, navigate])
 
   return (
     <div className="lp" style={{ minHeight: '100vh' }}>
@@ -114,42 +63,16 @@ export default function DemoPage() {
             </p>
           </div>
 
-          <ul className="lp-doors">
-            {DOORS.map(d => (
-              <li key={d.role}>
-                <button type="button" className="lp-door" onClick={() => handleRoleSelect(d.role)}>
-                  <span className="lp-door__shot">
-                    <img src={d.img} alt="" width={800} height={600} />
-                    {d.recommended && <span className="lp-door__tag">Empieza aquí</span>}
-                  </span>
-                  <span className="lp-door__text">
-                    <span className="lp-door__row">
-                      <span className="lp-sub">{d.title}</span>
-                      <svg className="lp-door__arrow" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                    <span className="lp-door__desc">{d.text}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          {/* Cada puerta es un enlace a /demo?como=…: el efecto de arriba entra
+              en esa vista. Las mismas tarjetas que en la web. */}
+          <DemoDoors />
 
           <p className="lp-source" style={{ marginTop: 32 }}>
-            Todo se guarda solo en este navegador. ¿Tienes cuenta? <Link to="/login">Inicia sesión</Link>
+            Sin registro. Todo se guarda solo en este navegador.
           </p>
         </div>
       </main>
 
-      {conflict && (
-        <RoleConflictModal
-          profileRole={conflict.profileRole}
-          targetRole={conflict.targetRole}
-          onLogoutAndContinue={handleConflictLogout}
-          onClose={() => setConflict(null)}
-        />
-      )}
     </div>
   )
 }

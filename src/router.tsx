@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import DemoPage from './pages/DemoPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -7,11 +7,13 @@ import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingSpinner from './components/LoadingSpinner'
 
-// La landing y /demo cargan al instante. La app (juegos, escritorio, familia,
-// login) se descarga aparte, recién cuando alguien entra: así la web pública
-// no carga los gráficos ni los juegos que no muestra.
+// La landing y /demo cargan al instante. La app (juegos, escritorio, familia)
+// se descarga aparte, recién cuando alguien entra: así la web pública no carga
+// los gráficos ni los juegos que no muestra.
+//
+// La web pública es solo la landing y la demo. No hay acceso con cuenta: /login
+// (y cualquier enlace viejo que apunte ahí) lleva a /demo.
 const App = lazy(() => import('./App'))
-const LoginPage = lazy(() => import('./pages/LoginPage'))
 const AppRedirect = lazy(() => import('./pages/app/AppRedirect'))
 const MapScreen = lazy(() => import('./components/MapScreen'))
 const HotspotSession = lazy(() => import('./components/HotspotSession'))
@@ -24,7 +26,7 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/demo" element={<DemoPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<Navigate to="/demo" replace />} />
         <Route path="/privacidad" element={<PrivacyPage />} />
         <Route
           path="/app"
