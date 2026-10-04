@@ -313,9 +313,9 @@ function roleMismatchMsg(dbRole: string, _wanted: Role): string {
     return 'Esta cuenta es de profesional. Entra por la puerta Profesional.'
   }
   if (dbRole === 'patient') {
-    return 'Esta cuenta es de paciente. Usá Ejercicios para entrar.'
+    return 'Esta cuenta es de paciente. Usa Ejercicios para entrar.'
   }
-  return 'Esta cuenta es de familiar. Usá Progreso para entrar.'
+  return 'Esta cuenta es de familiar. Usa Progreso para entrar.'
 }
 
 // ── Screen: Choose ────────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
     const timeout = setTimeout(() => {
       timedOut = true
       setLoading(false)
-      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
+      setError('La conexión ha tardado demasiado. Comprueba tu conexión e inténtalo de nuevo.')
     }, 5000)
 
     try {
@@ -404,7 +404,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
             : authError.message
         )
       }
-      if (!authUser) throw new Error('No se pudo autenticar. Intenta de nuevo.')
+      if (!authUser) throw new Error('No se ha podido iniciar sesión. Inténtalo de nuevo.')
 
       // Verify the role matches the section the user is entering
       const { data: prof, error: profError } = await supabase
@@ -417,7 +417,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
 
       if (profError || !prof) {
         await supabase.auth.signOut()
-        throw new Error('No encontramos tu perfil. Contactá soporte.')
+        throw new Error('No encontramos tu perfil. Escribe a soporte.')
       }
 
       const wantTherapist = role === 'therapist'
@@ -432,7 +432,7 @@ function LoginScreen({ role, onSuccess, onBack }: {
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo ha ido mal. Inténtalo de nuevo.')
     } finally {
       if (!timedOut) setLoading(false)
     }
@@ -496,7 +496,7 @@ function SignupStep1({ role, onContinue, onBack }: {
     const timeout = setTimeout(() => {
       timedOut = true
       setLoading(false)
-      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
+      setError('La conexión ha tardado demasiado. Comprueba tu conexión e inténtalo de nuevo.')
     }, 5000)
 
     try {
@@ -523,7 +523,7 @@ function SignupStep1({ role, onContinue, onBack }: {
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo ha ido mal. Inténtalo de nuevo.')
     } finally {
       if (!timedOut) setLoading(false)
     }
@@ -678,7 +678,7 @@ function PatientStep3({
     const timeout = setTimeout(() => {
       timedOut = true
       setSaving(false)
-      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
+      setError('La conexión ha tardado demasiado. Comprueba tu conexión e inténtalo de nuevo.')
     }, 5000)
 
     try {
@@ -708,7 +708,7 @@ function PatientStep3({
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo ha ido mal. Inténtalo de nuevo.')
     } finally {
       if (!timedOut) setSaving(false)
     }
@@ -734,7 +734,7 @@ function PatientStep3({
     <AuthLayout onBack={onBack}>
       <StepDots total={3} current={2} />
       <CardTitle>¿Lo acompaña un profesional?</CardTitle>
-      <CardSubtitle>Si un profesional acompaña a tu hijo, conéctalo para que reciba su progreso. Si no, puedes empezar igual.</CardSubtitle>
+      <CardSubtitle>Si un profesional acompaña a tu hijo, conéctalo para que reciba su progreso. Si no, puedes empezar igualmente.</CardSubtitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <ErrorMsg msg={error} />
@@ -905,7 +905,7 @@ function TherapistStep3({
     const timeout = setTimeout(() => {
       timedOut = true
       setSaving(false)
-      setError('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.')
+      setError('La conexión ha tardado demasiado. Comprueba tu conexión e inténtalo de nuevo.')
     }, 5000)
 
     try {
@@ -929,7 +929,7 @@ function TherapistStep3({
     } catch (err) {
       if (timedOut) return
       clearTimeout(timeout)
-      setError(err instanceof Error ? err.message : 'Algo salió mal. Intenta de nuevo.')
+      setError(err instanceof Error ? err.message : 'Algo ha ido mal. Inténtalo de nuevo.')
     } finally {
       if (!timedOut) setSaving(false)
     }

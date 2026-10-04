@@ -30,10 +30,10 @@ export function deskStatus(input: {
   // Jugó esta semana.
   if (sessionsThisWeek >= 1) {
     if (lastPlayedISO && (totalSessions ?? 0) === 1 && daysBetween(new Date(lastPlayedISO), new Date()) === 0) {
-      return { text: 'Empezó hoy', tone: 'played' }
+      return { text: 'Ha empezado hoy', tone: 'played' }
     }
     const n = sessionsThisWeek
-    return { text: `Jugó ${n} ${n === 1 ? 'vez' : 'veces'} esta semana`, tone: 'played' }
+    return { text: `Ha jugado ${n} ${n === 1 ? 'vez' : 'veces'} esta semana`, tone: 'played' }
   }
 
   // Sin partidas esta semana.
@@ -46,10 +46,10 @@ export function deskStatus(input: {
 
   // Jugó antes, pero no esta semana.
   if (diff <= 1) {
-    return { text: diff === 0 ? 'No abrió hoy' : 'No abrió desde ayer', tone: 'attention' }
+    return { text: diff === 0 ? 'Hoy no ha jugado' : 'No juega desde ayer', tone: 'attention' }
   }
   if (diff <= 7) {
-    return { text: `No abrió desde el ${DAYS[last.getDay()]}`, tone: 'attention' }
+    return { text: `No juega desde el ${DAYS[last.getDay()]}`, tone: 'attention' }
   }
-  return { text: 'No abrió hace más de una semana', tone: 'attention' }
+  return { text: 'Hace más de una semana que no juega', tone: 'attention' }
 }

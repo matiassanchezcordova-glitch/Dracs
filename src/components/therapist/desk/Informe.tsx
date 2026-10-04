@@ -208,7 +208,7 @@ export default function Informe({
       await navigator.clipboard.writeText(text)
       onToast('Informe copiado al portapapeles.')
     } catch {
-      onToast('El navegador no dejó copiar. Selecciona el texto y cópialo a mano.')
+      onToast('El navegador no ha dejado copiar. Selecciona el texto y cópialo a mano.')
     }
   }
 
@@ -274,7 +274,7 @@ export default function Informe({
         <div className="no-print" style={{
           display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: '18px',
         }}>
-          <DocAction Icon={Sparkle} label="Redactar con Dracs" done="Se lo pedí" onRun={handleAskDracs} />
+          <DocAction Icon={Sparkle} label="Redactar con Dracs" done="Hecho" onRun={handleAskDracs} />
           <DocAction Icon={Copy} label="Copiar" done="Copiado" onRun={handleCopy} />
           <DocAction Icon={Printer} label="Imprimir" onRun={() => window.print()} />
           <DocAction Icon={FloppyDisk} label={saving ? 'Guardando…' : 'Guardar'} done="Guardado" onRun={handleSave} primary />

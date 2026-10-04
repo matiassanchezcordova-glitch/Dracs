@@ -285,9 +285,32 @@
   background: linear-gradient(180deg, #f3f3f0 0%, #ecece8 100%);
 }
 @media (max-width: 720px) { .lp-sheet { margin: 0 8px; border-radius: 28px; padding-bottom: 48px; } }
-.lp-top { display: flex; align-items: center; justify-content: space-between; padding: 28px 40px 0; }
-@media (max-width: 720px) { .lp-top { padding: 18px 18px 0; } }
+/* Barra fija: arriba del todo cae en el mismo sitio que antes dentro de la
+   hoja; al bajar se compacta y toma un fondo blanco translúcido. El fondo va
+   en ::before para que el blur no atrape el menú (que es position: fixed). */
+.lp-top {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 70;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28px 64px 0; transition: padding 250ms ease;
+}
+.lp-top::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px);
+  box-shadow: 0 1px 0 rgba(21, 25, 27, 0.08);
+  opacity: 0; transition: opacity 250ms ease;
+}
+.lp-top.is-scrolled { padding: 10px 64px; }
+.lp-top.is-scrolled::before { opacity: 1; }
+.lp .lp-top .lp-brand img { transition: width 250ms ease; }
+.lp .lp-top.is-scrolled .lp-brand img { width: 32px; }
+.lp-sheet { padding-top: 80px; }
+@media (max-width: 720px) {
+  .lp-top { padding: 18px 26px 0; }
+  .lp-top.is-scrolled { padding: 8px 18px; }
+  .lp-sheet { padding-top: 70px; }
+}
 .lp-top__actions { display: flex; gap: 10px; align-items: center; }
+@media (max-width: 380px) { .lp-top__actions { gap: 6px; } .lp .lp-top .lp-btn--small { padding: 0 12px; } .lp .lp-top .lp-menu-btn { padding: 0 16px; } }
 .lp .lp-menu-btn {
   min-height: 44px; padding: 0 22px; border-radius: 999px; border: 0; cursor: pointer;
   background: var(--lp-night); color: #fff; font-size: 16px; font-weight: 600;
@@ -550,22 +573,26 @@
 .lp .lp-btn--dark { background: var(--lp-ink); color: #fff; border-radius: 999px; margin-top: 28px; padding: 0 28px; min-height: 52px; }
 .lp .lp-btn--dark:hover { background: #000; }
 .sc-row {
-  display: flex; gap: 24px; align-items: flex-start; justify-content: center;
-  width: 1640px; position: relative; left: 50%; transform: translateX(-50%); margin-top: 72px;
+  display: flex; gap: 20px; align-items: flex-start; justify-content: center;
+  width: max-content; position: relative; left: 50%; transform: translateX(-50%); margin-top: 72px; padding-bottom: 24px;
 }
-.sc { margin: 0; background: #fff; border-radius: 32px; padding: 20px; box-shadow: 0 30px 60px -36px rgba(21, 25, 27, 0.4); flex-shrink: 0; }
+.sc {
+  margin: 0; background: #fff; border-radius: 28px; padding: 18px; flex-shrink: 0;
+  width: clamp(250px, calc((100vw - 120px) / 5), 290px);
+  box-shadow: 0 30px 60px -36px rgba(21, 25, 27, 0.4);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease;
+}
 .lp .sc figcaption { font-size: 16px; font-weight: 600; margin: 2px 4px 14px; text-align: left; }
-.sc__img { border-radius: 18px; overflow: hidden; background: var(--lp-paper-2); }
-.sc__img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-.sc { width: 290px; }
-.sc--wide { width: 380px; }
-.sc .sc__img { aspect-ratio: 1; }
-.sc--wide .sc__img { aspect-ratio: 16 / 10; }
-.sc--wide .sc__img img { object-fit: contain; object-position: center; }
-.sc--tall .sc__img { aspect-ratio: 3 / 4; }
+.sc__img { border-radius: 14px; overflow: hidden; background: var(--lp-paper-2); box-shadow: inset 0 0 0 1px var(--lp-line); }
+.sc__img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 .sc--low { margin-top: 140px; }
 .sc--mid { margin-top: 60px; }
 .sc--high { margin-top: 0; }
+/* Al pasar el cursor: la tarjeta crece un poco y se adelanta a las demás. */
+@media (hover: hover) and (pointer: fine) {
+  .sc:hover { transform: scale(1.12); position: relative; z-index: 2; box-shadow: 0 40px 80px -36px rgba(21, 25, 27, 0.5); }
+}
+@media (prefers-reduced-motion: reduce) { .sc { transition: none; } }
 .lp .lp-next { margin-top: 64px; font-size: 16px; max-width: 60ch; }
 @media (max-width: 960px) {
   .sc-row { width: auto; left: 0; transform: none; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; padding: 0 16px 24px; }
@@ -574,30 +601,32 @@
 }
 
 /* ── Pie con el nombre enorme ─────────────────────────────────────────── */
-.lp-bigfoot { background: #fafaf8; padding: 96px 0 24px; overflow: hidden; text-align: center; }
-.lp-bigfoot__links { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 4px; }
-.lp .lp-bigfoot__links a { font-family: var(--lp-serif); font-weight: 500; font-size: clamp(30px, 4.4vw, 56px); line-height: 1.2; letter-spacing: -0.03em; text-decoration: none; }
-.lp .lp-bigfoot__links a:hover { text-decoration: underline; text-underline-offset: 8px; text-decoration-thickness: 2px; }
+/* Pie: hoja oscura con esquinas redondas, el cierre de la página. */
+.lp-bigfoot { padding: 0 24px 24px; background: var(--lp-paper-2); }
+.lp-bigfoot__sheet {
+  background: var(--lp-night); color: #fff; border-radius: 40px;
+  padding: 48px 40px 28px; overflow: hidden;
+}
+.lp-bigfoot__row { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.lp-bigfoot__dragon { width: 40px; height: auto; display: block; }
+.lp-bigfoot__links { list-style: none; margin: 0; padding: 0; display: flex; gap: 28px; }
+.lp .lp-bigfoot__links a { color: #fff; font-size: var(--t-ui, 16px); font-weight: 600; text-decoration: none; }
+.lp .lp-bigfoot__links a:hover { text-decoration: underline; text-decoration-color: var(--lp-yellow); text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .lp .lp-bigfoot__mark {
-  margin: 72px 0 0; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600; color: var(--lp-yellow);
-  font-size: clamp(120px, 26vw, 420px); line-height: 0.8; letter-spacing: -0.02em;
+  margin: 40px 0 0; text-align: center; color: var(--lp-yellow);
+  font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600;
+  font-size: clamp(110px, 24vw, 360px); line-height: 0.8; letter-spacing: -0.02em;
+  pointer-events: none; user-select: none;
 }
-.lp-bigfoot__legal { display: flex; justify-content: space-between; gap: 12px; margin-top: 40px; }
-
-/* ── Barra fija abajo ─────────────────────────────────────────────────── */
-.lp-dock {
-  position: fixed; left: 50%; bottom: 20px; z-index: 60; transform: translate(-50%, 140%);
-  display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 22px;
-  background: #fff; border-radius: 999px; box-shadow: 0 20px 40px -16px rgba(21, 25, 27, 0.4), 0 0 0 1px rgba(21, 25, 27, 0.08);
-  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease; opacity: 0;
+.lp .lp-bigfoot__legal {
+  margin: 32px 0 0; padding-top: 20px; border-top: 1px solid var(--lp-line-night);
+  font-size: var(--t-small, 14px); color: rgba(255, 255, 255, 0.72);
 }
-.lp-dock.is-on { transform: translate(-50%, 0); opacity: 1; }
-.lp .lp-dock__text { margin: 0 6px 0 0; font-weight: 600; font-size: 15px; white-space: nowrap; }
-.lp-dock .lp-btn { border-radius: 999px; }
-@media (max-width: 560px) {
-  .lp-dock { left: 12px; right: 12px; transform: translateY(140%); padding: 8px; justify-content: center; }
-  .lp-dock.is-on { transform: none; }
-  .lp .lp-dock__text { display: none; }
+@media (max-width: 720px) {
+  .lp-bigfoot { padding: 0 8px 8px; }
+  .lp-bigfoot__sheet { border-radius: 28px; padding: 32px 22px 22px; }
+  .lp-bigfoot__links { gap: 20px; }
+  .lp .lp-bigfoot__mark { margin-top: 28px; }
 }
 
 /* FAQ centrado */
@@ -648,6 +677,13 @@
 .lp-future .lp-lead { color: #fff; }
 .fu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 64px; }
 .fu-card { background: #fff; color: var(--lp-ink); border-radius: 32px; padding: 20px 20px 28px; display: grid; gap: 10px; align-content: start; }
+/* Simetría entre tarjetas vecinas: cada tarjeta ocupa tres filas de la
+   rejilla (fondo gris, título, texto) y las comparte con la de al lado, así
+   el gris termina a la misma altura y título y texto quedan alineados. */
+@supports (grid-template-rows: subgrid) {
+  .fu-card { grid-row: span 3; grid-template-rows: subgrid; row-gap: 10px; }
+  .fu-card > .fu-ui { height: 100%; box-sizing: border-box; }
+}
 .lp .fu-title { margin: 14px 8px 0; font-family: var(--lp-sans); font-weight: 600; font-size: 26px; letter-spacing: -0.02em; line-height: 1.15; }
 .lp .fu-text { margin: 0 8px; font-size: 17px; line-height: 1.5; }
 @media (max-width: 860px) { .fu-grid { grid-template-columns: 1fr; margin-top: 40px; } .fu-card { border-radius: 24px; } }
@@ -659,7 +695,7 @@
 .fu-grid.is-in .fu-verdict { opacity: 1; }
 
 /* Pedir */
-.fu-chat { justify-content: flex-start; }
+.fu-chat { justify-content: center; }
 .lp .fu-msg { margin: 0; font-size: 14px; line-height: 1.45; padding: 10px 14px; border-radius: 16px; max-width: 88%; }
 .lp .fu-msg--me { align-self: flex-end; background: var(--lp-night); color: #fff; border-bottom-right-radius: 4px; }
 .fu-msg--dracs { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; box-shadow: 0 6px 16px -10px rgba(0,0,0,.3); }
@@ -745,7 +781,7 @@
 
 /* Serif */
 .lp .lp-display { font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-display); }
-.lp .lp-title, .lp .lp-statement__text, .lp .lp-bigfoot__links a {
+.lp .lp-title, .lp .lp-statement__text {
   font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-h2); letter-spacing: -0.02em;
 }
 .lp .lp-title--hero { font-size: var(--t-h2); }
@@ -756,13 +792,12 @@
 .lp .lp-sub, .lp .lp-faq summary, .lp .fu-title {
   font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-h4); letter-spacing: -0.01em; line-height: 1.25;
 }
-.lp .lp-bigfoot__mark { font-family: var(--lp-serif); font-weight: 500; letter-spacing: -0.04em; pointer-events: none; user-select: none; }
 
 /* Sans: lead, cuerpo, interfaz, pequeño */
 .lp .lp-lead { font-size: var(--t-lead); }
 .lp, .lp .lp-p, .lp .lp-body, .lp .lp-decide__col li, .lp .fu-text, .lp .lp-way__what { font-size: var(--t-body); }
 .lp .lp-btn, .lp .lp-btn--small, .lp .lp-menu-btn, .lp .lp-link, .lp .lp-label, .lp .lp-nav__links a,
-.lp .lp-field label, .lp .lp-field legend, .lp .lp-check, .lp .lp-input, .lp .lp-dock__text,
+.lp .lp-field label, .lp .lp-field legend, .lp .lp-check, .lp .lp-input,
 .lp .lp-decide__head, .lp .sc figcaption, .lp .lp-minifig__t, .lp .wk-rowlabel, .lp .lp-door__desc,
 .lp .lp-form__error, .lp .lp-way__time, .lp .lp-next, .lp .lp-person__mono {
   font-size: var(--t-ui);

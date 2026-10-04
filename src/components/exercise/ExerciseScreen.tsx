@@ -22,11 +22,11 @@ interface Props {
 
 // ── Feedback pools ──────────────────────────────────────────────────────────
 
-const PRAISE_POOL = ['¡Bien!', '¡Lo lograste!', '¡Genial!', '¡Crack!', '¡Eso es!', '¡Increíble!']
+const PRAISE_POOL = ['¡Bien!', '¡Lo has conseguido!', '¡Genial!', '¡Muy bien!', '¡Eso es!', '¡Increíble!']
 const ENCOURAGE_POOL = ['Mira bien', 'Casi', 'Prueba otra vez', 'Estás cerca']
 // Fallo definitivo: mensaje de ánimo para pasar de partida (sin describir la
 // imagen ni revelar la respuesta con texto).
-const MOVE_ON_POOL = ['¡Seguimos!', '¡La próxima!', '¡Vamos que se puede!']
+const MOVE_ON_POOL = ['¡Seguimos!', '¡A por la siguiente!', '¡Tú puedes!']
 
 function pickRandom<T>(pool: readonly T[]): T {
   return pool[Math.floor(Math.random() * pool.length)]

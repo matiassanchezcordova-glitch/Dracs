@@ -349,7 +349,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
                   </>
                 }
               >
-                Cómo le fue
+                Cómo le ha ido
               </SectionTitle>
 
               {/* La semana que se está mirando, dicha una vez. */}
@@ -499,7 +499,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
             <textarea
               value={draftNote}
               onChange={e => setDraftNote(e.target.value)}
-              placeholder={`Qué observaste de ${firstName}.`}
+              placeholder={`Qué has observado en ${firstName}.`}
               aria-label="Nueva nota clínica"
               rows={6}
               style={{ ...FIELD, resize: 'vertical', maxHeight: '320px', marginBottom: '14px' }}
@@ -593,7 +593,7 @@ export default function Carpeta({ patient: p, supabasePatientId, onBack }: Props
               </>
             ) : (
               <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.6, fontFamily: DT.body, color: 'rgba(255,255,255,0.82)' }}>
-                Esta semana todavía no le escribiste. Lo que publiques aparece aquí, tal como lo lee la familia.
+                Esta semana todavía no le has escrito. Lo que publiques aparece aquí, tal como lo lee la familia.
               </p>
             )}
           </div>

@@ -19,7 +19,7 @@ import { deskStatus } from '../desk/patientStatus'
 import { citasDe } from '../desk/agenda'
 import { fromLocalHistory, localIso, rangeFor, statsFor, type DayRange } from '../desk/informeData'
 
-export const GREETING = 'Hola. Miro lo que cada niño jugó en casa y te preparo borradores. ¿Por dónde empezamos?'
+export const GREETING = 'Hola. Miro lo que cada niño ha jugado en casa y te preparo borradores. ¿Por dónde empezamos?'
 
 // Grupos de un repaso: una etiqueta y los nombres. Se dibujan como filas, no
 // como párrafo, para que se escaneen de un vistazo.
@@ -96,8 +96,8 @@ function statusOf(p: Patient) {
 // ── Quién jugó y quién no ────────────────────────────────────────────────────
 function quienAnswer(patients: Patient[]): CopilotAnswer {
   const base = {
-    id: 'quien', chip: '¿Quién no abrió esta semana?',
-    keys: ['no abr', 'quien', 'esta semana', 'abrio', 'jugo'],
+    id: 'quien', chip: '¿Quién no ha jugado esta semana?',
+    keys: ['no abr', 'no ha', 'quien', 'esta semana', 'abrio', 'jugo', 'jugado'],
   }
   if (patients.length === 0) return { ...base, text: 'Todavía no tienes carpetas.' }
 
@@ -129,7 +129,7 @@ function areaAnswer(p: Patient): CopilotAnswer {
   const name = firstName(p.name)
   const dist = localAreas(p.history ?? []).slice(0, 4).map(a => [a.label, a.pct] as [string, number])
   const base = {
-    id: 'area', chip: `¿Qué jugó ${name} por área?`,
+    id: 'area', chip: `¿Qué ha jugado ${name} por área?`,
     keys: ['area', 'apoya', 'en que', 'distribu', name.toLowerCase()],
   }
   if (dist.length === 0) {
@@ -138,7 +138,7 @@ function areaAnswer(p: Patient): CopilotAnswer {
   const n = p.history?.length ?? 0
   return {
     ...base,
-    text: `Esto es lo que más jugó ${name}, no una valoración:`,
+    text: `Esto es lo que más ha jugado ${name}, no una valoración:`,
     dist,
     src: `Según ${n} ${n === 1 ? 'partida' : 'partidas'} de ${name}.`,
   }
@@ -150,12 +150,12 @@ function redactaAnswer(p: Patient): CopilotAnswer {
   const n = p.metrics.sessionsThisWeek
   const top = placesByUse(p, thisWeek())[0]
   const draft = n > 0
-    ? `Esta semana ${name} jugó ${veces(n)} en casa${top ? `, sobre todo en ${top}` : ''}. Seguimos con lo que trabajamos en consulta. Gracias por acompañar desde casa.`
+    ? `Esta semana ${name} ha jugado ${veces(n)} en casa${top ? `, sobre todo en ${top}` : ''}. Seguimos con lo que trabajamos en consulta. Gracias por acompañar desde casa.`
     : `Esta semana ${name} no ha abierto Dracs. Cuando podáis, retomadlo con un juego corto. Lo hablamos en la próxima sesión.`
   return {
     id: 'redacta', chip: `Redacta el comentario para la familia de ${name}`,
     keys: ['redacta', 'comentario', 'familia', 'escrib', 'mensaje', 'carta'],
-    text: 'Te dejo un borrador con lo que pasó esta semana, sin afirmar mejoras:',
+    text: 'Te dejo un borrador con lo que ha pasado esta semana, sin afirmar mejoras:',
     draft,
   }
 }
@@ -167,7 +167,7 @@ function informeLines(p: Patient): string[] {
   const stats = statsFor(fromLocalHistory(p.history ?? []), rangeFor('cuatro'))
   if (!stats.hasData) return []
   const lines = [
-    `Jugó ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} de las últimas 4 semanas.`,
+    `Ha jugado ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} de las últimas 4 semanas.`,
   ]
   if (stats.accuracy != null) lines.push(`Sus aciertos del período están en ${stats.accuracy}%.`)
   if (stats.firstHalf != null && stats.secondHalf != null) {
@@ -186,7 +186,7 @@ export function informeAnswer(name: string, lines: string[]): CopilotAnswer {
   if (lines.length === 0) {
     return {
       ...base,
-      text: `No tengo partidas de ${name} en Dracs, así que no puedo armarte el borrador.`,
+      text: `No tengo partidas de ${name} en Dracs, así que no puedo prepararte el borrador.`,
     }
   }
   const numbered = lines.map((l, i) => `${i + 1}.  ${l}`).join('\n')
@@ -236,13 +236,13 @@ function prepAnswer(patients: Patient[], isDemo: boolean): CopilotAnswer {
       : `Aciertos de esta semana: ${week.accuracy}%.`)
   }
   const places = placesByUse(p, thisWeek())
-  if (places.length > 0) lines.push(`Jugó en ${joinY(places)}.`)
+  if (places.length > 0) lines.push(`Ha jugado en ${joinY(places)}.`)
 
   return {
     id: 'prep',
     chip: offset === 0 ? `Prepárame la sesión de las ${time}` : `Prepárame la sesión de ${name}`,
     keys: [...keys, time, name.toLowerCase()],
-    text: `${name}, ${when} a las ${time}. Esto es lo que jugó en casa:\n\n${lines.map((l, i) => `${i + 1}.  ${l}`).join('\n')}\n\nEl detalle está en su carpeta.`,
+    text: `${name}, ${when} a las ${time}. Esto es lo que ha jugado en casa:\n\n${lines.map((l, i) => `${i + 1}.  ${l}`).join('\n')}\n\nEl detalle está en su carpeta.`,
   }
 }
 
@@ -266,7 +266,7 @@ export function buildAnswers(patients: Patient[], isDemo: boolean): CopilotAnswe
 // Límite honesto: dice qué sabe hacer y NO pregunta nada.
 export const FALLBACK: CopilotAnswer = {
   id: 'fallback', chip: '', keys: [],
-  text: 'Trabajo con lo que los niños jugaron en Dracs: quién jugó y quién no, qué jugó cada uno por área, preparar una sesión o redactar un borrador.',
+  text: 'Trabajo con lo que los niños han jugado en Dracs: quién ha jugado y quién no, qué ha jugado cada uno por área, preparar una sesión o redactar un borrador.',
 }
 
 // El terapeuta dice que sí a algo que nadie ofreció.

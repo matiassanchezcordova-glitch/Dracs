@@ -7,7 +7,6 @@ import MapExplorer from './MapExplorer'
 import DeskTabs from './DeskTabs'
 import Cinta from './Cinta'
 import Futuro from './Futuro'
-import { useInView } from './useInView'
 import './landing.css'
 
 // Landing pública (/). Se entiende mirando y jugando: poco texto, capturas
@@ -82,17 +81,32 @@ function Menu() {
   )
 }
 
+// ── Barra de arriba: logo, "Quiero sumarme" y Menú, fija en todo el scroll.
+// Arriba del todo es transparente y se apoya en la hoja del hero; al bajar
+// toma un fondo blanco translúcido para que se lea sobre cualquier sección.
+function TopBar() {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return (
+    <header className={`lp-top${scrolled ? ' is-scrolled' : ''}`}>
+      <Brand />
+      <div className="lp-top__actions">
+        <a className="lp-btn lp-btn--primary lp-btn--small" href="#sumarme">Quiero sumarme</a>
+        <Menu />
+      </div>
+    </header>
+  )
+}
+
 // ── Hero: saludo, una línea y la demo jugable ────────────────────────────
 function Hero() {
   return (
     <div className="lp-sheet" id="inicio">
-      <header className="lp-top">
-        <Brand />
-        <div className="lp-top__actions">
-          <a className="lp-btn lp-btn--primary lp-btn--small lp-hide-sm" href="#sumarme">Quiero sumarme</a>
-          <Menu />
-        </div>
-      </header>
       <section className="lp-hero">
         <h1 className="lp-display">El niño juega.<br />Tú decides.</h1>
         <p className="lp-lead">Juegos de lenguaje y cognición para niños de 3 a 10 años. Cada partida llega al profesional que lo acompaña.</p>
@@ -175,7 +189,7 @@ function Features() {
         media={<WeekStrip />}
         title={<>La sesión es un día.<br />La semana tiene siete.</>}
       >
-        <p className="lp-p">Dracs llena los otros días con juego, y tú llegas a la sesión sabiendo qué hizo.</p>
+        <p className="lp-p">Dracs llena los otros días con juego, y tú llegas a la sesión sabiendo qué ha hecho.</p>
         <div className="lp-minifig">
           {figures.map(f => (
             <div key={f.n}>
@@ -219,8 +233,8 @@ function Features() {
         mediaClass="lp-feature__media--sun"
         media={(
           <div className="fm">
-            <img src="/landing/carta.webp" alt="La carta de la semana que recibe la familia de Pol." width={1520} height={406} loading="lazy" />
-            <img src="/landing/hoy.webp" alt="Una cosa para hoy: jugar juntos 5 minutos en el castillo de arena." width={1520} height={480} loading="lazy" />
+            <img src="/landing/carta.webp" alt="La carta de la semana que recibe la familia de Pol." width={1520} height={418} loading="lazy" />
+            <img src="/landing/hoy.webp" alt="Una cosa para hoy: jugar juntos 5 minutos en el castillo de arena." width={1520} height={502} loading="lazy" />
           </div>
         )}
         title="La familia sabe qué hacer hoy."
@@ -234,8 +248,8 @@ function Features() {
 
 // ── Tú decides ───────────────────────────────────────────────────────────
 function Decide() {
-  const does = ['Registra cada partida', 'Ordena lo jugado por día y por área', 'Sugiere juegos según las áreas que elegiste', 'Prepara un borrador de informe que tú reescribes']
-  const doesNot = ['Diagnosticar', 'Fijar objetivos', 'Decir si un niño mejoró', 'Enseñar a la familia aciertos o niveles']
+  const does = ['Registra cada partida', 'Ordena lo jugado por día y por área', 'Sugiere juegos según las áreas que has elegido', 'Prepara un borrador de informe que tú reescribes']
+  const doesNot = ['Diagnosticar', 'Fijar objetivos', 'Decir si un niño ha mejorado', 'Enseñar a la familia aciertos o niveles']
   return (
     <section className="lp-section" id="decides">
       <div className="lp-wrap">
@@ -256,13 +270,15 @@ function Decide() {
 }
 
 // ── Ya funciona hoy: capturas reales de la demo, flotando ────────────────
+// Cada tarjeta es un recorte pequeño de la demo, hecho a 3x, para que se lea
+// a su tamaño. Al pasar el cursor crece un poco, nada más.
 function Showcase() {
   const cards = [
-    { title: 'Tus pacientes', img: '/landing/app-pacientes.webp', w: 2240, h: 1400, cls: 'sc--wide sc--low' },
-    { title: 'Pautas el foco', img: '/landing/plan.webp', w: 1344, h: 894, cls: 'sc--mid' },
-    { title: 'Juega en casa', img: '/landing/partida-caracola.webp', w: 760, h: 740, cls: 'sc--high' },
-    { title: 'El informe, con tu firma', img: '/landing/informe.webp', w: 1344, h: 1672, cls: 'sc--mid sc--tall' },
-    { title: 'La carta de la semana', img: '/landing/carta.webp', w: 1520, h: 406, cls: 'sc--wide sc--low' },
+    { title: 'Tus pacientes', img: '/landing/sc-pacientes.webp', w: 960, h: 1071, cls: 'sc--low' },
+    { title: 'Pautas el foco', img: '/landing/sc-plan.webp', w: 852, h: 1137, cls: 'sc--mid' },
+    { title: 'Juega en casa', img: '/landing/sc-partida.webp', w: 960, h: 957, cls: 'sc--high' },
+    { title: 'El informe de seguimiento', img: '/landing/sc-informe.webp', w: 852, h: 1314, cls: 'sc--mid' },
+    { title: 'La carta de la semana', img: '/landing/sc-carta.webp', w: 852, h: 831, cls: 'sc--low' },
   ]
   return (
     <section className="lp-show" id="hoy">
@@ -275,7 +291,9 @@ function Showcase() {
         {cards.map(c => (
           <figure key={c.title} className={`sc ${c.cls}`}>
             <figcaption>{c.title}</figcaption>
-            <div className="sc__img"><img src={c.img} alt={c.title} width={c.w} height={c.h} loading="lazy" /></div>
+            <div className="sc__img" style={{ aspectRatio: `${c.w} / ${c.h}` }}>
+              <img src={c.img} alt={c.title} width={c.w} height={c.h} loading="lazy" />
+            </div>
           </figure>
         ))}
       </div>
@@ -364,38 +382,29 @@ function Preguntas() {
   )
 }
 
+// Pie: una hoja oscura que cierra la página, igual que la hoja clara del
+// hero la abre. El nombre en Fredoka es el logotipo, no un título.
 function Footer() {
   return (
     <footer className="lp-bigfoot">
-      <nav aria-label="Pie de página">
-        <ul className="lp-bigfoot__links">
-          <li><a href="mailto:dracs@dracs.health">Escríbenos</a></li>
-          <li><Link to="/privacidad">Privacidad</Link></li>
-        </ul>
-      </nav>
-      <p className="lp-bigfoot__mark" aria-hidden="true">Dracs</p>
-      <div className="lp-bigfoot__legal lp-wrap">
-        <p className="lp-source">© 2026 Dracs · Barcelona</p>
+      <div className="lp-bigfoot__sheet">
+        <div className="lp-bigfoot__row">
+          <img className="lp-bigfoot__dragon" src="/landing/dragon.webp" alt="" width={40} height={52} />
+          <nav aria-label="Pie de página">
+            <ul className="lp-bigfoot__links">
+              <li><a href="mailto:dracs@dracs.health">Escríbenos</a></li>
+              <li><Link to="/privacidad">Privacidad</Link></li>
+            </ul>
+          </nav>
+        </div>
+        <p className="lp-bigfoot__mark" aria-hidden="true">Dracs</p>
+        <p className="lp-bigfoot__legal">© 2026 Dracs · Barcelona</p>
       </div>
     </footer>
   )
 }
 
-// ── Barra fija abajo: aparece al pasar el hero ───────────────────────────
-function StickyCta({ heroInView, joinInView }: { heroInView: boolean; joinInView: boolean }) {
-  const show = !heroInView && !joinInView
-  return (
-    <div className={`lp-dock${show ? ' is-on' : ''}`} aria-hidden={!show}>
-      <p className="lp-dock__text">¿Trabajas con niños?</p>
-      <Link className="lp-btn lp-btn--ghost lp-btn--small" to={DEMO_THERAPIST} tabIndex={show ? 0 : -1}>Probar la demo</Link>
-      <a className="lp-btn lp-btn--primary lp-btn--small" href="#sumarme" tabIndex={show ? 0 : -1}>Quiero sumarme</a>
-    </div>
-  )
-}
-
 export default function Landing() {
-  const [heroRef, heroInView] = useInView<HTMLDivElement>({ threshold: 0.15 })
-  const [joinRef, joinInView] = useInView<HTMLDivElement>({ threshold: 0.05 })
 
   useEffect(() => {
     document.title = 'Dracs · El niño juega. Tú decides.'
@@ -407,22 +416,20 @@ export default function Landing() {
 
   return (
     <div className="lp">
+      <TopBar />
       <main>
-        <div ref={heroRef}><Hero /></div>
+        <Hero />
         <Statement />
         <Features />
         <Cinta />
         <Decide />
         <Showcase />
         <Futuro />
-        <div ref={joinRef}>
-          <Sumarse />
-        </div>
+        <Sumarse />
         <Equipo />
         <Preguntas />
       </main>
       <Footer />
-      <StickyCta heroInView={heroInView} joinInView={joinInView} />
     </div>
   )
 }

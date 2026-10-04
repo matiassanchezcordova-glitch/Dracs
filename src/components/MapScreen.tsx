@@ -21,7 +21,7 @@ export default function MapScreen() {
     return (
       <div className="w-full flex flex-col items-center justify-center gap-3 p-8 text-center" style={{ flex: 1 }}>
         <p style={{ margin: 0, fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '24px', fontWeight: 600, color: '#17313A' }}>
-          El mapa no cargó.
+          El mapa no ha cargado.
         </p>
         <button
           type="button"

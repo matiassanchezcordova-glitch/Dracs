@@ -179,14 +179,14 @@ function AgendarVideollamada({ patients, slotsDe, onSaved }: {
   const line: React.CSSProperties = { ...FIELD_LINE, background: DT.white }
 
   if (!open) {
-    return <Button Icon={VideoCamera} onClick={() => setOpen(true)} disabled={patients.length === 0}>Agendar videollamada</Button>
+    return <Button Icon={VideoCamera} onClick={() => setOpen(true)} disabled={patients.length === 0}>Programar videollamada</Button>
   }
 
   return (
     <div className="td-in" style={{
       padding: '20px', borderRadius: DT.radiusSm, background: DT.cream,
     }}>
-      <SectionTitle Icon={VideoCamera}>Agendar videollamada</SectionTitle>
+      <SectionTitle Icon={VideoCamera}>Programar videollamada</SectionTitle>
 
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -213,7 +213,7 @@ function AgendarVideollamada({ patients, slotsDe, onSaved }: {
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <Button variant="primary" Icon={CalendarPlus} onClick={agendar} disabled={!patient || !day || !time}>
-          Agendar
+          Programar
         </Button>
         <Button onClick={() => setOpen(false)}>Cancelar</Button>
       </div>
@@ -305,7 +305,7 @@ function SemanaNav({ day, onDay, busyOf, today }: {
               className="td-day"
               onClick={() => onDay(iso)}
               aria-pressed={active}
-              aria-label={`${longDay(iso)}${isToday ? ', hoy' : ''}${busy ? ', con algo agendado' : ''}`}
+              aria-label={`${longDay(iso)}${isToday ? ', hoy' : ''}${busy ? ', con algo en la agenda' : ''}`}
               style={{
                 padding: '9px 0 8px', borderRadius: DT.radiusSm, cursor: 'pointer', boxSizing: 'border-box',
                 border: `1.5px solid ${active ? DT.night : isToday ? DT.azul : DT.line}`,
@@ -420,7 +420,7 @@ export default function TuDia({ patients, isDemo, onOpen }: Props) {
       </p>
       {filas.length === 0 ? (
         <div style={{ marginBottom: '8px' }}>
-          <EmptyState Icon={CalendarBlank} title="Nada agendado este día" compact />
+          <EmptyState Icon={CalendarBlank} title="Nada en la agenda este día" compact />
         </div>
       ) : (
         <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>

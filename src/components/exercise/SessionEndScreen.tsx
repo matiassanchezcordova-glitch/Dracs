@@ -210,7 +210,7 @@ export default function SessionEndScreen({
               ? <ArrowUp size={20} style={{ color: pal.primary, flexShrink: 0 }} />
               : <BookMarked size={20} style={{ color: pal.primary, flexShrink: 0 }} />}
             {levelChanged === 'up'
-              ? 'La próxima partida, un poquito más difícil.'
+              ? 'La próxima partida, un poco más difícil.'
               : 'Vamos a practicar un poco más en este nivel.'}
           </p>
         )}

@@ -168,3 +168,6 @@
   .ax-view svg { display: none; }
   .ax-brand img { width: 34px; }
 }
+
+/* El mundo del niño va entero en Fredoka, también los textos sin fuente propia. */
+.kid-world, .kid-world * { font-family: 'Fredoka', system-ui, sans-serif; }

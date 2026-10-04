@@ -248,7 +248,7 @@ function AppInner() {
         </div>
       )}
 
-      <main key={activeTab ?? location.pathname} className="ax-main tab-enter">
+      <main key={activeTab ?? location.pathname} className={activeTab === 'ejercicio' ? 'ax-main tab-enter kid-world' : 'ax-main tab-enter'}>
         <Outlet />
       </main>
     </div>

@@ -479,7 +479,7 @@ function informeLinesFor(name: string): string[] {
   const stats = statsFor(fromLocalHistory(loadHistory()), rangeFor('cuatro'))
   if (!stats.hasData) return []
   const lines = [
-    `Jugó ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} de las últimas 4 semanas.`,
+    `Ha jugado ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} de las últimas 4 semanas.`,
   ]
   if (stats.accuracy != null) lines.push(`Sus aciertos del período están en ${stats.accuracy}%.`)
   if (stats.firstHalf != null && stats.secondHalf != null) {
@@ -495,7 +495,7 @@ function informeAnswer(rawName: string | undefined, given?: string[]): CopilotAn
   if (lines.length === 0) {
     return {
       id: 'informe', chip: '', keys: [],
-      text: `No tengo partidas de ${name} en Dracs, así que no puedo armarte el borrador. El informe vive en la sección Informe de su carpeta.`,
+      text: `No tengo partidas de ${name} en Dracs, así que no puedo prepararte el borrador. El informe vive en la sección Informe de su carpeta.`,
     }
   }
 

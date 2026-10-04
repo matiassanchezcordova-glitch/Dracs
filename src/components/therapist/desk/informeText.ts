@@ -70,14 +70,14 @@ export function buildBlocks(version: Version, input: InformeInput): InformeBlock
 
   if (version === 'familia') {
     const actividad: string[] = [
-      `${childName} jugó ${activityWords(stats.activeDays, stats.spanDays)} durante este período.`,
+      `${childName} ha jugado ${activityWords(stats.activeDays, stats.spanDays)} durante este período.`,
     ]
-    blocks.push({ title: 'Cómo fue el período', lines: actividad })
+    blocks.push({ title: 'Cómo ha ido el período', lines: actividad })
 
     if (areas.length > 0) {
       blocks.push({
-        title: 'En qué anduvo',
-        lines: [`Lo que más jugó fue ${joinNames(areas.slice(0, 3).map(a => a.label.toLowerCase()))}.`],
+        title: 'A qué ha jugado',
+        lines: [`Lo que más ha jugado: ${joinNames(areas.slice(0, 3).map(a => a.label.toLowerCase()))}.`],
       })
     }
     if (focusAreas.length > 0) {
@@ -139,9 +139,9 @@ export function draftComment(version: Version, input: InformeInput): string {
   const parts: string[] = []
 
   if (version === 'familia') {
-    parts.push(`${childName} jugó ${activityWords(stats.activeDays, stats.spanDays)} en este período.`)
+    parts.push(`${childName} ha jugado ${activityWords(stats.activeDays, stats.spanDays)} en este período.`)
     if (areas.length > 0) {
-      parts.push(`Se movió sobre todo por ${joinNames(areas.slice(0, 2).map(a => a.label.toLowerCase()))}.`)
+      parts.push(`Sus partidas han sido sobre todo de ${joinNames(areas.slice(0, 2).map(a => a.label.toLowerCase()))}.`)
     }
     if (focusAreas.length > 0) {
       parts.push(`Seguimos poniendo el foco en ${joinNames(focusNames(focusAreas).map(n => n.toLowerCase()))}.`)
@@ -150,9 +150,9 @@ export function draftComment(version: Version, input: InformeInput): string {
     return parts.join(' ')
   }
 
-  parts.push(`${childName} registró ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} del período.`)
+  parts.push(`${childName} ha registrado ${stats.sessions} ${stats.sessions === 1 ? 'partida' : 'partidas'} en ${stats.activeDays} ${stats.activeDays === 1 ? 'día' : 'días'} del período.`)
   if (stats.accuracy != null) parts.push(`El porcentaje de aciertos del período es ${stats.accuracy}%.`)
-  if (areas.length > 0) parts.push(`El juego se concentró en ${joinNames(areas.slice(0, 2).map(a => a.label.toLowerCase()))}.`)
+  if (areas.length > 0) parts.push(`El juego se ha concentrado en ${joinNames(areas.slice(0, 2).map(a => a.label.toLowerCase()))}.`)
   if (focusAreas.length > 0) parts.push(`Las áreas de foco son ${joinNames(focusNames(focusAreas).map(n => n.toLowerCase()))}.`)
   parts.push('Añade aquí tu valoración y las indicaciones que correspondan.')
   return parts.join(' ')

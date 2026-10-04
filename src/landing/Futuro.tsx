@@ -17,7 +17,7 @@ function Pedir() {
             <img src="/landing/ilus/cubo-vacio.webp" alt="" width={60} height={60} />
             <img src="/landing/ilus/castillo.webp" alt="" width={60} height={60} />
           </div>
-          <p className="fu-small">Tú los revisas y decides si van.</p>
+          <p className="fu-small">Tú los revisas y decides cuáles se quedan.</p>
         </div>
       </div>
     </div>
@@ -65,9 +65,9 @@ function Mundo() {
 }
 
 const ITEMS = [
-  { title: 'Pídeselo a Dracs', text: 'Cuentas lo que viste en la sesión y Dracs prepara los juegos de la semana. Tú los apruebas.', ui: <Pedir /> },
-  { title: 'Dibujar para jugar', text: 'Dracs pide un dibujo, el niño lo hace con el dedo y Dracs te cuenta qué dibujó.', ui: <Dibujo /> },
-  { title: 'Responder hablando', text: 'El niño contesta en voz alta. Dracs guarda la grabación y lo que entendió, para que lo escuches tú.', ui: <Voz /> },
+  { title: 'Pídeselo a Dracs', text: 'Cuentas lo que has visto en la sesión y Dracs prepara los juegos de la semana. Tú los apruebas.', ui: <Pedir /> },
+  { title: 'Dibujar para jugar', text: 'Dracs pide un dibujo, el niño lo hace con el dedo y Dracs te cuenta qué ha dibujado.', ui: <Dibujo /> },
+  { title: 'Responder hablando', text: 'El niño contesta en voz alta. Dracs guarda la grabación y lo que ha entendido, para que lo escuches tú.', ui: <Voz /> },
   { title: 'Su mundo, en el juego', text: 'Su casa, su perro, su colegio. La familia sube fotos y se vuelven partidas.', ui: <Mundo /> },
 ]
 
