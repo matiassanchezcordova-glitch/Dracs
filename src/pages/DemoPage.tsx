@@ -30,7 +30,7 @@ export default function DemoPage() {
   // Enlace directo (?como=profesional): entra sin pasar por las puertas.
   const como = params.get('como')?.toLowerCase() ?? null
   const directRole = como ? QUERY_TO_ROLE[como] : undefined
-  useEffect(() => { document.title = 'Dracs · Demo' }, [])
+  useEffect(() => { document.title = 'Dracs' }, [])
 
   useEffect(() => {
     if (!directRole) return

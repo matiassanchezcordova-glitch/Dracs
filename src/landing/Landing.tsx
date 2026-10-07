@@ -108,8 +108,8 @@ function Hero() {
   return (
     <div className="lp-sheet" id="inicio">
       <section className="lp-hero">
-        <h1 className="lp-display">El niño juega.<br />Tú decides.</h1>
-        <p className="lp-lead">Juegos de lenguaje y cognición para niños de 3 a 10 años. Cada partida llega al profesional que lo acompaña.</p>
+        <h1 className="lp-display">Juegos para practicar en casa lo que se trabaja en terapia.</h1>
+        <p className="lp-lead">Para niños de 3 a 10 años, en lenguaje y cognición. Cada partida llega al profesional que lo acompaña.</p>
         <div className="lp-hero__actions">
           <Link className="lp-btn lp-btn--dark" to={DEMO_THERAPIST}>Probar la demo</Link>
         </div>
@@ -407,7 +407,7 @@ function Footer() {
 export default function Landing() {
 
   useEffect(() => {
-    document.title = 'Dracs · El niño juega. Tú decides.'
+    document.title = 'Dracs'
     // Primera carga con ancla (un enlace compartido a /#sumarme). Al llegar
     // desde otra ruta de la web, el ancla la resuelve ScrollManager.
     const id = window.location.hash.slice(1)

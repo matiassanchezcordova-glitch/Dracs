@@ -16,7 +16,7 @@ const DEMO = [
 ]
 
 export default function PrivacyPage() {
-  useEffect(() => { document.title = 'Dracs · Privacidad' }, [])
+  useEffect(() => { document.title = 'Dracs' }, [])
   return (
     <div className="lp" style={{ minHeight: '100vh' }}>
       <header className="lp-nav">

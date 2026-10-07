@@ -93,11 +93,8 @@ function AppInner() {
   const isDemo = !user
   const activeTab = pathToTab(location.pathname)
 
-  // Título de la pestaña del navegador: la vista en la que estás.
-  useEffect(() => {
-    const view = VIEWS.find(v => v.tab === activeTab)
-    document.title = view ? `Dracs · Demo · ${view.label}` : 'Dracs · Demo'
-  }, [activeTab])
+  // Título de la pestaña del navegador: solo la marca, en toda la web.
+  useEffect(() => { document.title = 'Dracs' }, [activeTab])
 
   const childName = isDemo ? null : (patient?.child_name ?? null)
   const therapistName = isDemo ? null : (profile?.full_name ?? null)

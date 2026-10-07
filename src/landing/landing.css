@@ -766,7 +766,7 @@
    interfaz, pequeño). Las fichas de las capturas simuladas usan además 12px.
    ══════════════════════════════════════════════════════════════════════════ */
 .lp {
-  --t-display: clamp(44px, 7vw, 104px);
+  --t-display: clamp(38px, 5.6vw, 80px);
   --t-h2: 56px;
   --t-h3: 40px;
   --t-h4: 24px;
@@ -780,7 +780,7 @@
 }
 
 /* Serif */
-.lp .lp-display { font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-display); }
+.lp .lp-display { font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-display); line-height: 1.04; letter-spacing: -0.03em; max-width: 24ch; margin-left: auto; margin-right: auto; text-wrap: balance; }
 .lp .lp-title, .lp .lp-statement__text {
   font-family: var(--lp-serif); font-weight: 500; font-size: var(--t-h2); letter-spacing: -0.02em;
 }
